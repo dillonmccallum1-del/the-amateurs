@@ -26,6 +26,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   onSnapshot,
   query,
@@ -144,6 +145,11 @@ export async function saveTeam(id, data) {
     { ...data, updatedAt: serverTimestamp() },
     { merge: true }
   );
+}
+
+/** Admin: delete a team doc entirely. */
+export async function deleteTeam(id) {
+  await deleteDoc(doc(db, "teams", id));
 }
 
 /** Admin: update one hole's strokes for a team.

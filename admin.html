@@ -233,7 +233,10 @@
       <div class="btn-row">
         <button id="save-team" class="btn btn-primary">Save team</button>
         <button id="load-team-for-edit" class="btn btn-secondary">Load by ID</button>
+        <button id="delete-team" class="btn btn-danger">Delete team</button>
+        <button id="clear-form" class="btn btn-secondary">New team (clear form)</button>
       </div>
+      <p class="small-hint">To edit: tap any team below, change fields, hit Save. To delete: tap a team, then Delete team (or use the × on its row).</p>
       <div id="team-feedback" class="feedback hidden"></div>
 
       <h3 style="margin-top: 26px;">Current teams</h3>
@@ -302,7 +305,7 @@
   import {
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig,
-    onTeams, saveTeam, setTeamStrokes, setTeamBonus
+    onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus
   } from "./js/firebase-init.js";
 
   // ----- Element refs
@@ -421,13 +424,44 @@
       row.innerHTML = `
         <div class="team-row-head">
           <span>Pick ${t.draftPick ?? "?"} · ${escapeHtml(t.name || "(no name)")}</span>
-          <span class="status-badge ok">ID: ${escapeHtml(t.id)}</span>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span class="status-badge ok">ID: ${escapeHtml(t.id)}</span>
+            <button type="button" class="team-row-delete btn btn-danger" data-id="${escapeAttr(t.id)}" data-name="${escapeAttr(t.name || t.id)}" style="padding: 4px 10px; font-size: 13px;" aria-label="Delete team">×</button>
+          </span>
         </div>
         <div class="team-row-meta">${escapeHtml(t.captain || "—")} &middot; ${escapeHtml(t.partner || "—")}</div>
       `;
-      row.addEventListener("click", () => loadTeamIntoForm(t));
+      // Clicking the row loads the team into the form (but not when the × is clicked).
+      row.addEventListener("click", (e) => {
+        if (e.target.classList && e.target.classList.contains("team-row-delete")) return;
+        loadTeamIntoForm(t);
+      });
+      // × button: delete with confirm.
+      row.querySelector(".team-row-delete").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const btn = e.currentTarget;
+        const id = btn.dataset.id;
+        const name = btn.dataset.name;
+        if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
+        try {
+          await deleteTeam(id);
+          // If we were editing this team, clear the form.
+          if ($("team-id").value.trim() === id) clearTeamForm();
+          flash("team-feedback", `Deleted "${name}".`, "ok");
+        } catch (err) {
+          flash("team-feedback", err.message, "err");
+        }
+      });
       wrap.appendChild(row);
     });
+  }
+
+  function clearTeamForm() {
+    $("team-id").value = "";
+    $("team-name").value = "";
+    $("team-captain").value = "";
+    $("team-partner").value = "";
+    $("team-draft").value = "";
   }
 
   function loadTeamIntoForm(t) {
@@ -462,6 +496,26 @@
     } catch (err) {
       flash("team-feedback", err.message, "err");
     }
+  });
+
+  $("delete-team").addEventListener("click", async () => {
+    const id = $("team-id").value.trim();
+    if (!id) { flash("team-feedback", "Type or load a team ID first.", "err"); return; }
+    const t = currentTeams.find(x => x.id === id);
+    const name = (t && t.name) || id;
+    if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
+    try {
+      await deleteTeam(id);
+      clearTeamForm();
+      flash("team-feedback", `Deleted "${name}".`, "ok");
+    } catch (err) {
+      flash("team-feedback", err.message, "err");
+    }
+  });
+
+  $("clear-form").addEventListener("click", () => {
+    clearTeamForm();
+    flash("team-feedback", "Form cleared. Enter a new team ID to add a new team.", "ok");
   });
 
   // ----- Score entry
