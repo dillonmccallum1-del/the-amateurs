@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f5928">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Amateurs">
+<title>Live Leaderboard · The Amateurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <button class="menu-toggle" aria-label="Open menu" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="17" x2="20" y2="17"/>
+    </svg>
+  </button>
+</header>
+
+<div class="nav-overlay" onclick="toggleMenu()"></div>
+<nav class="drawer">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="rules.html">Rules &amp; Scoring</a>
+  <a href="leaderboard.html" class="active">Live Leaderboard</a>
+  <a href="draft.html">Draft</a>
+  <a href="history.html">History</a>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-header">
+  <a href="index.html" class="back-link">Back</a>
+  <h1>Live Leaderboard</h1>
+  <div class="header-divider"></div>
+</section>
+
+<!-- ===== YEAR / EDITION BANNER (filled by JS) ===== -->
+<div class="year-edition"><span id="edition-banner">2026 Footgolf Edition</span></div>
+
+<!-- ===== DYNAMIC STATE: PRE-EVENT or HIDDEN or LIVE ===== -->
+<section class="content">
+  <div id="state-pre-event" class="status-card pre-event hidden-by-default">
+    <span class="status-label">Pre-Event</span>
+    <h2>The leaderboard goes live on event day</h2>
+    <p>Once the 2026 draft is complete, every team and captain will appear here. During the round itself, scores update in real time as each group records them &mdash; the standings should move without refreshing.</p>
+    <p>Keep this page bookmarked. On event day, this is where everyone follows along.</p>
+    <div class="status-meta">Format: 9-hole footgolf &middot; 2-person alternate kick &middot; Modified Stableford (high score wins)</div>
+  </div>
+
+  <div id="state-hidden" class="status-card pre-event hidden-by-default">
+    <span class="status-label">Round in progress</span>
+    <h2>The Commissioner is keeping scores under wraps</h2>
+    <p>The round is being played, but standings are hidden from players to preserve the suspense. The leaderboard will appear here the moment the Commissioner taps Reveal.</p>
+    <div class="status-meta">If you're not playing today, hang tight &mdash; updates will appear automatically.</div>
+  </div>
+
+  <div id="state-loading" class="status-card pre-event">
+    <span class="status-label">Loading</span>
+    <h2>Connecting to live data…</h2>
+    <p>One moment.</p>
+  </div>
+</section>
+
+<!-- ===== LIVE LEADERBOARD (rendered by JS when status=live and visible) ===== -->
+<section class="content hidden-by-default" id="state-live">
+  <div class="leaderboard">
+    <div class="leaderboard-header">
+      <div class="title" id="live-title">Live Standings</div>
+      <div class="live-dot">Live</div>
+    </div>
+    <div class="leaderboard-cols">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div>Thru</div>
+      <div>Pts</div>
+    </div>
+    <div id="leaderboard-rows"></div>
+    <div class="leaderboard-footer" id="live-footer">Tap a team to expand its scorecard.</div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS (always shown) ===== -->
+<section class="content">
+  <h2 class="section-title">How it works on event day</h2>
+  <div class="section-rule"></div>
+  <p>The Live Leaderboard runs on a real-time database, so every device showing this page stays in sync within seconds &mdash; no refreshing needed.</p>
+
+  <div class="info-grid">
+    <div class="info-tile">
+      <div class="icon">👥</div>
+      <h3>Commissioner Entry</h3>
+      <p>The Commissioner (and any approved assistants) signs in to a private admin page to enter scores as each hole is completed. Everyone else only sees the leaderboard &mdash; not the controls.</p>
+    </div>
+    <div class="info-tile">
+      <div class="icon">🔒</div>
+      <h3>Hidden from Players</h3>
+      <p>The Commissioner can keep the leaderboard hidden from players during the round to preserve the suspense. Until they tap "Reveal," anyone on this page sees a placeholder. Spectators not playing can still follow along if revealed early.</p>
+    </div>
+    <div class="info-tile">
+      <div class="icon">↑↓</div>
+      <h3>Position Changes</h3>
+      <p>When a team overtakes another or falls behind, a green up arrow or red down arrow appears beside their rank &mdash; easy to spot at a glance.</p>
+    </div>
+    <div class="info-tile">
+      <div class="icon">📡</div>
+      <h3>Offline Catch-Up</h3>
+      <p>If you lose signal mid-round, the leaderboard catches up the moment you reconnect.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="app-footer">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <p>A MacCallum family tradition since 2021</p>
+  <p>Michigan, USA</p>
+  <div class="footer-fine">Edition VI &middot; MMXXVI</div>
+</footer>
+
+<style>
+  /* Local helpers so we can toggle visibility cleanly without
+     touching the shared stylesheet. */
+  .hidden-by-default { display: none !important; }
+  .show { display: block !important; }
+</style>
+
+<script>
+  function toggleMenu() {
+    document.querySelector('nav.drawer').classList.toggle('open');
+    document.querySelector('.nav-overlay').classList.toggle('open');
+  }
+</script>
+
+<script type="module">
+  import {
+    onEventConfig, onTeams, computeTeamTotals, pointsForHole
+  } from "./js/firebase-init.js";
+
+  let lastRanking = {}; // teamId -> previous rank (for ↑↓ arrows)
+  let currentConfig = null;
+  let currentTeams = [];
+
+  const $ = (id) => document.getElementById(id);
+  function show(id) { $(id).classList.remove("hidden-by-default"); }
+  function hide(id) { $(id).classList.add("hidden-by-default"); }
+
+  onEventConfig((cfg) => {
+    currentConfig = cfg;
+    if (cfg && cfg.edition) $("edition-banner").textContent = cfg.edition;
+    render();
+  });
+
+  onTeams((teams) => {
+    currentTeams = teams;
+    render();
+  });
+
+  function render() {
+    // Always start by hiding state cards; re-show the right one.
+    hide("state-loading");
+    hide("state-pre-event");
+    hide("state-hidden");
+    hide("state-live");
+
+    if (!currentConfig) {
+      // First read hasn't returned yet OR no event doc exists yet.
+      show("state-pre-event");
+      return;
+    }
+
+    const status = currentConfig.status || "pre-event";
+    const visible = currentConfig.leaderboardVisible === true;
+
+    if (status === "pre-draft" || status === "draft" || status === "pre-event") {
+      show("state-pre-event");
+      return;
+    }
+
+    // status is "live" or "final"
+    if (!visible) {
+      show("state-hidden");
+      return;
+    }
+
+    // Render live standings.
+    renderLeaderboard();
+    show("state-live");
+  }
+
+  function renderLeaderboard() {
+    const par = currentConfig.coursePar || [3,3,3,3,3,3,3,3,3];
+    const numHoles = par.length;
+
+    // Compute totals + sort high-to-low (Stableford: high wins)
+    const rows = currentTeams.map(t => {
+      const totals = computeTeamTotals(t, par);
+      return {
+        team: t,
+        ...totals
+      };
+    }).sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      // tie-breaker: more holes completed first, then earlier draft pick
+      if (b.holesCompleted !== a.holesCompleted) return b.holesCompleted - a.holesCompleted;
+      return (a.team.draftPick ?? 99) - (b.team.draftPick ?? 99);
+    });
+
+    const rowsWrap = $("leaderboard-rows");
+    rowsWrap.innerHTML = "";
+
+    rows.forEach((r, idx) => {
+      const rank = idx + 1;
+      const prev = lastRanking[r.team.id];
+      let change = "same", changeChar = "—";
+      if (prev != null) {
+        if (rank < prev) { change = "up";   changeChar = "↑"; }
+        else if (rank > prev) { change = "down"; changeChar = "↓"; }
+      }
+
+      const isLeader = rank === 1 && r.holesCompleted > 0;
+      const teamName = r.team.name || "(unnamed team)";
+      const captain  = r.team.captain || "—";
+      const partner  = r.team.partner || "";
+      const meta     = partner ? `${captain} & ${partner}` : captain;
+
+      // Header row
+      const row = document.createElement("div");
+      row.className = "leaderboard-row expandable" + (isLeader ? " leader" : "");
+      row.setAttribute("role", "button");
+      row.setAttribute("tabindex", "0");
+      row.setAttribute("aria-expanded", "false");
+      row.innerHTML = `
+        <div class="rank">${rank}</div>
+        <div class="position-change ${change}" title="${changeText(change)}">${changeChar}</div>
+        <div>
+          <div class="team-name">${escapeHtml(teamName)} <span class="row-chevron">▾</span></div>
+          <div class="team-meta">${escapeHtml(meta)}</div>
+        </div>
+        <div class="thru">${r.holesCompleted}</div>
+        <div class="score">+${r.totalPoints}</div>
+      `;
+      rowsWrap.appendChild(row);
+
+      // Scorecard
+      const sc = document.createElement("div");
+      sc.className = "scorecard hidden";
+      sc.setAttribute("aria-hidden", "true");
+
+      const currentHoleIdx = r.holesCompleted; // 0-based index of next hole to play
+      const holesHeader = par.map((_, i) => {
+        const isCur = i === currentHoleIdx;
+        return `<th${isCur ? ' class="current"' : ''}>${i+1}</th>`;
+      }).join("");
+      const parRow = par.map((p, i) => {
+        const isCur = i === currentHoleIdx;
+        return `<td${isCur ? ' class="current"' : ''}>${p}</td>`;
+      }).join("");
+      const strokesArr = r.team.strokes || [];
+      const strokesRow = par.map((p, i) => {
+        const s = strokesArr[i];
+        const isCur = i === currentHoleIdx;
+        if (s == null) return `<td class="empty${isCur ? ' current' : ''}"></td>`;
+        const diff = s - p;
+        let marker = "";
+        if (diff <= -1) marker = "birdie";
+        else if (diff === 1) marker = "bogey";
+        const inner = marker ? `<span class="score-marker ${marker}">${s}</span>` : `${s}`;
+        return `<td${isCur ? ' class="current"' : ''}>${inner}</td>`;
+      }).join("");
+      const totalStrokes = strokesArr.reduce((a, b) => a + (b || 0), 0);
+
+      const pointsRow = par.map((p, i) => {
+        const s = strokesArr[i];
+        const isCur = i === currentHoleIdx;
+        if (s == null) return `<td class="empty${isCur ? ' current' : ''}"></td>`;
+        const pts = pointsForHole(s, p);
+        return `<td${isCur ? ' class="current"' : ''}>+${pts}</td>`;
+      }).join("");
+
+      const bonusList = (r.team.bonusPoints || [])
+        .filter(b => b.label || b.points)
+        .map(b => `<li><span class="bonus-pts">+${b.points || 0}</span> ${escapeHtml(b.label || "")}</li>`)
+        .join("");
+
+      sc.innerHTML = `
+        <table class="scorecard-table">
+          <thead>
+            <tr><th>Hole</th>${holesHeader}<th>Tot</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Par</th>${parRow}<td>${par.reduce((a,b)=>a+b,0)}</td></tr>
+            <tr><th>Strokes</th>${strokesRow}<td>${totalStrokes || ""}</td></tr>
+            <tr class="row-points"><th>Pts</th>${pointsRow}<td>+${r.holePointsTotal}</td></tr>
+          </tbody>
+        </table>
+        ${(bonusList || r.bonusTotal) ? `
+          <div class="scorecard-bonus">
+            <h4>Bonus Points</h4>
+            <ul class="bonus-list">${bonusList || '<li class="small-hint">None yet.</li>'}</ul>
+            <div class="scorecard-total">
+              <span>Final Total</span>
+              <span class="final-pts">+${r.totalPoints}</span>
+            </div>
+          </div>` : ""}
+      `;
+      rowsWrap.appendChild(sc);
+
+      // wire toggle
+      row.addEventListener("click", () => toggleRow(row, sc));
+      row.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleRow(row, sc); }
+      });
+
+      // remember rank for next render
+      lastRanking[r.team.id] = rank;
+    });
+
+    // Footer note
+    const status = currentConfig.status === "final" ? "Final results" : "Live · refreshing automatically";
+    $("live-footer").textContent = status + " · Tap a team to expand its scorecard.";
+  }
+
+  function toggleRow(row, sc) {
+    const expanded = row.classList.toggle("expanded");
+    row.setAttribute("aria-expanded", expanded ? "true" : "false");
+    sc.classList.toggle("hidden", !expanded);
+    sc.setAttribute("aria-hidden", expanded ? "false" : "true");
+  }
+
+  function changeText(c) {
+    if (c === "up")   return "Moved up";
+    if (c === "down") return "Moved down";
+    return "No change";
+  }
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  }
+</script>
+
+<script>
+  // Register service worker — enables home-screen install + offline shell.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

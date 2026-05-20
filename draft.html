@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f5928">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Amateurs">
+<title>Draft · The Amateurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <button class="menu-toggle" aria-label="Open menu" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="17" x2="20" y2="17"/>
+    </svg>
+  </button>
+</header>
+
+<div class="nav-overlay" onclick="toggleMenu()"></div>
+<nav class="drawer">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="rules.html">Rules &amp; Scoring</a>
+  <a href="leaderboard.html">Live Leaderboard</a>
+  <a href="draft.html" class="active">Draft</a>
+  <a href="history.html">History</a>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-header">
+  <a href="index.html" class="back-link">Back</a>
+  <h1>Draft</h1>
+  <div class="header-divider"></div>
+</section>
+
+<!-- ===== YEAR / EDITION BANNER ===== -->
+<div class="year-edition"><span>2026 Footgolf Edition</span></div>
+
+<!-- ===== DRAFT BOARD (live from Firestore) ===== -->
+<section class="content">
+  <h2 class="section-title">Draft Board</h2>
+  <div class="section-rule"></div>
+  <p>Draft order is locked in here once the captains make their selections. Each pick is a two-person team. This board updates live as picks are entered.</p>
+
+  <div class="draft-board" id="draft-board">
+    <!-- rendered by JS -->
+    <div class="draft-board-row">
+      <div class="draft-pick-label">…</div>
+      <div class="draft-pick-content">
+        <div class="draft-team-name empty">Loading draft…</div>
+        <div class="draft-roster empty">Connecting</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DRAFT PROFILES ===== -->
+<section class="content">
+  <h2 class="section-title">Draft Profiles</h2>
+  <div class="section-rule"></div>
+  <p>This year's class &mdash; tap the arrows to flip through.</p>
+
+  <div class="player-carousel">
+    <div class="player-carousel-nav">
+      <button class="carousel-arrow prev" aria-label="Previous player">&lsaquo;</button>
+      <div class="carousel-counter">1 / 8</div>
+      <button class="carousel-arrow next" aria-label="Next player">&rsaquo;</button>
+    </div>
+
+    <div class="player-cards">
+
+      <!-- Player 1: Dillon -->
+      <article class="player-card active">
+        <div class="player-photo-placeholder">DM</div>
+        <h3 class="player-name">Dillon McCallum</h3>
+        <div class="player-meta">27<span class="player-meta-divider">&middot;</span>5'9"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Grass Expert</li>
+            <li>Event Planner</li>
+            <li>AI Expert</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">A good sandwich.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 2: Andrea -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/Andrea 1st day of young 5 - Andrea McCallum.jpg" alt="Andrea McCallum" loading="lazy">
+        <h3 class="player-name">Andrea McCallum</h3>
+        <div class="player-meta">24<span class="player-meta-divider">&middot;</span>5'4"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Being good at math &amp; art</li>
+            <li>Using outdated cameras</li>
+            <li>Making people hockey fans</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">Sugar.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 3: Andrew Carson -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_3833 - Andrew Carson.jpeg" alt="Andrew Carson" loading="lazy">
+        <h3 class="player-name">Andrew Carson</h3>
+        <div class="player-meta">24<span class="player-meta-divider">&middot;</span>5'11"<span class="player-meta-divider">&middot;</span>3 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>I played soccer in 3rd grade.</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">I played soccer in 3rd grade.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 4: Alex -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_0229 - Alex McCallum.jpeg" alt="Alex McCallum" loading="lazy">
+        <h3 class="player-name">Alex McCallum</h3>
+        <div class="player-meta">19<span class="player-meta-divider">&middot;</span>6' with shoes<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Can kick a soccer ball somewhat well</li>
+            <li>Owns soccer cleats</li>
+            <li>Has never wanted anything more than to win The Amateurs</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">Having to be creative.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 40%"></div></div><span class="stat-value">4</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 5: Karen -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_6686 - Karen McCallum.jpeg" alt="Karen McCallum" loading="lazy">
+        <h3 class="player-name">Karen McCallum</h3>
+        <div class="player-meta">58<span class="player-meta-divider">&middot;</span>5'3"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Soccer manager for 6+ years</li>
+            <li>Can run a mean concession stand</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">Have never played soccer golf.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 6: Erin -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/C9482AEA-2457-485B-9EAD-53A0A1DBCDDD - Erin McCallum.png" alt="Erin McCallum" loading="lazy">
+        <h3 class="player-name">Erin McCallum</h3>
+        <div class="player-meta">25<span class="player-meta-divider">&middot;</span>5'5"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Hosting the after-party</li>
+            <li>Going to extreme lengths for an Instagram post (like 26.2 miles extreme)</li>
+            <li>Gracious loser (seriously, won't be upset if we lose)</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">Objects flying towards me, objects flying away from me, flying objects.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 7: David -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_1905 - David McCallum.jpeg" alt="David McCallum" loading="lazy">
+        <h3 class="player-name">David McCallum</h3>
+        <div class="player-meta">Too old for this<span class="player-meta-divider">&middot;</span>Slightly taller than Brian &amp; Alex<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Proficient with Excel pivot tables, power queries, macros, and lookups</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">See response to question #2.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 60%"></div></div><span class="stat-value">6</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 60%"></div></div><span class="stat-value">6</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 60%"></div></div><span class="stat-value">6</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Player 8: Brian -->
+      <article class="player-card">
+        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_8272 - Brian McCallum.jpeg" alt="Brian McCallum" loading="lazy">
+        <h3 class="player-name">Brian McCallum</h3>
+        <div class="player-meta">21 &mdash; 22 by tee time<span class="player-meta-divider">&middot;</span>6'7"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
+        <div class="player-section">
+          <div class="player-section-label">Talents</div>
+          <ul class="player-talents">
+            <li>Can fix his parents' Alexa from an hour away</li>
+            <li>Always ready to laugh (at himself, but more frequently others)</li>
+          </ul>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Weakness</div>
+          <p class="player-weakness">Temperatures above 72&deg;F with humidity above 50%.</p>
+        </div>
+        <div class="player-section">
+          <div class="player-section-label">Player Stats</div>
+          <div class="player-stats">
+            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 40%"></div></div><span class="stat-value">4</span></div>
+            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
+            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="app-footer">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <p>A MacCallum family tradition since 2021</p>
+  <p>Michigan, USA</p>
+  <div class="footer-fine">Edition VI &middot; MMXXVI</div>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.querySelector('nav.drawer').classList.toggle('open');
+    document.querySelector('.nav-overlay').classList.toggle('open');
+  }
+
+  // Player carousel
+  (function() {
+    const cards = document.querySelectorAll('.player-card');
+    if (!cards.length) return;
+    const counter = document.querySelector('.carousel-counter');
+    const prevBtn = document.querySelector('.carousel-arrow.prev');
+    const nextBtn = document.querySelector('.carousel-arrow.next');
+    let idx = 0;
+
+    function show(i) {
+      cards.forEach((c, k) => c.classList.toggle('active', k === i));
+      counter.textContent = (i + 1) + ' / ' + cards.length;
+    }
+    function next() { idx = (idx + 1) % cards.length; show(idx); }
+    function prev() { idx = (idx - 1 + cards.length) % cards.length; show(idx); }
+
+    prevBtn.addEventListener('click', prev);
+    nextBtn.addEventListener('click', next);
+
+    // Keyboard nav
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft') prev();
+    });
+
+    // Touch swipe
+    let touchStartX = 0;
+    const cardWrap = document.querySelector('.player-cards');
+    cardWrap.addEventListener('touchstart', function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+    cardWrap.addEventListener('touchend', function(e) {
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(dx) < 40) return;
+      if (dx < 0) next(); else prev();
+    });
+  })();
+</script>
+
+<script type="module">
+  // Live draft board — listens for team docs ordered by draftPick.
+  import { onTeams, onEventConfig } from "./js/firebase-init.js";
+
+  const board = document.getElementById("draft-board");
+  let expectedPicks = 6; // default; can be overridden via event config
+
+  onEventConfig((cfg) => {
+    if (cfg && Number.isFinite(cfg.numTeams)) expectedPicks = cfg.numTeams;
+  });
+
+  onTeams((teams) => {
+    if (!teams.length) {
+      board.innerHTML = renderEmptyRows(expectedPicks);
+      return;
+    }
+    // Render rows for max(expected, actual highest pick)
+    const maxPick = Math.max(expectedPicks, ...teams.map(t => t.draftPick || 0));
+    let html = "";
+    for (let i = 1; i <= maxPick; i++) {
+      const t = teams.find(x => (x.draftPick || 0) === i);
+      if (t) {
+        html += `
+          <div class="draft-board-row">
+            <div class="draft-pick-label">Pick ${i}</div>
+            <div class="draft-pick-content">
+              <div class="draft-team-name">${escapeHtml(t.name || "Unnamed team")}</div>
+              <div class="draft-roster">${escapeHtml(t.captain || "—")} &middot; ${escapeHtml(t.partner || "—")}</div>
+            </div>
+          </div>`;
+      } else {
+        html += emptyRow(i);
+      }
+    }
+    board.innerHTML = html;
+  });
+
+  const CAPTAINS = [
+    "Cheri McCallum",
+    "Karen McCallum",
+    "Erin McCallum",
+    "Joey McCallum",
+    "David McCallum",
+    "Andrea McCallum"
+  ];
+
+  function renderEmptyRows(n) {
+    let html = "";
+    for (let i = 1; i <= n; i++) html += emptyRow(i);
+    return html;
+  }
+  function emptyRow(i) {
+    const captain = CAPTAINS[i - 1] || "—";
+    return `
+      <div class="draft-board-row">
+        <div class="draft-pick-label">Pick ${i}</div>
+        <div class="draft-pick-content">
+          <div class="draft-team-name empty">Team name TBD</div>
+          <div class="draft-roster">Capt. ${escapeHtml(captain)} &middot; <em>Partner TBD</em></div>
+        </div>
+      </div>`;
+  }
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  }
+</script>
+
+<script>
+  // Register service worker — enables home-screen install + offline shell.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

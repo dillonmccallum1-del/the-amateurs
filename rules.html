@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f5928">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Amateurs">
+<title>Rules &amp; Scoring · The Amateurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <button class="menu-toggle" aria-label="Open menu" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="17" x2="20" y2="17"/>
+    </svg>
+  </button>
+</header>
+
+<div class="nav-overlay" onclick="toggleMenu()"></div>
+<nav class="drawer">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="rules.html" class="active">Rules &amp; Scoring</a>
+  <a href="leaderboard.html">Live Leaderboard</a>
+  <a href="draft.html">Draft</a>
+  <a href="history.html">History</a>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-header">
+  <a href="index.html" class="back-link">Back</a>
+  <h1>Rules &amp; Scoring</h1>
+  <div class="header-divider"></div>
+</section>
+
+<!-- ===== YEAR / EDITION BANNER ===== -->
+<div class="year-edition"><span>2026 Footgolf Edition</span></div>
+
+<!-- ===== GENERAL RULES ===== -->
+<section class="content">
+  <h2 class="section-title">General Rules</h2>
+  <div class="section-rule"></div>
+
+  <div class="rules-block">
+    <ul class="rules-list">
+      <li>Every hole is played as a <strong>two-person alternate kick</strong>. Partners take turns striking each successive shot. Alternate who tees off on each hole.</li>
+      <li>After your <strong>fifth shot</strong> as a group, pick up, record a <strong>6 (double par)</strong> on the scorecard, and move to the next hole.</li>
+      <li>Everyone plays from the <strong>forward footgolf tee box</strong>.</li>
+      <li>Avoid the water on holes <strong>#2 and #9</strong> &mdash; there's no way to retrieve a ball once it goes in.</li>
+      <li>Each group's bag holds a <strong>"Guess the Grass"</strong> sheet asking which species of turfgrass is in the cup. <strong>No phones.</strong> Submit it to the Commissioner before the awards ceremony.</li>
+      <li>Many holes feature special games &mdash; details revealed on event day.</li>
+      <li>Have fun.</li>
+    </ul>
+  </div>
+
+  <div class="note water-note"><strong>Heads up:</strong> Holes #2 and #9 carry water hazards with no recovery. Lay up if you must.</div>
+</section>
+
+<!-- ===== SCORING ===== -->
+<section class="content">
+  <h2 class="section-title">Scoring</h2>
+  <div class="section-rule"></div>
+  <p>The Amateurs uses a modified Stableford system &mdash; the team with the <strong>highest</strong> point total wins the MacCallum Cup. <strong>Score your card normally as if playing stroke play.</strong> The Commissioner tallies points at the end of the tournament.</p>
+
+  <div class="rules-block">
+    <table class="scoring-table">
+      <thead>
+        <tr>
+          <th>Result</th>
+          <th style="text-align:right;">Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight">
+          <td><strong>Hole&minus;in&minus;One</strong></td>
+          <td class="pts">+20</td>
+        </tr>
+        <tr>
+          <td>Birdie</td>
+          <td class="pts">+5</td>
+        </tr>
+        <tr>
+          <td>Par</td>
+          <td class="pts">+2</td>
+        </tr>
+        <tr>
+          <td>Bogey</td>
+          <td class="pts">+1</td>
+        </tr>
+        <tr>
+          <td>Double Bogey</td>
+          <td class="pts">0</td>
+        </tr>
+        <tr>
+          <td>Triple Bogey <span style="color:var(--ink-soft); font-weight:400;">(double par)</span></td>
+          <td class="pts neg">&minus;2</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== BONUS POINTS ===== -->
+<section class="content">
+  <h2 class="section-title">Bonus Points</h2>
+  <div class="section-rule"></div>
+
+  <div class="bonus-grid">
+    <div class="bonus-row">
+      <div class="pts">+1</div>
+      <div class="what"><strong>Closest to the pin</strong> on the dizzy hole.</div>
+    </div>
+    <div class="bonus-row">
+      <div class="pts">+2</div>
+      <div class="what"><strong>Birdie</strong> on the non-dominant foot hole.</div>
+    </div>
+    <div class="bonus-row">
+      <div class="pts">+3</div>
+      <div class="what"><strong>Correct answer</strong> on the Guess the Grass card.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="app-footer">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <p>A MacCallum family tradition since 2021</p>
+  <p>Michigan, USA</p>
+  <div class="footer-fine">Edition VI &middot; MMXXVI</div>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.querySelector('nav.drawer').classList.toggle('open');
+    document.querySelector('.nav-overlay').classList.toggle('open');
+  }
+</script>
+
+<script>
+  // Register service worker — enables home-screen install + offline shell.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

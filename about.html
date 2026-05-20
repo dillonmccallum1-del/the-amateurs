@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f5928">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Amateurs">
+<title>About · The Amateurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <button class="menu-toggle" aria-label="Open menu" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="17" x2="20" y2="17"/>
+    </svg>
+  </button>
+</header>
+
+<div class="nav-overlay" onclick="toggleMenu()"></div>
+<nav class="drawer">
+  <a href="index.html">Home</a>
+  <a href="about.html" class="active">About</a>
+  <a href="rules.html">Rules &amp; Scoring</a>
+  <a href="leaderboard.html">Live Leaderboard</a>
+  <a href="draft.html">Draft</a>
+  <a href="history.html">History</a>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-header">
+  <a href="index.html" class="back-link">Back</a>
+  <h1>About</h1>
+  <div class="header-divider"></div>
+</section>
+
+<!-- ===== THE INVITATIONAL ===== -->
+<section class="content">
+  <h2 class="section-title">The Invitational</h2>
+  <div class="section-rule"></div>
+  <p>Andrea and Dillon created The Amateurs during the spring of 2021 as a way to have a family gathering that was COVID-19 approved. Our first year was a smaller group and we played for fun. After the success of that first year, the event turned competitive and rebranded in 2022 with an official logo and the creation of our trophy, the MacCallum Cup. Since then, we have created an Instagram page, begun hosting team drafts, and created a merchandise line heavily sought after by all members. Starting in 2027, this invitational will be hosted every year on the third Saturday of June.</p>
+
+  <!-- Logo & Cup photo tiles -->
+  <div class="media-tile-grid">
+    <div class="media-tile">
+      <div class="media-tile-img">
+        <img class="Official-Logo" src="../Official_Logo.PNG" alt="The Amateurs &mdash; official logo">
+      </div>
+      <h3>Official Logo</h3>
+      <p>The official Amateurs logo was designed in 2022 alongside the rebrand to imitate The Masters tournament. This logo has defined the visual identity of the invitational ever since.</p>
+    </div>
+    <div class="media-tile">
+      <div class="media-tile-img">
+        <img class="MacCallum-Cup" src="../MacCallum_Cup.JPG" alt="The MacCallum Cup">
+      </div>
+      <h3>The MacCallum Cup</h3>
+      <p>Commissioned in 2022, the MacCallum Cup is awarded annually to the winning team, who signs there name on the base. Each year the trophy is filled with a pot of turfgrass, creating an educational opportunity.</p>
+    </div>
+  </div>
+
+  <p>Most participants are not serious golfers, so the invitational has combined real golf with hole-by-hole side games to level the playing field and keep things competitive and fun. In 2023, the group traveled overseas to reconnect with our ancestors and play a special Scottish edition contested on the Himalayas Putting Course at St. Andrews &mdash; the home of golf.</p>
+
+  <p>While the teams, the team logos, and the host course may change every year, the pursuit of The MacCallum Cup does not. Each year we crown a new champion and continue adding to our history.</p>
+</section>
+
+<!-- ===== THE FORMAT ===== -->
+<section class="content">
+  <h2 class="section-title">The Format</h2>
+  <div class="section-rule"></div>
+  <p>We play a nine-hole team format every year &mdash; typically a 4-person scramble. Teams are decided by a draft, where the previous year's winning team returns as captains and selects their teammates from the pool of invitees. A <strong>Modified Stableford</strong> scoring system with bonus point opportunities is used where the highest point total wins. Several holes feature side games announced at the captain's meeting on event day.</p>
+  <p>Full rules and the scoring chart live on the <a href="rules.html" class="inline-link">Rules &amp; Scoring</a> page.</p>
+</section>
+
+<!-- ===== HOME COURSES ===== -->
+<section class="content">
+  <h2 class="section-title">Home Courses</h2>
+  <div class="section-rule"></div>
+  <p>Two Michigan courses host the invitational in alternating years.</p>
+
+  <div class="course-grid">
+    <div class="course-card">
+      <div class="course-host">Fox Hills Golf &amp; Banquet Center &middot; Plymouth, MI</div>
+      <h3>Strategic Fox</h3>
+      <div class="course-sub">An 18-hole par-3 course designed by Ray Hearn &mdash; and Michigan's first-ever footgolf course. A fitting venue for the 2026 edition.</div>
+      <div class="course-meta">Hosted The Amateurs in 2021, 2022, and 2024.</div>
+      <a class="course-link" href="https://www.foxhills.com/" target="_blank" rel="noopener">Visit foxhills.com</a>
+    </div>
+
+    <div class="course-card">
+      <div class="course-host">The Myth Golf &amp; Banquets &middot; Oakland Township, MI</div>
+      <h3>The Little Myth</h3>
+      <div class="course-sub">A 9-hole par-3 nestled in protected wildlife land where Sandhill Cranes are daily visitors.</div>
+      <div class="course-meta">Hosted The Amateurs in 2025.</div>
+      <a class="course-link" href="https://golfthemyth.com/" target="_blank" rel="noopener">Visit golfthemyth.com</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMMISSIONERS ===== -->
+<section class="content">
+  <h2 class="section-title">Meet Your Comissioners</h2>
+  <div class="section-rule"></div>
+  <p>The Amateurs is run by its two founders, who organize all logistics for the invitational and team drafts, design and produce merchandise, and brainstorm new ways to grow The Amateurs.</p>
+
+  <div class="commissioner-grid">
+    <div class="commissioner-card">
+      <div class="commissioner-photo">
+        <span class="commissioner-photo-placeholder">📷<br><small>Photo coming soon</small></span>
+      </div>
+      <div class="commissioner-info">
+        <h3>Dillon MacCallum</h3>
+        <div class="commissioner-title">Commissioner &amp; Co-Founder</div>
+        <p>Dillon co-founded The Amateurs in 2021 and has been the driving force behind its competitive growth ever since. He oversees rules, scoring, and the annual captain's meeting.</p>
+      </div>
+    </div>
+
+    <div class="commissioner-card">
+      <div class="commissioner-photo">
+        <span class="commissioner-photo-placeholder">📷<br><small>Photo coming soon</small></span>
+      </div>
+      <div class="commissioner-info">
+        <h3>Andrea MacCallum</h3>
+        <div class="commissioner-title">Executive Creative Director &amp; Co-Founder</div>
+        <p>Andrea co-founded The Amateurs alongside Dillon and has been instrumental in building the event's identity &mdash; from the official branding and merchandise to the Instagram page and team logos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="app-footer">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <p>A MacCallum family tradition since 2021</p>
+  <p>Michigan, USA</p>
+  <div class="footer-fine">Edition VI &middot; MMXXVI</div>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.querySelector('nav.drawer').classList.toggle('open');
+    document.querySelector('.nav-overlay').classList.toggle('open');
+  }
+</script>
+
+<script>
+  // Register service worker — enables home-screen install + offline shell.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
