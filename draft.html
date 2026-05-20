@@ -12,6 +12,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+  /* New image-based draft cards.
+     Each PNG already carries its own styling, so we strip the
+     text-card chrome and just center the image. */
+  .player-card.card-image {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    display: none;          /* hidden until .active */
+    text-align: center;
+  }
+  .player-card.card-image.active { display: block; }
+  .player-card-img {
+    width: 100%;
+    max-width: 420px;       /* keep nicely sized on tablet/desktop */
+    height: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+  }
+</style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/favicon.png">
@@ -37,6 +58,7 @@
   <a href="leaderboard.html">Live Leaderboard</a>
   <a href="draft.html" class="active">Draft</a>
   <a href="history.html">History</a>
+  <a href="admin.html">Commissioner Login</a>
 </nav>
 
 <!-- ===== PAGE HEADER ===== -->
@@ -76,230 +98,24 @@
   <div class="player-carousel">
     <div class="player-carousel-nav">
       <button class="carousel-arrow prev" aria-label="Previous player">&lsaquo;</button>
-      <div class="carousel-counter">1 / 8</div>
+      <div class="carousel-counter">1 / 12</div>
       <button class="carousel-arrow next" aria-label="Next player">&rsaquo;</button>
     </div>
 
     <div class="player-cards">
-
-      <!-- Player 1: Dillon -->
-      <article class="player-card active">
-        <div class="player-photo-placeholder">DM</div>
-        <h3 class="player-name">Dillon McCallum</h3>
-        <div class="player-meta">27<span class="player-meta-divider">&middot;</span>5'9"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Grass Expert</li>
-            <li>Event Planner</li>
-            <li>AI Expert</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">A good sandwich.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 2: Andrea -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/Andrea 1st day of young 5 - Andrea McCallum.jpg" alt="Andrea McCallum" loading="lazy">
-        <h3 class="player-name">Andrea McCallum</h3>
-        <div class="player-meta">24<span class="player-meta-divider">&middot;</span>5'4"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Being good at math &amp; art</li>
-            <li>Using outdated cameras</li>
-            <li>Making people hockey fans</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">Sugar.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 3: Andrew Carson -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_3833 - Andrew Carson.jpeg" alt="Andrew Carson" loading="lazy">
-        <h3 class="player-name">Andrew Carson</h3>
-        <div class="player-meta">24<span class="player-meta-divider">&middot;</span>5'11"<span class="player-meta-divider">&middot;</span>3 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>I played soccer in 3rd grade.</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">I played soccer in 3rd grade.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 4: Alex -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_0229 - Alex McCallum.jpeg" alt="Alex McCallum" loading="lazy">
-        <h3 class="player-name">Alex McCallum</h3>
-        <div class="player-meta">19<span class="player-meta-divider">&middot;</span>6' with shoes<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Can kick a soccer ball somewhat well</li>
-            <li>Owns soccer cleats</li>
-            <li>Has never wanted anything more than to win The Amateurs</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">Having to be creative.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 40%"></div></div><span class="stat-value">4</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 5: Karen -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_6686 - Karen McCallum.jpeg" alt="Karen McCallum" loading="lazy">
-        <h3 class="player-name">Karen McCallum</h3>
-        <div class="player-meta">58<span class="player-meta-divider">&middot;</span>5'3"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Soccer manager for 6+ years</li>
-            <li>Can run a mean concession stand</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">Have never played soccer golf.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 6: Erin -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/C9482AEA-2457-485B-9EAD-53A0A1DBCDDD - Erin McCallum.png" alt="Erin McCallum" loading="lazy">
-        <h3 class="player-name">Erin McCallum</h3>
-        <div class="player-meta">25<span class="player-meta-divider">&middot;</span>5'5"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Hosting the after-party</li>
-            <li>Going to extreme lengths for an Instagram post (like 26.2 miles extreme)</li>
-            <li>Gracious loser (seriously, won't be upset if we lose)</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">Objects flying towards me, objects flying away from me, flying objects.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 50%"></div></div><span class="stat-value">5</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 7: David -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_1905 - David McCallum.jpeg" alt="David McCallum" loading="lazy">
-        <h3 class="player-name">David McCallum</h3>
-        <div class="player-meta">Too old for this<span class="player-meta-divider">&middot;</span>Slightly taller than Brian &amp; Alex<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Proficient with Excel pivot tables, power queries, macros, and lookups</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">See response to question #2.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 60%"></div></div><span class="stat-value">6</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 60%"></div></div><span class="stat-value">6</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 60%"></div></div><span class="stat-value">6</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div><span class="stat-value">9</span></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Player 8: Brian -->
-      <article class="player-card">
-        <img class="player-photo" src="../Documents/2026/File_responses/Player_Photos/IMG_8272 - Brian McCallum.jpeg" alt="Brian McCallum" loading="lazy">
-        <h3 class="player-name">Brian McCallum</h3>
-        <div class="player-meta">21 &mdash; 22 by tee time<span class="player-meta-divider">&middot;</span>6'7"<span class="player-meta-divider">&middot;</span>6 Years Active</div>
-        <div class="player-section">
-          <div class="player-section-label">Talents</div>
-          <ul class="player-talents">
-            <li>Can fix his parents' Alexa from an hour away</li>
-            <li>Always ready to laugh (at himself, but more frequently others)</li>
-          </ul>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Weakness</div>
-          <p class="player-weakness">Temperatures above 72&deg;F with humidity above 50%.</p>
-        </div>
-        <div class="player-section">
-          <div class="player-section-label">Player Stats</div>
-          <div class="player-stats">
-            <div class="stat-row"><span class="stat-label">Power</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Accuracy</span><div class="stat-bar"><div class="stat-fill" style="width: 40%"></div></div><span class="stat-value">4</span></div>
-            <div class="stat-row"><span class="stat-label">Agility</span><div class="stat-bar"><div class="stat-fill" style="width: 70%"></div></div><span class="stat-value">7</span></div>
-            <div class="stat-row"><span class="stat-label">Composure</span><div class="stat-bar"><div class="stat-fill" style="width: 80%"></div></div><span class="stat-value">8</span></div>
-          </div>
-        </div>
-      </article>
-
+      <!-- Card-image carousel. Each PNG is a fully-styled profile card. -->
+      <article class="player-card card-image active"><img class="player-card-img" src="Pictures/draft-cards/andrea.png" alt="Andrea McCallum"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/andrew-carson.png" alt="Andrew Carson" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/dillon.png" alt="Dillon McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/alex.png" alt="Alex McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/karen.png" alt="Karen McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/erin.png" alt="Erin McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/david.png" alt="David McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/brian.png" alt="Brian McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/cheri.png" alt="Cheri McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/emily-beyer.png" alt="Emily Beyer" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/joe.png" alt="Joe McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/jack-omilian.png" alt="Jack Omilian" loading="lazy"></article>
     </div>
   </div>
 </section>
