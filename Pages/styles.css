@@ -741,7 +741,7 @@ a.inline-link:hover { color: var(--green); }
 }
 .media-tile-img img.MacCallum-Cup {
   object-fit: cover;          /* fill the tile — no letterboxing */
-  object-position: 50% 5%;   /* bias upward so whole trophy stays in frame */
+  object-position: 70% 20%;   /* bias upward so whole trophy stays in frame */
 }
 .media-tile-placeholder {
   text-align: center;
