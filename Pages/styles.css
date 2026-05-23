@@ -586,7 +586,7 @@ a.inline-link:hover { color: var(--green); }
   margin: -26px -24px 20px -24px;
   display: block;
   border-radius: 14px 14px 0 0;
-  aspect-ratio: 2 / 1;       /* slightly taller banner — shows a bit of legs */
+  aspect-ratio: 9 / 5;       /* slightly taller banner — shows a bit of legs */
   object-fit: cover;         /* fills the box; crops what doesn't fit */
   object-position: 50% 8%;   /* bias toward the top so hats stay in frame */
 }
