@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f5928">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Amateurs">
+<title>Draft · The Amateurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* New image-based draft cards.
+     Each PNG already carries its own styling, so we strip the
+     text-card chrome and just center the image. */
+  .player-card.card-image {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    display: none;          /* hidden until .active */
+    text-align: center;
+  }
+  .player-card.card-image.active { display: block; }
+  .player-card-img {
+    width: 100%;
+    max-width: 420px;       /* keep nicely sized on tablet/desktop */
+    height: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+  }
+</style>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <button class="menu-toggle" aria-label="Open menu" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="17" x2="20" y2="17"/>
+    </svg>
+  </button>
+</header>
+
+<div class="nav-overlay" onclick="toggleMenu()"></div>
+<nav class="drawer">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="rules.html">Rules &amp; Scoring</a>
+  <a href="leaderboard.html">Live Leaderboard</a>
+  <a href="draft.html" class="active">Draft</a>
+  <a href="history.html">History</a>
+  <a href="admin.html">Commissioner Login</a>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-header">
+  <a href="index.html" class="back-link">Back</a>
+  <h1>Draft</h1>
+  <div class="header-divider"></div>
+</section>
+
+<!-- ===== YEAR / EDITION BANNER ===== -->
+<div class="year-edition"><span>2026 Footgolf Edition</span></div>
+
+<!-- ===== DRAFT BOARD (live from Firestore) ===== -->
+<section class="content">
+  <h2 class="section-title">Draft Board</h2>
+  <div class="section-rule"></div>
+  <p>Draft order is locked in here once the captains make their selections. Each pick is a two-person team. This board updates live as picks are entered.</p>
+
+  <div class="draft-board" id="draft-board">
+    <!-- rendered by JS -->
+    <div class="draft-board-row">
+      <div class="draft-pick-label">…</div>
+      <div class="draft-pick-content">
+        <div class="draft-team-name empty">Loading draft…</div>
+        <div class="draft-roster empty">Connecting</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DRAFT PROFILES ===== -->
+<section class="content">
+  <h2 class="section-title">Draft Profiles</h2>
+  <div class="section-rule"></div>
+  <p>This year's class &mdash; tap the arrows to flip through.</p>
+
+  <div class="player-carousel">
+    <div class="player-carousel-nav">
+      <button class="carousel-arrow prev" aria-label="Previous player">&lsaquo;</button>
+      <div class="carousel-counter">1 / 12</div>
+      <button class="carousel-arrow next" aria-label="Next player">&rsaquo;</button>
+    </div>
+
+    <div class="player-cards">
+      <!-- Card-image carousel. Each PNG is a fully-styled profile card. -->
+      <article class="player-card card-image active"><img class="player-card-img" src="Pictures/draft-cards/andrea.png" alt="Andrea McCallum"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/andrew-carson.png" alt="Andrew Carson" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/dillon.png" alt="Dillon McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/alex.png" alt="Alex McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/karen.png" alt="Karen McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/erin.png" alt="Erin McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/david.png" alt="David McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/brian.png" alt="Brian McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/cheri.png" alt="Cheri McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/emily-beyer.png" alt="Emily Beyer" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/joe.png" alt="Joe McCallum" loading="lazy"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="Pictures/draft-cards/jack-omilian.png" alt="Jack Omilian" loading="lazy"></article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="app-footer">
+  <a href="index.html" class="brand-text">The Amateurs</a>
+  <p>A MacCallum family tradition since 2021</p>
+  <p>Michigan, USA</p>
+  <div class="footer-fine">Edition VI &middot; MMXXVI</div>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.querySelector('nav.drawer').classList.toggle('open');
+    document.querySelector('.nav-overlay').classList.toggle('open');
+  }
+
+  // Player carousel
+  (function() {
+    const cards = document.querySelectorAll('.player-card');
+    if (!cards.length) return;
+    const counter = document.querySelector('.carousel-counter');
+    const prevBtn = document.querySelector('.carousel-arrow.prev');
+    const nextBtn = document.querySelector('.carousel-arrow.next');
+    let idx = 0;
+
+    function show(i) {
+      cards.forEach((c, k) => c.classList.toggle('active', k === i));
+      counter.textContent = (i + 1) + ' / ' + cards.length;
+    }
+    function next() { idx = (idx + 1) % cards.length; show(idx); }
+    function prev() { idx = (idx - 1 + cards.length) % cards.length; show(idx); }
+
+    prevBtn.addEventListener('click', prev);
+    nextBtn.addEventListener('click', next);
+
+    // Keyboard nav
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft') prev();
+    });
+
+    // Touch swipe
+    let touchStartX = 0;
+    const cardWrap = document.querySelector('.player-cards');
+    cardWrap.addEventListener('touchstart', function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+    cardWrap.addEventListener('touchend', function(e) {
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(dx) < 40) return;
+      if (dx < 0) next(); else prev();
+    });
+  })();
+</script>
+
+<script type="module">
+  // Live draft board — listens for team docs ordered by draftPick.
+  import { onTeams, onEventConfig } from "./js/firebase-init.js";
+
+  const board = document.getElementById("draft-board");
+  let expectedPicks = 6; // default; can be overridden via event config
+
+  onEventConfig((cfg) => {
+    if (cfg && Number.isFinite(cfg.numTeams)) expectedPicks = cfg.numTeams;
+  });
+
+  onTeams((teams) => {
+    if (!teams.length) {
+      board.innerHTML = renderEmptyRows(expectedPicks);
+      return;
+    }
+    // Render rows for max(expected, actual highest pick)
+    const maxPick = Math.max(expectedPicks, ...teams.map(t => t.draftPick || 0));
+    let html = "";
+    for (let i = 1; i <= maxPick; i++) {
+      const t = teams.find(x => (x.draftPick || 0) === i);
+      if (t) {
+        html += `
+          <div class="draft-board-row">
+            <div class="draft-pick-label">Pick ${i}</div>
+            <div class="draft-pick-content">
+              <div class="draft-team-name">${escapeHtml(t.name || "Unnamed team")}</div>
+              <div class="draft-roster">${escapeHtml(t.captain || "—")} &middot; ${escapeHtml(t.partner || "—")}</div>
+            </div>
+          </div>`;
+      } else {
+        html += emptyRow(i);
+      }
+    }
+    board.innerHTML = html;
+  });
+
+  const CAPTAINS = [
+    "Cheri McCallum",
+    "Karen McCallum",
+    "Erin McCallum",
+    "Joey McCallum",
+    "David McCallum",
+    "Andrea McCallum"
+  ];
+
+  function renderEmptyRows(n) {
+    let html = "";
+    for (let i = 1; i <= n; i++) html += emptyRow(i);
+    return html;
+  }
+  function emptyRow(i) {
+    const captain = CAPTAINS[i - 1] || "—";
+    return `
+      <div class="draft-board-row">
+        <div class="draft-pick-label">Pick ${i}</div>
+        <div class="draft-pick-content">
+          <div class="draft-team-name empty">Team name TBD</div>
+          <div class="draft-roster">Capt. ${escapeHtml(captain)} &middot; <em>Partner TBD</em></div>
+        </div>
+      </div>`;
+  }
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  }
+</script>
+
+<script>
+  // Register service worker — enables home-screen install + offline shell.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
