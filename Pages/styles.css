@@ -2289,7 +2289,6 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   border-radius: 14px 14px 0 0;
   object-fit: contain;
   object-position: center;
-  aspect-ratio: 1536 / 940;
 }
 
 /* Team logo thumbnail in standings rows — height matches the surrounding
