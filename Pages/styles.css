@@ -2278,17 +2278,26 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   white-space: nowrap;
 }
 
+/* Winner team photo above champion block.
+   Each year's photo is pre-cropped to its own preferred framing, so we let
+   the natural aspect ratio dictate height instead of forcing a fixed shape
+   that would clip the carefully chosen crop. The year-card has
+   `overflow: hidden`, so the card's outer radius automatically clips the
+   photo's top corners cleanly. */
 .winner-photo {
-    display: block;
-    /* bleed the photo to the card edges, compensating for the 24px side padding
-       and 26px top padding on .defending-champ. Aspect ratio matches the
-       cropped photo (1536x940 = ~1.63) so the full heads-and-trophy framing
-       is preserved instead of being clipped by a max-height. */
-    width: calc(100% + 48px);
-    margin: -26px -24px 20px -24px;
-    border-radius: 14px 14px 0 0;
-    object-fit: cover;
-    object-position: center center;
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px 14px 0 0;
+}
+
+/* Home page override: inside the .defending-champ card the photo needs to
+   bleed past the card's internal padding (24px sides, 26px top) so it reads
+   as a header image rather than a padded inset. */
+.defending-champ .winner-photo {
+  width: calc(100% + 48px);
+  margin: -26px -24px 20px -24px;
+  max-width: none;
 }
 
 /* Team logo thumbnail in standings rows — height matches the surrounding
@@ -2309,7 +2318,6 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   height: 1.4em;
 }
 
-}
 .yc-pts {
   font-family: var(--font-serif);
   font-size: 20px;
