@@ -49,6 +49,30 @@
     align-items: center;
     min-height: 100dvh;
     padding: 32px 20px 48px;
+    position: relative;
+  }
+  .login-back {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green-dark);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .login-back:hover { background: var(--cream-dark); }
+  .login-back svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--green-dark);
+    flex-shrink: 0;
   }
   .login-logo {
     width: 72px;
@@ -372,6 +396,12 @@
 
 <!-- ===== SCREEN 1: FLAG LOGIN ===== -->
 <div id="screen-login">
+  <a href="index.html" class="login-back" aria-label="Back to home">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Back
+  </a>
   <img class="login-logo" src="../Pictures/Home/Logo_No_Words.PNG" alt="The Amateurs">
   <h1 class="login-title">Captain Login</h1>
   <p class="login-subtitle">Tap your country's flag to open your scorecard. Once inside you will not be able to leave until your scorecard is submitted.</p>

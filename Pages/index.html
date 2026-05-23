@@ -37,7 +37,7 @@
   <a href="leaderboard.html">Live Leaderboard</a>
   <a href="draft.html">Draft</a>
   <a href="history.html">History</a>
-  <a href="captains.html">Captain Scorecard</a>
+  <a href="captains.html">Captains</a>
   <a href="admin.html">Commissioner Login</a>
 </nav>
 
@@ -106,6 +106,12 @@
   <div class="section-rule"></div>
 
   <a class="defending-champ" href="history.html#year-2025">
+    <img
+      src="../Pictures/Home/2026_Winners_cropped.JPG"
+      alt="2025 Amateurs Champions — Fairway to Heaven"
+      class="champions-photo"
+      loading="lazy"
+    >
     <div class="defending-champ-label">MacCallum Cup &middot; 2025</div>
     <div class="defending-champ-team">Fairway to Heaven</div>
     <div class="defending-champ-year">The Little Myth &middot; 28 points</div>
@@ -114,13 +120,6 @@
     </div>
     <span class="defending-champ-arrow">View their year &rarr;</span>
   </a>
-
-  <img
-    src="../Pictures/Home/2026_Winners_cropped.JPG"
-    alt="2025 Amateurs Champions — Fairway to Heaven"
-    class="champions-photo"
-    loading="lazy"
-  >
 </section>
 
 <!-- ===== FOOTER ===== -->
@@ -134,11 +133,13 @@
 <style>
   .champions-photo {
     display: block;
-    width: 100%;
-    border-radius: 10px;
-    margin-top: 16px;
+    /* bleed the photo to the card edges, compensating for the 24px side padding
+       and 26px top padding on .defending-champ */
+    width: calc(100% + 48px);
+    margin: -26px -24px 20px -24px;
+    border-radius: 14px 14px 0 0;
     object-fit: cover;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    max-height: 280px;
   }
 </style>
 

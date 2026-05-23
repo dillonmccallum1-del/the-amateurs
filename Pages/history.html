@@ -37,7 +37,7 @@
   <a href="leaderboard.html">Live Leaderboard</a>
   <a href="draft.html">Draft</a>
   <a href="history.html" class="active">History</a>
-  <a href="captains.html">Captain Scorecard</a>
+  <a href="captains.html">Captains</a>
   <a href="admin.html">Commissioner Login</a>
 </nav>
 
@@ -53,14 +53,16 @@
   <h2 class="section-title">The Amateurs Stats</h2>
   <div class="section-rule"></div>
 
-  <!-- Tab toggle buttons -->
-  <div class="stats-tabs">
-    <button class="stats-tab active" onclick="showTab('cup')">MacCallum Cup</button>
-    <button class="stats-tab" onclick="showTab('rate')">Championship Rate</button>
-    <button class="stats-tab" onclick="showTab('sup')">Superlatives</button>
+  <!-- Carousel nav -->
+  <div class="player-carousel" style="box-shadow:none; border:none; border-radius:0; margin-top:0;">
+    <div class="player-carousel-nav">
+      <button class="carousel-arrow prev" id="stats-prev" aria-label="Previous stat">&lsaquo;</button>
+      <div class="carousel-counter" id="stats-label">MacCallum Cup</div>
+      <button class="carousel-arrow next" id="stats-next" aria-label="Next stat">&rsaquo;</button>
+    </div>
   </div>
 
-  <!-- ===== TAB 1: MacCallum Cup Leaderboard ===== -->
+  <!-- ===== PANEL 1: MacCallum Cup Leaderboard ===== -->
   <div id="tab-cup" class="stats-panel">
     <p class="stats-subtitle">MacCallum Cup Leaderboard</p>
     <div class="cup-leaderboard">
@@ -122,7 +124,7 @@
     </div>
   </div>
 
-  <!-- ===== TAB 2: Championship Rate ===== -->
+  <!-- ===== PANEL 2: Championship Rate ===== -->
   <div id="tab-rate" class="stats-panel hidden">
     <p class="stats-subtitle">Championship Rate — wins &divide; events played &times; 100 &nbsp;·&nbsp; min. 2 events</p>
     <div class="stats-table-wrap">
@@ -160,7 +162,7 @@
     </div>
   </div>
 
-  <!-- ===== TAB 3: Superlative Leaderboard ===== -->
+  <!-- ===== PANEL 3: Superlative Leaderboard ===== -->
   <div id="tab-sup" class="stats-panel hidden">
     <p class="stats-subtitle">Superlative Leaderboard — total superlatives awarded</p>
     <div class="stats-table-wrap">
@@ -220,6 +222,7 @@
   </p>
 
   <div class="year-card">
+    <img class="winner-photo" src="../Pictures/History/Winners/2025.JPG" alt="2025 Champions — Fairway to Heaven" loading="lazy">
     <div class="yc-standings champion has-logos">
       <div class="yc-champ-header">
         <span class="yc-champ-eyebrow">&#127942;</span>
@@ -306,6 +309,7 @@
   </p>
 
   <div class="year-card">
+    <img class="winner-photo" src="../Pictures/History/Winners/2024.JPG" alt="2024 Champions — Life of the Par-Tee" loading="lazy">
     <div class="yc-standings champion">
       <div class="yc-champ-header">
         <span class="yc-champ-eyebrow">&#127942;</span>
@@ -454,6 +458,7 @@
   </p>
 
   <div class="year-card">
+    <img class="winner-photo" src="../Pictures/History/Winners/2022.jpeg" alt="2022 Champions — The Elders" loading="lazy">
     <div class="yc-standings champion">
       <div class="yc-champ-header">
         <span class="yc-champ-eyebrow">&#127942;</span>
@@ -650,12 +655,28 @@
 </script>
 
 <script>
-  function showTab(id) {
-    document.querySelectorAll('.stats-panel').forEach(p => p.classList.add('hidden'));
-    document.querySelectorAll('.stats-tab').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + id).classList.remove('hidden');
-    event.currentTarget.classList.add('active');
-  }
+  // Stats carousel — arrows cycle through the three panels
+  (function() {
+    const panels = [
+      { id: 'tab-cup',  label: 'MacCallum Cup' },
+      { id: 'tab-rate', label: 'Championship Rate' },
+      { id: 'tab-sup',  label: 'Superlatives' }
+    ];
+    let idx = 0;
+
+    function showPanel(i) {
+      idx = (i + panels.length) % panels.length;
+      panels.forEach((p, k) => {
+        document.getElementById(p.id).classList.toggle('hidden', k !== idx);
+      });
+      document.getElementById('stats-label').textContent = panels[idx].label;
+    }
+
+    document.getElementById('stats-prev').addEventListener('click', function() { showPanel(idx - 1); });
+    document.getElementById('stats-next').addEventListener('click', function() { showPanel(idx + 1); });
+
+    showPanel(0); // init
+  })();
 </script>
 
 <script>
