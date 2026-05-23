@@ -11,7 +11,7 @@
 //     cache automatically. Users don't have to do anything.
 // =============================================================
 
-const CACHE_VERSION = "amateurs-v3";  // ← bump on every meaningful release
+const CACHE_VERSION = "amateurs-v4";  // ← bump on every meaningful release
 const SHELL_FILES = [
   "./",
   "./index.html",
