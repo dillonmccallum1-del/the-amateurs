@@ -1917,6 +1917,7 @@ a.inline-link:hover { color: var(--green); }
 }
 
 /* ===== CUP LEADERBOARD — wins per player ===== */
+
 .cup-leaderboard {
   margin-top: 16px;
   background: var(--white);
@@ -2010,6 +2011,14 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
 /* ===== STATS CAROUSEL NAV =====
    Mirrors the draft page's .player-carousel-nav / .carousel-arrow look so
    the toggle behaves and reads the same in both places. */
+
+.stats-carousel {
+  margin-top: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--cream-dark);
+}
 .stats-nav {
   display: flex;
   align-items: center;
@@ -2300,14 +2309,6 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   height: 1.4em;
 }
 
-/* Expand grid columns when logos are present (2025+).
-   Logo column is 'auto' so it sizes to the logo's natural width
-   (height-driven by the rules above, width preserves aspect ratio). */
-.yc-standings.has-logos .yc-champ-header {
-  grid-template-columns: 36px auto 1fr auto;
-}
-.yc-standings.has-logos .yc-row {
-  grid-template-columns: 36px auto 1fr auto auto;
 }
 .yc-pts {
   font-family: var(--font-serif);
