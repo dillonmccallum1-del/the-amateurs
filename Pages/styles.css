@@ -722,13 +722,13 @@ a.inline-link:hover { color: var(--green); }
 .media-tile-img img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 .media-tile-img img.Official-Logo {
   object-fit: contain;
   padding: 12px;
-  background-color: #fbf6e8;
+  background: #fbf6e8;
 }
 .media-tile-placeholder {
   text-align: center;
@@ -785,7 +785,7 @@ a.inline-link:hover { color: var(--green); }
 .commissioner-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
   display: block;
 }
