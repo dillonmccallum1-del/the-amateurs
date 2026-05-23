@@ -134,13 +134,15 @@
   .champions-photo {
     display: block;
     /* bleed the photo to the card edges, compensating for the 24px side padding
-       and 26px top padding on .defending-champ */
+       and 26px top padding on .defending-champ. Aspect ratio matches the
+       cropped photo (1536x940 = ~1.63) so the full heads-and-trophy framing
+       is preserved instead of being clipped by a max-height. */
     width: calc(100% + 48px);
     margin: -26px -24px 20px -24px;
     border-radius: 14px 14px 0 0;
     object-fit: cover;
-    object-position: center top;
-    max-height: 340px;
+    object-position: center center;
+    aspect-ratio: 1536 / 940;
   }
 </style>
 

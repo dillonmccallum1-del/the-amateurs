@@ -8,6 +8,34 @@
      - Sans (Gotham → Montserrat fallback for non-licensed users)
      - Serif (Hoefler Text → Source Serif 4 fallback for non-Apple)
      - Script (Caveat — for the wordmark)
+
+   ---------------------------------------------------------
+   TABLE OF CONTENTS
+   ---------------------------------------------------------
+   0. TOKENS & RESETS               — palette, fonts, base typography
+   1. SHARED CHROME                 — header, drawer, page-header,
+                                      content wrappers, footer
+   2. SHARED COMPONENTS             — year banner, notes, inline link,
+                                      info tiles, status card
+   3. HOME PAGE                     — hero, nav tiles, defending-champ
+   4. ABOUT PAGE                    — course cards, media tiles,
+                                      commissioners
+   5. RULES PAGE                    — rules blocks, scoring table,
+                                      bonus grid, hole cards
+   6. DRAFT PAGE                    — draft board, player carousel,
+                                      player stats
+   7. LEADERBOARD PAGE              — leaderboard, scorecards,
+                                      score markers, marker key
+   8. HISTORY PAGE                  — honor roll, champions, standings,
+                                      superlatives, gallery, cup
+                                      leaderboard, year cards, stats,
+                                      lightbox
+   9. UTILITIES                     — palette swatch preview
+   ========================================================= */
+
+
+/* =========================================================
+   0. TOKENS & RESETS
    ========================================================= */
 
 :root {
@@ -56,6 +84,13 @@ h1, h2, h3, h4 {
   font-weight: 600;
   letter-spacing: -0.005em;
 }
+
+
+/* =========================================================
+   1. SHARED CHROME
+   App-wide layout — header, drawer, page-header, content
+   wrappers, footer. Used on every page.
+   ========================================================= */
 
 /* ===== HEADER (sticky brand bar — every page) ===== */
 header.app-header {
@@ -125,6 +160,266 @@ nav.drawer a small {
   z-index: 98;
 }
 .nav-overlay.open { opacity: 1; pointer-events: auto; }
+
+/* ===== PAGE HEADER (sub-pages — title + back link) ===== */
+.page-header {
+  background: var(--cream);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--cream-dark);
+}
+.page-header .back-link {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 16px; letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: color 0.15s;
+  font-weight: 500;
+}
+.page-header .back-link:hover { color: var(--green); }
+.page-header .back-link::before {
+  content: '←';
+  font-size: 18px;
+}
+.page-header .eyebrow {
+  font-size: 16px; letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--yellow-dark);
+  margin-bottom: 8px; font-weight: 600;
+}
+.page-header h1 {
+  font-size: clamp(36px, 7vw, 52px);
+  color: var(--green-dark);
+  margin-bottom: 0;
+}
+.page-header .subtitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px; color: var(--ink-soft);
+  margin-top: 8px;
+}
+.page-header .header-divider {
+  width: 40px; height: 3px;
+  background: var(--yellow);
+  margin: 14px auto 0;
+  border-radius: 2px;
+}
+
+/* ===== CONTENT WRAPPERS ===== */
+section.content {
+  padding: 32px 24px;
+  max-width: 720px; margin: 0 auto;
+}
+section.content + section.content { padding-top: 8px; }
+.eyebrow {
+  font-size: 16px; letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--yellow-dark);
+  margin-bottom: 12px; font-weight: 600;
+}
+h2.section-title {
+  font-size: clamp(28px, 5vw, 36px);
+  color: var(--green-dark); margin-bottom: 8px;
+}
+.section-rule {
+  width: 40px; height: 3px;
+  background: var(--yellow);
+  margin: 12px 0 22px;
+  border-radius: 2px;
+}
+p { margin-bottom: 14px; color: var(--ink-soft); font-size: 18px; }
+p strong { color: var(--ink); }
+
+/* ===== FOOTER ===== */
+footer.app-footer {
+  background: var(--green-dark); color: var(--cream);
+  padding: 36px 24px 28px; text-align: center;
+  border-top: 2px solid var(--yellow);
+  margin-top: 32px;
+}
+footer.app-footer .brand-text {
+  font-family: var(--font-script);
+  font-size: 30px;
+  color: var(--yellow);
+  display: block; margin-bottom: 12px;
+  text-decoration: none;
+  font-weight: 700;
+}
+footer.app-footer p {
+  color: rgba(251, 246, 232, 0.7);
+  font-size: 16px; margin-bottom: 6px;
+}
+.footer-fine {
+  margin-top: 14px; font-size: 16px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(244, 216, 56, 0.6);
+}
+
+
+/* =========================================================
+   2. SHARED COMPONENTS
+   Reusable elements that appear on more than one page.
+   ========================================================= */
+
+/* ===== YEAR / EDITION BANNER (chapter-style divider) ===== */
+/* Used on: rules, draft */
+.year-edition {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 720px;
+  margin: 36px auto 0;
+  padding: 0 24px;
+}
+.year-edition::before, .year-edition::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green-dark) 50%, transparent);
+  opacity: 0.5;
+}
+.year-edition span {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 20px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* ===== NOTE / CALLOUT ===== */
+/* Used on: rules, history, leaderboard */
+.note {
+  background: rgba(244, 216, 56, 0.18);
+  border-left: 3px solid var(--yellow);
+  padding: 14px 18px; border-radius: 0 8px 8px 0;
+  font-size: 16px; color: var(--ink); margin-top: 16px;
+  line-height: 1.5;
+}
+.note strong { color: var(--green-dark); }
+.note.alert {
+  background: rgba(232, 67, 36, 0.10);
+  border-left-color: var(--red);
+}
+.note.alert strong { color: var(--red); }
+.note.water-note {
+  background: rgba(44, 128, 184, 0.10);
+  border-left-color: var(--water);
+}
+.note.water-note strong { color: var(--water); }
+
+/* ===== INLINE LINK (body text anchor) ===== */
+/* Used on: about (and any prose pages) */
+a.inline-link {
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+a.inline-link:hover { color: var(--green); }
+
+/* ===== INFO TILES (about-page cards for cup, draft, etc.) ===== */
+/* Used on: about, leaderboard */
+.info-grid {
+  display: grid; grid-template-columns: 1fr;
+  gap: 16px; margin-top: 8px;
+}
+.info-tile {
+  background: var(--white);
+  border: 1px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--green);
+}
+.info-tile .icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--yellow); color: var(--green-dark);
+  display: grid; place-items: center;
+  margin-bottom: 14px; font-size: 24px;
+  box-shadow: 0 2px 6px rgba(15,89,40,0.15);
+}
+.info-tile h3 {
+  color: var(--green-dark); font-size: 22px;
+  margin-bottom: 8px;
+}
+.info-tile p {
+  margin-bottom: 0;
+  font-size: 16px;
+  line-height: 1.55;
+}
+@media (min-width: 720px) {
+  .info-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== STATUS CARD (announcement / event state) ===== */
+/* Used on: home, leaderboard */
+.status-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 32px 28px;
+  box-shadow: var(--shadow-md);
+  border-left: 4px solid var(--green);
+}
+.status-card.pre-event {
+  background: linear-gradient(135deg, rgba(244,216,56,0.18) 0%, rgba(244,216,56,0.04) 100%);
+}
+.status-card.live {
+  border-left-color: var(--red);
+  background: linear-gradient(135deg, rgba(232,67,36,0.10) 0%, rgba(232,67,36,0.02) 100%);
+}
+.status-label {
+  display: inline-block;
+  font-size: 16px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--yellow-dark);
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding: 6px 16px;
+  background: rgba(244, 216, 56, 0.35);
+  border-radius: 999px;
+}
+.status-card.live .status-label {
+  color: var(--red);
+  background: rgba(232, 67, 36, 0.15);
+}
+.status-card h2 {
+  font-size: clamp(24px, 4.5vw, 30px);
+  color: var(--green-dark);
+  margin-bottom: 14px;
+  line-height: 1.25;
+}
+.status-card p {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+  line-height: 1.55;
+}
+.status-card p:last-child { margin-bottom: 0; }
+.status-card .status-meta {
+  font-style: italic;
+  color: var(--ink);
+  font-size: 16px;
+  background: rgba(15,89,40,0.06);
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-top: 18px;
+  text-align: center;
+}
+
+
+/* =========================================================
+   3. HOME PAGE  (index.html)
+   ========================================================= */
 
 /* ===== HERO (home page only — large logo + intro) ===== */
 .hero {
@@ -204,106 +499,334 @@ nav.drawer a small {
   font-size: 24px; color: var(--green-dark);
 }
 
-/* ===== PAGE HEADER (sub-pages — title + back link) ===== */
-.page-header {
-  background: var(--cream);
-  padding: 20px 24px;
+/* ===== NAV TILES (home — section launcher grid) ===== */
+.nav-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+@media (min-width: 720px) {
+  .nav-tiles {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.nav-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-bottom: 1px solid var(--cream-dark);
-}
-.page-header .back-link {
-  align-self: flex-start;
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 16px; letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  justify-content: center;
+  text-align: center;
+  padding: 26px 16px 22px;
+  background: var(--white);
+  border-radius: 14px;
+  border: 1px solid var(--cream-dark);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
-  margin-bottom: 16px;
-  transition: color 0.15s;
-  font-weight: 500;
+  color: var(--ink);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s;
+  min-height: 170px;
 }
-.page-header .back-link:hover { color: var(--green); }
-.page-header .back-link::before {
-  content: '←';
-  font-size: 18px;
+.nav-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: rgba(244, 216, 56, 0.06);
+  border-color: var(--yellow);
 }
-.page-header .eyebrow {
-  font-size: 16px; letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--yellow-dark);
-  margin-bottom: 8px; font-weight: 600;
+.nav-tile-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+  line-height: 1;
 }
-.page-header h1 {
-  font-size: clamp(36px, 7vw, 52px);
-  color: var(--green-dark);
-  margin-bottom: 0;
-}
-.page-header .subtitle {
+.nav-tile-name {
   font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 18px; color: var(--ink-soft);
-  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 6px;
+  line-height: 1.2;
 }
-.page-header .header-divider {
-  width: 40px; height: 3px;
-  background: var(--yellow);
-  margin: 14px auto 0;
-  border-radius: 2px;
+.nav-tile-desc {
+  font-size: 16px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  font-style: italic;
 }
 
-/* ===== YEAR / EDITION BANNER (chapter-style divider) ===== */
-.year-edition {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  max-width: 720px;
-  margin: 36px auto 0;
-  padding: 0 24px;
+/* ===== DEFENDING CHAMPIONS card (home — celebratory link) ===== */
+.defending-champ {
+  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+  color: var(--cream);
+  padding: 26px 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(244, 216, 56, 0.45);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.15s, box-shadow 0.15s;
 }
-.year-edition::before, .year-edition::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--green-dark) 50%, transparent);
-  opacity: 0.5;
+.defending-champ:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
-.year-edition span {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 20px;
+.defending-champ::before {
+  content: '\1F3C6';
+  position: absolute;
+  right: 6px;
+  bottom: -20px;
+  font-size: 160px;
+  opacity: 0.08;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+.defending-champ-label {
+  font-size: 16px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--green-dark);
-  white-space: nowrap;
+  color: var(--yellow);
+  font-weight: 700;
+  margin-bottom: 10px;
+  position: relative;
+}
+.defending-champ-team {
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 5vw, 32px);
+  color: var(--yellow);
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.15;
+  position: relative;
+}
+.defending-champ-year {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--cream);
+  margin-bottom: 14px;
+  opacity: 0.92;
+  position: relative;
+}
+.defending-champ-roster {
+  font-size: 16px;
+  color: var(--cream);
+  line-height: 1.5;
+  opacity: 0.92;
+  position: relative;
+}
+.defending-champ-arrow {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 16px;
+  color: var(--yellow);
   font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  position: relative;
 }
 
-/* ===== CONTENT WRAPPERS ===== */
-section.content {
-  padding: 32px 24px;
-  max-width: 720px; margin: 0 auto;
+
+/* =========================================================
+   4. ABOUT PAGE  (about.html)
+   ========================================================= */
+
+/* ===== COURSE CARDS (with external website links) ===== */
+.course-grid {
+  display: grid; grid-template-columns: 1fr;
+  gap: 16px; margin-top: 8px;
 }
-section.content + section.content { padding-top: 8px; }
-.eyebrow {
-  font-size: 16px; letter-spacing: 0.28em;
+.course-card {
+  background: var(--white);
+  border: 1px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--green);
+  display: flex;
+  flex-direction: column;
+}
+.course-card .course-host {
+  font-size: 16px; letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--yellow-dark);
-  margin-bottom: 12px; font-weight: 600;
+  margin-bottom: 6px; font-weight: 600;
 }
-h2.section-title {
-  font-size: clamp(28px, 5vw, 36px);
-  color: var(--green-dark); margin-bottom: 8px;
+.course-card h3 {
+  color: var(--green-dark); font-size: 24px;
+  margin-bottom: 10px;
+  line-height: 1.2;
 }
-.section-rule {
-  width: 40px; height: 3px;
-  background: var(--yellow);
-  margin: 12px 0 22px;
-  border-radius: 2px;
+.course-card .course-sub {
+  font-size: 16px; color: var(--ink-soft);
+  margin-bottom: 14px;
+  line-height: 1.55;
+  flex: 1;
 }
-p { margin-bottom: 14px; color: var(--ink-soft); font-size: 18px; }
-p strong { color: var(--ink); }
+.course-card .course-meta {
+  font-size: 16px; color: var(--ink-soft);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+.course-card .course-link {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px; font-weight: 600;
+  color: var(--green-dark);
+  text-decoration: none;
+  padding: 10px 18px;
+  background: rgba(244, 216, 56, 0.20);
+  border: 1px solid rgba(15, 89, 40, 0.15);
+  border-radius: 999px;
+  transition: background 0.2s, transform 0.15s;
+}
+.course-card .course-link:hover {
+  background: rgba(244, 216, 56, 0.40);
+  transform: translateY(-1px);
+}
+.course-card .course-link::after {
+  content: '↗';
+  font-size: 16px;
+}
+@media (min-width: 720px) {
+  .course-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== MEDIA TILES (photo + caption pairs) ===== */
+.media-tile-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 24px 0;
+}
+@media (min-width: 520px) {
+  .media-tile-grid { grid-template-columns: 1fr 1fr; }
+}
+.media-tile {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--cream-dark);
+}
+.media-tile-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.media-tile-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.media-tile-img img.Official-Logo {
+  object-fit: contain;
+  padding: 12px;
+}
+.media-tile-placeholder {
+  text-align: center;
+  font-size: 28px;
+  color: var(--ink-soft);
+  opacity: 0.5;
+  line-height: 1.6;
+}
+.media-tile-placeholder small {
+  display: block;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  letter-spacing: 0.05em;
+}
+.media-tile h3 {
+  font-size: 20px;
+  color: var(--green-dark);
+  padding: 16px 18px 6px;
+}
+.media-tile p {
+  font-size: 16px;
+  padding: 0 18px 18px;
+  margin-bottom: 0;
+}
+
+/* ===== COMMISSIONERS ===== */
+.commissioner-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+@media (min-width: 620px) {
+  .commissioner-grid { grid-template-columns: 1fr 1fr; }
+}
+.commissioner-card {
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--cream-dark);
+  display: flex;
+  flex-direction: column;
+}
+.commissioner-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.commissioner-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+.commissioner-photo-placeholder {
+  text-align: center;
+  font-size: 32px;
+  color: var(--ink-soft);
+  opacity: 0.45;
+  line-height: 1.6;
+}
+.commissioner-photo-placeholder small {
+  display: block;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  letter-spacing: 0.05em;
+}
+.commissioner-info {
+  padding: 20px 22px 22px;
+  flex: 1;
+}
+.commissioner-info h3 {
+  font-size: 24px;
+  color: var(--green-dark);
+  margin-bottom: 4px;
+}
+.commissioner-title {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--yellow-dark);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.commissioner-info p {
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+
+/* =========================================================
+   5. RULES PAGE  (rules.html)
+   ========================================================= */
 
 /* ===== RULES BLOCK ===== */
 .rules-block {
@@ -387,176 +910,314 @@ p strong { color: var(--ink); }
 }
 .bonus-row .what strong { color: var(--green-dark); }
 
-/* ===== NOTE / CALLOUT ===== */
-.note {
-  background: rgba(244, 216, 56, 0.18);
-  border-left: 3px solid var(--yellow);
-  padding: 14px 18px; border-radius: 0 8px 8px 0;
-  font-size: 16px; color: var(--ink); margin-top: 16px;
-  line-height: 1.5;
-}
-.note strong { color: var(--green-dark); }
-.note.alert {
-  background: rgba(232, 67, 36, 0.10);
-  border-left-color: var(--red);
-}
-.note.alert strong { color: var(--red); }
-.note.water-note {
-  background: rgba(44, 128, 184, 0.10);
-  border-left-color: var(--water);
-}
-.note.water-note strong { color: var(--water); }
-
-/* ===== INFO TILES (about-page cards for cup, draft, etc.) ===== */
-.info-grid {
+/* ===== HOLE CARDS (used later when revealed) ===== */
+.holes-grid {
   display: grid; grid-template-columns: 1fr;
-  gap: 16px; margin-top: 8px;
+  gap: 10px; margin-top: 12px;
 }
-.info-tile {
+.hole-card {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center; gap: 14px;
+  padding: 14px 16px;
   background: var(--white);
+  border-radius: 10px;
   border: 1px solid var(--cream-dark);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--green);
+  border-left: 3px solid var(--cream-dark);
+  transition: transform 0.15s, border-left-color 0.15s;
 }
-.info-tile .icon {
-  width: 48px; height: 48px; border-radius: 50%;
-  background: var(--yellow); color: var(--green-dark);
+.hole-card:hover {
+  transform: translateX(2px);
+  border-left-color: var(--yellow);
+}
+.hole-num {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--green-dark); color: var(--yellow);
   display: grid; place-items: center;
-  margin-bottom: 14px; font-size: 24px;
-  box-shadow: 0 2px 6px rgba(15,89,40,0.15);
+  font-family: var(--font-serif);
+  font-size: 24px; font-weight: 700;
+  box-shadow: 0 2px 4px rgba(15,89,40,0.2);
 }
-.info-tile h3 {
-  color: var(--green-dark); font-size: 22px;
-  margin-bottom: 8px;
-}
-.info-tile p {
-  margin-bottom: 0;
+.hole-game .game-name {
+  font-weight: 600; color: var(--ink);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.3;
 }
-@media (min-width: 720px) {
-  .info-grid { grid-template-columns: 1fr 1fr; }
-}
-
-/* ===== COURSE CARDS (with external website links) ===== */
-.course-grid {
-  display: grid; grid-template-columns: 1fr;
-  gap: 16px; margin-top: 8px;
-}
-.course-card {
-  background: var(--white);
-  border: 1px solid var(--cream-dark);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--green);
-  display: flex;
-  flex-direction: column;
-}
-.course-card .course-host {
-  font-size: 16px; letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--yellow-dark);
-  margin-bottom: 6px; font-weight: 600;
-}
-.course-card h3 {
-  color: var(--green-dark); font-size: 24px;
-  margin-bottom: 10px;
-  line-height: 1.2;
-}
-.course-card .course-sub {
+.hole-game .game-detail {
   font-size: 16px; color: var(--ink-soft);
-  margin-bottom: 14px;
-  line-height: 1.55;
-  flex: 1;
+  margin-top: 3px;
+  line-height: 1.45;
 }
-.course-card .course-meta {
+.hole-game .game-detail strong { color: var(--green-dark); }
+.hole-yards {
+  font-family: var(--font-serif);
+  color: var(--green); font-weight: 700;
+  font-size: 20px;
+  text-align: right;
+}
+.hole-yards .unit {
+  font-family: var(--font-sans);
   font-size: 16px; color: var(--ink-soft);
-  margin-bottom: 14px;
-  font-style: italic;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
 }
-.course-card .course-link {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 6px;
-  font-size: 16px; font-weight: 600;
-  color: var(--green-dark);
-  text-decoration: none;
-  padding: 10px 18px;
-  background: rgba(244, 216, 56, 0.20);
-  border: 1px solid rgba(15, 89, 40, 0.15);
-  border-radius: 999px;
-  transition: background 0.2s, transform 0.15s;
-}
-.course-card .course-link:hover {
-  background: rgba(244, 216, 56, 0.40);
-  transform: translateY(-1px);
-}
-.course-card .course-link::after {
-  content: '↗';
-  font-size: 16px;
-}
-@media (min-width: 720px) {
-  .course-grid { grid-template-columns: 1fr 1fr; }
-}
-
-/* ===== STATUS CARD (announcement / event state) ===== */
-.status-card {
-  background: var(--white);
-  border-radius: 14px;
-  padding: 32px 28px;
-  box-shadow: var(--shadow-md);
-  border-left: 4px solid var(--green);
-}
-.status-card.pre-event {
-  background: linear-gradient(135deg, rgba(244,216,56,0.18) 0%, rgba(244,216,56,0.04) 100%);
-}
-.status-card.live {
+.hole-card.special {
+  background: linear-gradient(135deg, rgba(232, 67, 36, 0.04), rgba(244, 216, 56, 0.10));
   border-left-color: var(--red);
-  background: linear-gradient(135deg, rgba(232,67,36,0.10) 0%, rgba(232,67,36,0.02) 100%);
 }
-.status-label {
-  display: inline-block;
-  font-size: 16px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--yellow-dark);
-  font-weight: 600;
-  margin-bottom: 14px;
-  padding: 6px 16px;
-  background: rgba(244, 216, 56, 0.35);
-  border-radius: 999px;
+.hole-card.water { border-left-color: var(--water); }
+
+
+/* =========================================================
+   6. DRAFT PAGE  (draft.html)
+   ========================================================= */
+
+/* ===== DRAFT BOARD — list of empty pick rows until draft happens ===== */
+.draft-board {
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--cream-dark);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-top: 8px;
 }
-.status-card.live .status-label {
-  color: var(--red);
-  background: rgba(232, 67, 36, 0.15);
+.draft-board-row {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--cream-dark);
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 16px;
+  align-items: center;
+  min-height: 76px;
 }
-.status-card h2 {
-  font-size: clamp(24px, 4.5vw, 30px);
+.draft-board-row:last-child { border-bottom: none; }
+.draft-pick-label {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
   color: var(--green-dark);
-  margin-bottom: 14px;
-  line-height: 1.25;
+  line-height: 1;
+  letter-spacing: 0.05em;
 }
-.status-card p {
+.draft-pick-content { line-height: 1.35; }
+.draft-team-name {
+  font-size: 18px;
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.draft-team-name.empty {
+  color: var(--cream-dark);
+  font-style: italic;
+  font-weight: 500;
+}
+.draft-roster {
   font-size: 16px;
   color: var(--ink-soft);
-  margin-bottom: 14px;
-  line-height: 1.55;
 }
-.status-card p:last-child { margin-bottom: 0; }
-.status-card .status-meta {
+.draft-roster.empty {
+  color: var(--cream-dark);
   font-style: italic;
-  color: var(--ink);
-  font-size: 16px;
-  background: rgba(15,89,40,0.06);
+}
+
+/* ===== PLAYER PROFILE CAROUSEL ===== */
+.player-carousel {
+  margin-top: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--cream-dark);
+}
+.player-carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 14px 18px;
-  border-radius: 8px;
-  margin-top: 18px;
+  background: var(--green-dark);
+  color: var(--yellow);
+  border-bottom: 2px solid var(--yellow);
+}
+.carousel-arrow {
+  background: rgba(244, 216, 56, 0.15);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  transition: background 0.15s, transform 0.15s;
+  font-family: var(--font-serif);
+  padding: 0;
+}
+.carousel-arrow:hover {
+  background: rgba(244, 216, 56, 0.35);
+  transform: scale(1.06);
+}
+.carousel-counter {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--yellow);
+  letter-spacing: 0.1em;
   text-align: center;
 }
+.player-cards {
+  background: var(--white);
+  min-height: 400px;
+}
+.player-card {
+  display: none;
+  padding: 32px 22px 28px;
+  text-align: center;
+}
+.player-card.active {
+  display: block;
+}
+.player-photo {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--yellow);
+  box-shadow: 0 6px 20px rgba(15,89,40,0.20);
+  margin: 0 auto 18px;
+  display: block;
+}
+.player-photo-placeholder {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+  color: var(--yellow);
+  font-family: var(--font-serif);
+  font-size: 52px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  border: 4px solid var(--yellow);
+  box-shadow: 0 6px 20px rgba(15,89,40,0.20);
+}
+.player-name {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 5vw, 32px);
+  color: var(--green-dark);
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.15;
+}
+.player-meta {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+  letter-spacing: 0.05em;
+}
+.player-meta-divider {
+  color: var(--yellow-dark);
+  margin: 0 8px;
+  font-weight: 700;
+}
+.player-section {
+  text-align: left;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+.player-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+.player-section-label {
+  font-size: 16px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--yellow-dark);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.player-talents {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.player-talents li {
+  font-size: 16px;
+  color: var(--ink);
+  padding: 7px 0 7px 24px;
+  position: relative;
+  line-height: 1.5;
+}
+.player-talents li::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.player-weakness {
+  font-size: 16px;
+  color: var(--ink);
+  font-style: italic;
+  line-height: 1.5;
+  margin: 0;
+  padding-left: 4px;
+}
+
+/* ===== PLAYER STAT BARS ===== */
+.player-stats { margin-top: 4px; }
+.stat-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 32px;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.stat-row:last-child { margin-bottom: 0; }
+.stat-label {
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.stat-bar {
+  height: 10px;
+  background: var(--cream-dark);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.stat-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-dark) 0%, var(--green) 50%, var(--yellow) 100%);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green-dark);
+  text-align: right;
+  line-height: 1;
+}
+
+
+/* =========================================================
+   7. LEADERBOARD PAGE  (leaderboard.html)
+   ========================================================= */
 
 /* ===== LEADERBOARD ===== */
 .leaderboard {
@@ -877,9 +1538,34 @@ p strong { color: var(--ink); }
   line-height: 26px;
 }
 
-/* ===== HISTORY PAGE COMPONENTS ===== */
+/* Marker key (legend below the leaderboard preview) */
+.marker-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  padding: 16px 18px;
+  background: var(--white);
+  border: 1px solid var(--cream-dark);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  margin-top: 18px;
+  justify-content: center;
+}
+.marker-key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-size: 16px;
+  white-space: nowrap;
+}
 
-/* Honor Roll at top of History — quick-glance list of past winners with anchor links */
+
+/* =========================================================
+   8. HISTORY PAGE  (history.html)
+   ========================================================= */
+
+/* ===== HONOR ROLL — quick-glance list of past winners with anchor links ===== */
 .honor-roll {
   list-style: none;
   padding: 0;
@@ -933,7 +1619,7 @@ p strong { color: var(--ink); }
 }
 .hr-team.tbd { color: var(--red); font-style: italic; }
 
-/* Year narrative — short context paragraph per year */
+/* ===== YEAR NARRATIVE — short context paragraph per year (legacy block style) ===== */
 .year-narrative {
   font-size: 18px;
   font-style: italic;
@@ -947,7 +1633,7 @@ p strong { color: var(--ink); }
 }
 .year-narrative strong { color: var(--green-dark); font-style: normal; }
 
-/* Champions trophy card */
+/* ===== CHAMPIONS TROPHY CARD (legacy layout) ===== */
 .champions-card {
   background: linear-gradient(135deg, rgba(244, 216, 56, 0.25) 0%, rgba(244, 216, 56, 0.06) 100%);
   border-radius: 14px;
@@ -1014,7 +1700,7 @@ p strong { color: var(--ink); }
   border-radius: 999px;
 }
 
-/* Final standings list */
+/* ===== FINAL STANDINGS LIST (legacy layout) ===== */
 .standings {
   background: var(--white);
   border-radius: 12px;
@@ -1073,7 +1759,7 @@ p strong { color: var(--ink); }
   line-height: 1;
 }
 
-/* Superlatives — annual awards list */
+/* ===== SUPERLATIVES — annual awards list (legacy layout) ===== */
 .superlatives {
   background: var(--white);
   border-radius: 12px;
@@ -1123,397 +1809,6 @@ p strong { color: var(--ink); }
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 4px;
-}
-
-/* ===== HOME PAGE COMPONENTS ===== */
-
-/* Navigation tiles grid */
-.nav-tiles {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 8px;
-}
-@media (min-width: 720px) {
-  .nav-tiles {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-.nav-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 26px 16px 22px;
-  background: var(--white);
-  border-radius: 14px;
-  border: 1px solid var(--cream-dark);
-  box-shadow: var(--shadow-sm);
-  text-decoration: none;
-  color: var(--ink);
-  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s;
-  min-height: 170px;
-}
-.nav-tile:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  background: rgba(244, 216, 56, 0.06);
-  border-color: var(--yellow);
-}
-.nav-tile-icon {
-  font-size: 38px;
-  margin-bottom: 12px;
-  line-height: 1;
-}
-.nav-tile-name {
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--green-dark);
-  margin-bottom: 6px;
-  line-height: 1.2;
-}
-.nav-tile-desc {
-  font-size: 16px;
-  color: var(--ink-soft);
-  line-height: 1.4;
-  font-style: italic;
-}
-
-/* Defending Champions celebratory card */
-.defending-champ {
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
-  color: var(--cream);
-  padding: 26px 24px;
-  border-radius: 14px;
-  border: 1px solid rgba(244, 216, 56, 0.45);
-  box-shadow: var(--shadow-md);
-  position: relative;
-  overflow: hidden;
-  text-decoration: none;
-  display: block;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.defending-champ:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-.defending-champ::before {
-  content: '\1F3C6';
-  position: absolute;
-  right: 6px;
-  bottom: -20px;
-  font-size: 160px;
-  opacity: 0.08;
-  transform: rotate(8deg);
-  pointer-events: none;
-}
-.defending-champ-label {
-  font-size: 16px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--yellow);
-  font-weight: 700;
-  margin-bottom: 10px;
-  position: relative;
-}
-.defending-champ-team {
-  font-family: var(--font-serif);
-  font-size: clamp(26px, 5vw, 32px);
-  color: var(--yellow);
-  font-weight: 700;
-  margin-bottom: 6px;
-  line-height: 1.15;
-  position: relative;
-}
-.defending-champ-year {
-  font-family: var(--font-serif);
-  font-size: 18px;
-  color: var(--cream);
-  margin-bottom: 14px;
-  opacity: 0.92;
-  position: relative;
-}
-.defending-champ-roster {
-  font-size: 16px;
-  color: var(--cream);
-  line-height: 1.5;
-  opacity: 0.92;
-  position: relative;
-}
-.defending-champ-arrow {
-  display: inline-block;
-  margin-top: 18px;
-  font-size: 16px;
-  color: var(--yellow);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  position: relative;
-}
-
-/* ===== DRAFT PAGE COMPONENTS ===== */
-
-/* Draft Board — list of empty pick rows until draft happens */
-.draft-board {
-  background: var(--white);
-  border-radius: 12px;
-  border: 1px solid var(--cream-dark);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  margin-top: 8px;
-}
-.draft-board-row {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--cream-dark);
-  display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 16px;
-  align-items: center;
-  min-height: 76px;
-}
-.draft-board-row:last-child { border-bottom: none; }
-.draft-pick-label {
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--green-dark);
-  line-height: 1;
-  letter-spacing: 0.05em;
-}
-.draft-pick-content { line-height: 1.35; }
-.draft-team-name {
-  font-size: 18px;
-  color: var(--ink);
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.draft-team-name.empty {
-  color: var(--cream-dark);
-  font-style: italic;
-  font-weight: 500;
-}
-.draft-roster {
-  font-size: 16px;
-  color: var(--ink-soft);
-}
-.draft-roster.empty {
-  color: var(--cream-dark);
-  font-style: italic;
-}
-
-/* Player Profile Carousel */
-.player-carousel {
-  margin-top: 8px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--cream-dark);
-}
-.player-carousel-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  background: var(--green-dark);
-  color: var(--yellow);
-  border-bottom: 2px solid var(--yellow);
-}
-.carousel-arrow {
-  background: rgba(244, 216, 56, 0.15);
-  border: 1px solid var(--yellow);
-  color: var(--yellow);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 22px;
-  line-height: 1;
-  font-weight: 700;
-  transition: background 0.15s, transform 0.15s;
-  font-family: var(--font-serif);
-  padding: 0;
-}
-.carousel-arrow:hover {
-  background: rgba(244, 216, 56, 0.35);
-  transform: scale(1.06);
-}
-.carousel-counter {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--yellow);
-  letter-spacing: 0.1em;
-  text-align: center;
-}
-.player-cards {
-  background: var(--white);
-  min-height: 400px;
-}
-.player-card {
-  display: none;
-  padding: 32px 22px 28px;
-  text-align: center;
-}
-.player-card.active {
-  display: block;
-}
-.player-photo {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid var(--yellow);
-  box-shadow: 0 6px 20px rgba(15,89,40,0.20);
-  margin: 0 auto 18px;
-  display: block;
-}
-.player-photo-placeholder {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
-  color: var(--yellow);
-  font-family: var(--font-serif);
-  font-size: 52px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-  margin: 0 auto 18px;
-  border: 4px solid var(--yellow);
-  box-shadow: 0 6px 20px rgba(15,89,40,0.20);
-}
-.player-name {
-  font-family: var(--font-serif);
-  font-size: clamp(28px, 5vw, 32px);
-  color: var(--green-dark);
-  font-weight: 700;
-  margin-bottom: 6px;
-  line-height: 1.15;
-}
-.player-meta {
-  font-size: 16px;
-  color: var(--ink-soft);
-  margin-bottom: 24px;
-  letter-spacing: 0.05em;
-}
-.player-meta-divider {
-  color: var(--yellow-dark);
-  margin: 0 8px;
-  font-weight: 700;
-}
-.player-section {
-  text-align: left;
-  margin-bottom: 22px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--cream-dark);
-}
-.player-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-.player-section-label {
-  font-size: 16px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--yellow-dark);
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-.player-talents {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.player-talents li {
-  font-size: 16px;
-  color: var(--ink);
-  padding: 7px 0 7px 24px;
-  position: relative;
-  line-height: 1.5;
-}
-.player-talents li::before {
-  content: '+';
-  position: absolute;
-  left: 0;
-  top: 7px;
-  color: var(--green);
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 1.4;
-}
-.player-weakness {
-  font-size: 16px;
-  color: var(--ink);
-  font-style: italic;
-  line-height: 1.5;
-  margin: 0;
-  padding-left: 4px;
-}
-
-/* Stat bars */
-.player-stats { margin-top: 4px; }
-.stat-row {
-  display: grid;
-  grid-template-columns: 110px 1fr 32px;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.stat-row:last-child { margin-bottom: 0; }
-.stat-label {
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.stat-bar {
-  height: 10px;
-  background: var(--cream-dark);
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-}
-.stat-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--green-dark) 0%, var(--green) 50%, var(--yellow) 100%);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-.stat-value {
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--green-dark);
-  text-align: right;
-  line-height: 1;
-}
-
-/* Marker key (legend below the leaderboard preview) */
-.marker-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px 20px;
-  padding: 16px 18px;
-  background: var(--white);
-  border: 1px solid var(--cream-dark);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  margin-top: 18px;
-  justify-content: center;
-}
-.marker-key > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--ink);
-  font-size: 16px;
-  white-space: nowrap;
 }
 
 /* ===== GALLERY (per-year sections, photo grid, album link) ===== */
@@ -1621,7 +1916,7 @@ p strong { color: var(--ink); }
   font-size: 16px;
 }
 
-/* ===== CUP LEADERBOARD (history page — wins per player) ===== */
+/* ===== CUP LEADERBOARD — wins per player ===== */
 .cup-leaderboard {
   margin-top: 16px;
   background: var(--white);
@@ -1712,45 +2007,55 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
 }
 .yc-narrative strong { color: var(--green-dark); font-style: normal; }
 
-/* ===== Stats Carousel Nav ===== */
+/* ===== STATS CAROUSEL NAV =====
+   Mirrors the draft page's .player-carousel-nav / .carousel-arrow look so
+   the toggle behaves and reads the same in both places. */
 .stats-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--green-dark);
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 14px 18px;
   margin-bottom: 18px;
+  border: 2px solid var(--yellow);
+  box-shadow: var(--shadow-sm);
 }
 .stats-nav-arrow {
-  background: rgba(244,216,56,0.15);
+  background: rgba(244, 216, 56, 0.15);
   border: 1px solid var(--yellow);
   color: var(--yellow);
-  font-size: 28px;
-  font-family: var(--font-serif);
-  border-radius: 6px;
   width: 44px;
   height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 50%;
   cursor: pointer;
-  transition: background 0.15s;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  padding: 0;
+  transition: background 0.15s, transform 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .stats-nav-arrow:hover,
-.stats-nav-arrow:active { background: rgba(244,216,56,0.35); }
+.stats-nav-arrow:active {
+  background: rgba(244, 216, 56, 0.35);
+  transform: scale(1.06);
+}
 .stats-nav-label {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--yellow);
   text-align: center;
   flex: 1;
   padding: 0 10px;
+  letter-spacing: 0.05em;
 }
 
-/* ===== Stats Tab Toggle ===== */
+/* ===== STATS TAB TOGGLE ===== */
 .stats-tabs {
   display: flex;
   gap: 8px;
@@ -1814,7 +2119,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
 .stats-table tbody tr:last-child td { border-bottom: none; }
 .stats-table tbody tr:nth-child(even) { background: var(--cream); }
 
-/* Champion name + score row — trophy | name | pts (mirrors .yc-row layout) */
+/* ===== YEAR-CARD CHAMPIONS HEADER (trophy | name | pts row inside year-card) ===== */
 .yc-champ-header {
   display: grid;
   grid-template-columns: 36px 1fr auto;
@@ -1886,6 +2191,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   border-color: var(--green-dark);
   font-weight: 600;
 }
+/* Captain-tag override inside year-card roster context — smaller pill */
 .captain-tag {
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -1894,7 +2200,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   font-weight: 600;
 }
 
-/* Standings within year card */
+/* ===== YEAR-CARD STANDINGS ===== */
 .yc-standings {
   padding: 14px 20px;
   border-bottom: 1px solid var(--cream-dark);
@@ -1963,31 +2269,45 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   white-space: nowrap;
 }
 
-/* Winner team photo above champion block */
+/* Winner team photo above champion block — mirrors home page .champions-photo
+   styling: full-width photo at the top of the year-card with the year-card's
+   top corner radius, cropped via object-fit:cover, anchored to the top so
+   heads stay visible regardless of source aspect ratio. */
 .winner-photo {
   display: block;
   width: 100%;
-  border-radius: 10px 10px 0 0;
+  border-radius: 14px 14px 0 0;
   object-fit: cover;
-  max-height: 280px;
+  object-position: center top;
+  aspect-ratio: 1536 / 940;
 }
 
-/* Team logo thumbnail in standings rows */
+/* Team logo thumbnail in standings rows — height matches the surrounding
+   text so the logo never towers over a 15px team name. Width auto-fits the
+   image's native aspect ratio so non-square logos (e.g. HallOfFamers) don't
+   get squashed or cropped. */
 .yc-team-logo {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  object-fit: cover;
+  height: 1em;
+  width: auto;
+  max-height: 1.4em;
+  border-radius: 4px;
+  object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
+/* Champion header has bigger team name (26px) — let the logo grow with it */
+.yc-champ-header .yc-team-logo {
+  height: 1.4em;
+}
 
-/* Expand grid columns when logos are present (2025+) */
+/* Expand grid columns when logos are present (2025+).
+   Logo column is 'auto' so it sizes to the logo's natural width
+   (height-driven by the rules above, width preserves aspect ratio). */
 .yc-standings.has-logos .yc-champ-header {
-  grid-template-columns: 36px 20px 1fr auto;
+  grid-template-columns: 36px auto 1fr auto;
 }
 .yc-standings.has-logos .yc-row {
-  grid-template-columns: 36px 20px 1fr auto auto;
+  grid-template-columns: 36px auto 1fr auto auto;
 }
 .yc-pts {
   font-family: var(--font-serif);
@@ -1998,7 +2318,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   white-space: nowrap;
 }
 
-/* Superlatives within year card */
+/* ===== YEAR-CARD SUPERLATIVES ===== */
 .yc-superlatives {
   padding: 14px 20px;
 }
@@ -2032,7 +2352,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   font-style: italic;
 }
 
-/* Photos section within year card */
+/* ===== YEAR-CARD PHOTOS SECTION ===== */
 .yc-photos {
   padding: 14px 18px 18px;
   border-top: 1px solid var(--cream-dark);
@@ -2072,7 +2392,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   flex-wrap: wrap;
 }
 
-/* ===== LIGHTBOX (fullscreen photo viewer) ===== */
+/* ===== LIGHTBOX (fullscreen photo viewer — gallery) ===== */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -2138,90 +2458,12 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   border: 1px solid rgba(244, 216, 56, 0.2);
 }
 
-/* ===== HOLE CARDS (used later when revealed) ===== */
-.holes-grid {
-  display: grid; grid-template-columns: 1fr;
-  gap: 10px; margin-top: 12px;
-}
-.hole-card {
-  display: grid;
-  grid-template-columns: 50px 1fr auto;
-  align-items: center; gap: 14px;
-  padding: 14px 16px;
-  background: var(--white);
-  border-radius: 10px;
-  border: 1px solid var(--cream-dark);
-  border-left: 3px solid var(--cream-dark);
-  transition: transform 0.15s, border-left-color 0.15s;
-}
-.hole-card:hover {
-  transform: translateX(2px);
-  border-left-color: var(--yellow);
-}
-.hole-num {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  background: var(--green-dark); color: var(--yellow);
-  display: grid; place-items: center;
-  font-family: var(--font-serif);
-  font-size: 24px; font-weight: 700;
-  box-shadow: 0 2px 4px rgba(15,89,40,0.2);
-}
-.hole-game .game-name {
-  font-weight: 600; color: var(--ink);
-  font-size: 16px;
-  line-height: 1.3;
-}
-.hole-game .game-detail {
-  font-size: 16px; color: var(--ink-soft);
-  margin-top: 3px;
-  line-height: 1.45;
-}
-.hole-game .game-detail strong { color: var(--green-dark); }
-.hole-yards {
-  font-family: var(--font-serif);
-  color: var(--green); font-weight: 700;
-  font-size: 20px;
-  text-align: right;
-}
-.hole-yards .unit {
-  font-family: var(--font-sans);
-  font-size: 16px; color: var(--ink-soft);
-  letter-spacing: 0.1em; text-transform: uppercase;
-  display: block;
-  margin-top: 2px;
-  font-weight: 500;
-}
-.hole-card.special {
-  background: linear-gradient(135deg, rgba(232, 67, 36, 0.04), rgba(244, 216, 56, 0.10));
-  border-left-color: var(--red);
-}
-.hole-card.water { border-left-color: var(--water); }
 
-/* ===== FOOTER ===== */
-footer.app-footer {
-  background: var(--green-dark); color: var(--cream);
-  padding: 36px 24px 28px; text-align: center;
-  border-top: 2px solid var(--yellow);
-  margin-top: 32px;
-}
-footer.app-footer .brand-text {
-  font-family: var(--font-script);
-  font-size: 30px;
-  color: var(--yellow);
-  display: block; margin-bottom: 12px;
-  text-decoration: none;
-  font-weight: 700;
-}
-footer.app-footer p {
-  color: rgba(251, 246, 232, 0.7);
-  font-size: 16px; margin-bottom: 6px;
-}
-.footer-fine {
-  margin-top: 14px; font-size: 16px;
-  letter-spacing: 0.15em; text-transform: uppercase;
-  color: rgba(244, 216, 56, 0.6);
-}
+/* =========================================================
+   9. UTILITIES
+   Foundation / design-system helpers — not used in
+   user-facing pages currently.
+   ========================================================= */
 
 /* ===== PALETTE PREVIEW (foundation page only) ===== */
 .swatch-grid {
@@ -2262,143 +2504,4 @@ footer.app-footer p {
   margin-top: 8px;
   letter-spacing: 0.05em;
   font-weight: 500;
-}
-
-/* ===== INLINE LINK (body text anchor) ===== */
-a.inline-link {
-  color: var(--green-dark);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color 0.15s;
-}
-a.inline-link:hover { color: var(--green); }
-
-/* ===== MEDIA TILES (photo + caption pairs — about page) ===== */
-.media-tile-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-  margin: 24px 0;
-}
-@media (min-width: 520px) {
-  .media-tile-grid { grid-template-columns: 1fr 1fr; }
-}
-.media-tile {
-  background: var(--white);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--cream-dark);
-}
-.media-tile-img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: var(--cream-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.media-tile-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.media-tile-img img.Official-Logo {
-  object-fit: contain;
-  padding: 12px;
-}
-.media-tile-placeholder {
-  text-align: center;
-  font-size: 28px;
-  color: var(--ink-soft);
-  opacity: 0.5;
-  line-height: 1.6;
-}
-.media-tile-placeholder small {
-  display: block;
-  font-size: 14px;
-  font-family: var(--font-sans);
-  letter-spacing: 0.05em;
-}
-.media-tile h3 {
-  font-size: 20px;
-  color: var(--green-dark);
-  padding: 16px 18px 6px;
-}
-.media-tile p {
-  font-size: 16px;
-  padding: 0 18px 18px;
-  margin-bottom: 0;
-}
-
-/* ===== COMMISSIONERS (about page) ===== */
-.commissioner-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  margin-top: 20px;
-}
-@media (min-width: 620px) {
-  .commissioner-grid { grid-template-columns: 1fr 1fr; }
-}
-.commissioner-card {
-  background: var(--white);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--cream-dark);
-  display: flex;
-  flex-direction: column;
-}
-.commissioner-photo {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: var(--green-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.commissioner-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-.commissioner-photo-placeholder {
-  text-align: center;
-  font-size: 32px;
-  color: var(--ink-soft);
-  opacity: 0.45;
-  line-height: 1.6;
-}
-.commissioner-photo-placeholder small {
-  display: block;
-  font-size: 14px;
-  font-family: var(--font-sans);
-  letter-spacing: 0.05em;
-}
-.commissioner-info {
-  padding: 20px 22px 22px;
-  flex: 1;
-}
-.commissioner-info h3 {
-  font-size: 24px;
-  color: var(--green-dark);
-  margin-bottom: 4px;
-}
-.commissioner-title {
-  font-size: 13px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--yellow-dark);
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-.commissioner-info p {
-  font-size: 16px;
-  margin-bottom: 0;
 }
