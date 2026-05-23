@@ -581,6 +581,15 @@ a.inline-link:hover { color: var(--green); }
   transform: rotate(8deg);
   pointer-events: none;
 }
+.defending-champ-photo {
+  width: calc(100% + 48px);
+  margin: -26px -24px 20px -24px;
+  display: block;
+  height: 220px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 14px 14px 0 0;
+}
 .defending-champ-label {
   font-size: 16px;
   letter-spacing: 0.22em;
