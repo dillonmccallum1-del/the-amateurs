@@ -1712,6 +1712,70 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
 }
 .yc-narrative strong { color: var(--green-dark); font-style: normal; }
 
+/* ===== Stats Tab Toggle ===== */
+.stats-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.stats-tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--green-dark);
+  background: transparent;
+  color: var(--green-dark);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.stats-tab.active,
+.stats-tab:hover {
+  background: var(--green-dark);
+  color: var(--yellow);
+}
+.stats-panel.hidden { display: none; }
+.stats-subtitle {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  font-style: italic;
+}
+.stats-table-wrap {
+  overflow-x: auto;
+}
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 15px;
+}
+.stats-table thead tr {
+  background: var(--green-dark);
+  color: var(--yellow);
+}
+.stats-table th {
+  padding: 9px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.stats-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--cream-dark);
+  color: var(--ink);
+}
+.stats-table tbody tr.top td {
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.stats-table tbody tr:last-child td { border-bottom: none; }
+.stats-table tbody tr:nth-child(even) { background: var(--cream); }
+
 /* Champion name + score row — trophy | name | pts (mirrors .yc-row layout) */
 .yc-champ-header {
   display: grid;
@@ -1859,6 +1923,33 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   color: var(--ink-soft);
   font-style: italic;
   white-space: nowrap;
+}
+
+/* Winner team photo above champion block */
+.winner-photo {
+  display: block;
+  width: 100%;
+  border-radius: 10px 10px 0 0;
+  object-fit: cover;
+  max-height: 280px;
+}
+
+/* Team logo thumbnail in standings rows */
+.yc-team-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Expand grid columns when logos are present (2025+) */
+.yc-standings.has-logos .yc-champ-header {
+  grid-template-columns: 36px 36px 1fr auto;
+}
+.yc-standings.has-logos .yc-row {
+  grid-template-columns: 36px 36px 1fr auto auto;
 }
 .yc-pts {
   font-family: var(--font-serif);
@@ -2176,6 +2267,10 @@ a.inline-link:hover { color: var(--green); }
   height: 100%;
   object-fit: cover;
   display: block;
+}
+.media-tile-img img.Official-Logo {
+  object-fit: contain;
+  padding: 12px;
 }
 .media-tile-placeholder {
   text-align: center;

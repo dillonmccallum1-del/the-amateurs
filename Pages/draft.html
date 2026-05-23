@@ -58,6 +58,7 @@
   <a href="leaderboard.html">Live Leaderboard</a>
   <a href="draft.html" class="active">Draft</a>
   <a href="history.html">History</a>
+  <a href="captains.html">Captain Scorecard</a>
   <a href="admin.html">Commissioner Login</a>
 </nav>
 
@@ -176,7 +177,7 @@
 
 <script type="module">
   // Live draft board — listens for team docs ordered by draftPick.
-  import { onTeams, onEventConfig } from "./js/firebase-init.js";
+  import { onTeams, onEventConfig } from "../js/firebase-init.js";
 
   const board = document.getElementById("draft-board");
   let expectedPicks = 6; // default; can be overridden via event config

@@ -200,6 +200,12 @@
         <option value="false">No — show placeholder only</option>
       </select>
 
+      <label for="evt-bonus-visible">Bonus points visible to viewers?</label>
+      <select id="evt-bonus-visible">
+        <option value="false">No — hidden until event day</option>
+        <option value="true">Yes — show bonus points on leaderboard</option>
+      </select>
+
       <label for="evt-par">Course par (9 numbers, comma-separated)</label>
       <input id="evt-par" type="text" placeholder="3,3,3,3,3,3,3,3,3">
 
@@ -229,6 +235,17 @@
 
       <label for="team-draft">Draft pick (1, 2, 3…)</label>
       <input id="team-draft" type="number" min="1">
+
+      <label for="team-flag">Country flag (captain scorecard login)</label>
+      <select id="team-flag">
+        <option value="">— No flag assigned —</option>
+        <option value="Flag_of_Argentina.svg.png">🇦🇷 Argentina</option>
+        <option value="Flag_of_Australia.svg.png">🇦🇺 Australia</option>
+        <option value="Flag_of_Curaçao.svg.png">🇨🇼 Curaçao</option>
+        <option value="Flag_of_Panama.svg.png">🇵🇦 Panama</option>
+        <option value="scotland-flag-with-lion__87008.png">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland</option>
+        <option value="uzbekistan.png">🇺🇿 Uzbekistan</option>
+      </select>
 
       <div class="btn-row">
         <button id="save-team" class="btn btn-primary">Save team</button>
@@ -306,7 +323,7 @@
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig,
     onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus
-  } from "./js/firebase-init.js";
+  } from "../js/firebase-init.js";
 
   // ----- Element refs
   const $ = (id) => document.getElementById(id);
@@ -380,11 +397,12 @@
   }
 
   function fillConfigForm(cfg) {
-    $("evt-year").value    = cfg.year ?? 2026;
-    $("evt-edition").value = cfg.edition ?? "";
-    $("evt-status").value  = cfg.status ?? "pre-event";
-    $("evt-visible").value = String(cfg.leaderboardVisible ?? false);
-    $("evt-par").value     = (cfg.coursePar || [3,3,3,3,3,3,3,3,3]).join(",");
+    $("evt-year").value         = cfg.year ?? 2026;
+    $("evt-edition").value      = cfg.edition ?? "";
+    $("evt-status").value       = cfg.status ?? "pre-event";
+    $("evt-visible").value      = String(cfg.leaderboardVisible ?? false);
+    $("evt-bonus-visible").value = String(cfg.bonusVisible ?? false);
+    $("evt-par").value          = (cfg.coursePar || [3,3,3,3,3,3,3,3,3]).join(",");
     // also fill par row in score grid
     const par = cfg.coursePar || [3,3,3,3,3,3,3,3,3];
     for (let i = 0; i < 9; i++) $("par-" + (i+1)).textContent = par[i] ?? "—";
@@ -403,6 +421,7 @@
         edition: $("evt-edition").value.trim(),
         status: $("evt-status").value,
         leaderboardVisible: $("evt-visible").value === "true",
+        bonusVisible: $("evt-bonus-visible").value === "true",
         coursePar: parArr
       });
       fb.textContent = "Saved.";
@@ -462,6 +481,7 @@
     $("team-captain").value = "";
     $("team-partner").value = "";
     $("team-draft").value = "";
+    $("team-flag").value = "";
   }
 
   function loadTeamIntoForm(t) {
@@ -470,6 +490,7 @@
     $("team-captain").value = t.captain || "";
     $("team-partner").value = t.partner || "";
     $("team-draft").value   = t.draftPick ?? "";
+    $("team-flag").value    = t.flagFile || "";
     // also select in score dropdown
     $("score-team").value = t.id;
     onScoreTeamChange();
@@ -490,7 +511,8 @@
         name: $("team-name").value.trim(),
         captain: $("team-captain").value.trim(),
         partner: $("team-partner").value.trim(),
-        draftPick: Number($("team-draft").value) || 99
+        draftPick: Number($("team-draft").value) || 99,
+        flagFile: $("team-flag").value || null
       });
       flash("team-feedback", "Team saved.", "ok");
     } catch (err) {

@@ -37,6 +37,7 @@
   <a href="leaderboard.html" class="active">Live Leaderboard</a>
   <a href="draft.html">Draft</a>
   <a href="history.html">History</a>
+  <a href="captains.html">Captain Scorecard</a>
   <a href="admin.html">Commissioner Login</a>
 </nav>
 
@@ -148,7 +149,7 @@
 <script type="module">
   import {
     onEventConfig, onTeams, computeTeamTotals, pointsForHole
-  } from "./js/firebase-init.js";
+  } from "../js/firebase-init.js";
 
   let lastRanking = {}; // teamId -> previous rank (for ↑↓ arrows)
   let currentConfig = null;
@@ -205,15 +206,20 @@
     const par = currentConfig.coursePar || [3,3,3,3,3,3,3,3,3];
     const numHoles = par.length;
 
+    const bonusVisible = currentConfig.bonusVisible === true;
+
     // Compute totals + sort high-to-low (Stableford: high wins)
     const rows = currentTeams.map(t => {
       const totals = computeTeamTotals(t, par);
+      // If bonus is hidden, only use hole points for the displayed score
+      const displayPoints = bonusVisible ? totals.totalPoints : totals.holePointsTotal;
       return {
         team: t,
-        ...totals
+        ...totals,
+        displayPoints
       };
     }).sort((a, b) => {
-      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      if (b.displayPoints !== a.displayPoints) return b.displayPoints - a.displayPoints;
       // tie-breaker: more holes completed first, then earlier draft pick
       if (b.holesCompleted !== a.holesCompleted) return b.holesCompleted - a.holesCompleted;
       return (a.team.draftPick ?? 99) - (b.team.draftPick ?? 99);
@@ -251,7 +257,7 @@
           <div class="team-meta">${escapeHtml(meta)}</div>
         </div>
         <div class="thru">${r.holesCompleted}</div>
-        <div class="score">+${r.totalPoints}</div>
+        <div class="score">+${r.displayPoints}</div>
       `;
       rowsWrap.appendChild(row);
 
@@ -307,7 +313,7 @@
             <tr class="row-points"><th>Pts</th>${pointsRow}<td>+${r.holePointsTotal}</td></tr>
           </tbody>
         </table>
-        ${(bonusList || r.bonusTotal) ? `
+        ${bonusVisible ? `
           <div class="scorecard-bonus">
             <h4>Bonus Points</h4>
             <ul class="bonus-list">${bonusList || '<li class="small-hint">None yet.</li>'}</ul>

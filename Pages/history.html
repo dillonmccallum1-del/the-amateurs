@@ -37,6 +37,7 @@
   <a href="leaderboard.html">Live Leaderboard</a>
   <a href="draft.html">Draft</a>
   <a href="history.html" class="active">History</a>
+  <a href="captains.html">Captain Scorecard</a>
   <a href="admin.html">Commissioner Login</a>
 </nav>
 
@@ -47,88 +48,140 @@
   <div class="header-divider"></div>
 </section>
 
-<!-- ===== CUP LEADERBOARD ===== -->
+<!-- ===== THE AMATEURS STATS ===== -->
 <section class="content">
-  <h2 class="section-title">MacCallum Cup Leaderboard</h2>
+  <h2 class="section-title">The Amateurs Stats</h2>
   <div class="section-rule"></div>
 
-  <div class="cup-leaderboard">
-    <div class="cup-lb-row top">
-      <div class="cup-lb-rank">T-1</div>
-      <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2023 &middot; 2024</span></div>
-      <div>
-        <div class="cup-lb-wins">2</div>
+  <!-- Tab toggle buttons -->
+  <div class="stats-tabs">
+    <button class="stats-tab active" onclick="showTab('cup')">MacCallum Cup</button>
+    <button class="stats-tab" onclick="showTab('rate')">Championship Rate</button>
+    <button class="stats-tab" onclick="showTab('sup')">Superlatives</button>
+  </div>
+
+  <!-- ===== TAB 1: MacCallum Cup Leaderboard ===== -->
+  <div id="tab-cup" class="stats-panel">
+    <p class="stats-subtitle">MacCallum Cup Leaderboard</p>
+    <div class="cup-leaderboard">
+      <div class="cup-lb-row top">
+        <div class="cup-lb-rank">T-1</div>
+        <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2023 &middot; 2024</span></div>
+        <div><div class="cup-lb-wins">2</div></div>
+      </div>
+      <div class="cup-lb-row top">
+        <div class="cup-lb-rank">T-1</div>
+        <div class="cup-lb-name">Dillon McCallum <span class="cup-lb-years">2023 &middot; 2025</span></div>
+        <div><div class="cup-lb-wins">2</div></div>
+      </div>
+      <div class="cup-lb-row top">
+        <div class="cup-lb-rank">T-1</div>
+        <div class="cup-lb-name">Geoffrey McVey <span class="cup-lb-years">2024 &middot; 2025</span></div>
+        <div><div class="cup-lb-wins">2</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Joe McCallum <span class="cup-lb-years">2022</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Brian Odelson <span class="cup-lb-years">2022</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">David McCallum <span class="cup-lb-years">2022</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Karen McCallum <span class="cup-lb-years">2022</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Erin McCallum <span class="cup-lb-years">2023</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Brian McCallum <span class="cup-lb-years">2024</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Jo&atilde;o Paulo Gurgel <span class="cup-lb-years">2025</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
+      </div>
+      <div class="cup-lb-row">
+        <div class="cup-lb-rank">T-4</div>
+        <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">2025</span></div>
+        <div><div class="cup-lb-wins">1</div></div>
       </div>
     </div>
-    <div class="cup-lb-row top">
-      <div class="cup-lb-rank">T-1</div>
-      <div class="cup-lb-name">Dillon McCallum <span class="cup-lb-years">2023 &middot; 2025</span></div>
-      <div>
-        <div class="cup-lb-wins">2</div>
-      </div>
+  </div>
+
+  <!-- ===== TAB 2: Championship Rate ===== -->
+  <div id="tab-rate" class="stats-panel hidden">
+    <p class="stats-subtitle">Championship Rate — wins &divide; events played &times; 100 &nbsp;·&nbsp; min. 2 events</p>
+    <div class="stats-table-wrap">
+      <table class="stats-table">
+        <thead>
+          <tr><th>#</th><th>Player</th><th>W</th><th>GP</th><th>Rate</th></tr>
+        </thead>
+        <tbody>
+          <tr class="top"><td>1</td><td>Geoffrey McVey</td><td>2</td><td>2</td><td>100%</td></tr>
+          <tr class="top"><td>T-2</td><td>Dillon McCallum</td><td>2</td><td>4</td><td>50%</td></tr>
+          <tr class="top"><td>T-2</td><td>Andrea McCallum</td><td>2</td><td>4</td><td>50%</td></tr>
+          <tr class="top"><td>T-2</td><td>Joe McCallum</td><td>1</td><td>2</td><td>50%</td></tr>
+          <tr class="top"><td>T-2</td><td>Brian Odelson</td><td>1</td><td>2</td><td>50%</td></tr>
+          <tr class="top"><td>T-2</td><td>Jack Omilian</td><td>1</td><td>2</td><td>50%</td></tr>
+          <tr><td>T-7</td><td>David McCallum</td><td>1</td><td>4</td><td>25%</td></tr>
+          <tr><td>T-7</td><td>Karen McCallum</td><td>1</td><td>4</td><td>25%</td></tr>
+          <tr><td>T-7</td><td>Erin McCallum</td><td>1</td><td>4</td><td>25%</td></tr>
+          <tr><td>T-7</td><td>Brian McCallum</td><td>1</td><td>4</td><td>25%</td></tr>
+          <tr><td>T-11</td><td>Alex McCallum</td><td>0</td><td>4</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Cheri McCallum</td><td>0</td><td>4</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Louann Muneio</td><td>0</td><td>3</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Charlotte Fody</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Reid Omilian</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Mitch Fody</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Abby Odelson</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Suzanne Muneio</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Karen Odelson</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Andrew Carson</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Diane McCallum</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Emily Beyer</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Drew McCallum</td><td>0</td><td>2</td><td>0%</td></tr>
+          <tr><td>T-11</td><td>Annmarie Omilian</td><td>0</td><td>2</td><td>0%</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="cup-lb-row top">
-      <div class="cup-lb-rank">T-1</div>
-      <div class="cup-lb-name">Geoffrey McVey <span class="cup-lb-years">2024 &middot; 2025</span></div>
-      <div>
-        <div class="cup-lb-wins">2</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Joe McCallum <span class="cup-lb-years">2022</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Brian Odelson <span class="cup-lb-years">2022</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">David McCallum <span class="cup-lb-years">2022</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Karen McCallum <span class="cup-lb-years">2022</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Erin McCallum <span class="cup-lb-years">2023</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Brian McCallum <span class="cup-lb-years">2024</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Jo&atilde;o Paulo Gurgel <span class="cup-lb-years">2025</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
-    </div>
-    <div class="cup-lb-row">
-      <div class="cup-lb-rank">T-4</div>
-      <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">2025</span></div>
-      <div>
-        <div class="cup-lb-wins">1</div>
-      </div>
+  </div>
+
+  <!-- ===== TAB 3: Superlative Leaderboard ===== -->
+  <div id="tab-sup" class="stats-panel hidden">
+    <p class="stats-subtitle">Superlative Leaderboard — total superlatives awarded</p>
+    <div class="stats-table-wrap">
+      <table class="stats-table">
+        <thead>
+          <tr><th>#</th><th>Player</th><th>Awards</th></tr>
+        </thead>
+        <tbody>
+          <tr class="top"><td>T-1</td><td>Andrew Carson</td><td>2</td></tr>
+          <tr class="top"><td>T-1</td><td>Brian McCallum</td><td>2</td></tr>
+          <tr class="top"><td>T-1</td><td>Cheri McCallum</td><td>2</td></tr>
+          <tr><td>T-4</td><td>David McCallum</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Barrett Dunn</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Alex McCallum</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Dillon McCallum</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Andrea McCallum</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Drew McCallum</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Karen McCallum</td><td>1</td></tr>
+          <tr><td>T-4</td><td>Jackson Omilian</td><td>1</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -167,9 +220,10 @@
   </p>
 
   <div class="year-card">
-    <div class="yc-standings champion">
+    <div class="yc-standings champion has-logos">
       <div class="yc-champ-header">
         <span class="yc-champ-eyebrow">&#127942;</span>
+        <img class="yc-team-logo" src="../Pictures/Team_Logos/2025/FairwayToHeaven.jpg" alt="Fairway to Heaven logo">
         <span class="yc-team-name">Fairway to Heaven</span>
         <span class="yc-pts">28 pts</span>
       </div>
@@ -181,21 +235,24 @@
       </ul>
     </div>
 
-    <div class="yc-standings">
+    <div class="yc-standings has-logos">
       <div class="yc-row silver">
         <span class="yc-rank">2</span>
+        <img class="yc-team-logo" src="../Pictures/Team_Logos/2025/LiveLaughFore.png" alt="Live Laugh FORE!!! logo">
         <span class="yc-sname">Live Laugh FORE!!!</span>
         <span class="yc-captain-note">Capt. Brian McCallum</span>
         <span class="yc-pts">21</span>
       </div>
       <div class="yc-row bronze">
         <span class="yc-rank">T-3</span>
+        <img class="yc-team-logo" src="../Pictures/Team_Logos/2025/DiamondsInTheRough.jpg" alt="Diamonds in the Rough logo">
         <span class="yc-sname">Diamonds in the Rough</span>
         <span class="yc-captain-note">Capt. Andrew Carson</span>
         <span class="yc-pts">18</span>
       </div>
       <div class="yc-row bronze">
         <span class="yc-rank">T-3</span>
+        <img class="yc-team-logo" src="../Pictures/Team_Logos/2025/HallOfFamers.jpg" alt="Hall of Famers logo">
         <span class="yc-sname">Hall of Famers</span>
         <span class="yc-captain-note">Capt. Suzanne Muneio</span>
         <span class="yc-pts">18</span>
@@ -221,14 +278,14 @@
     <div class="yc-photos">
       <div class="yc-photos-label">Photos</div>
       <div class="gallery-grid">
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_0031.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_0035.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_0038.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_1361.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_1380.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_3352.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_5080.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2025/IMG_6287.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_0031.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_0035.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_0038.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_1361.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_1380.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_3352.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_5080.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2025/IMG_6287.JPG" alt="2025 Amateurs photo" loading="lazy"></button>
       </div>
       <div class="yc-drive-link">
         <a class="album-link" href="https://drive.google.com/drive/folders/1g1S495Z39_dn0PJcBlapIkgPe1zGEawE" target="_blank" rel="noopener">View full 2025 album in Drive</a>
@@ -302,14 +359,14 @@
     <div class="yc-photos">
       <div class="yc-photos-label">Photos</div>
       <div class="gallery-grid">
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_3307.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_3310.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_3316.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_4014.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_6496.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_6502.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_6524.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2024/IMG_6532.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_3307.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_3310.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_3316.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_4014.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_6496.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_6502.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_6524.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2024/IMG_6532.JPG" alt="2024 Amateurs photo" loading="lazy"></button>
       </div>
       <div class="yc-drive-link">
         <a class="album-link" href="https://drive.google.com/drive/folders/1ND_IHEQOI6RbURR0MBMnBNyx5tbmXvD4" target="_blank" rel="noopener">View full 2024 album in Drive</a>
@@ -369,14 +426,14 @@
     <div class="yc-photos">
       <div class="yc-photos-label">Photos</div>
       <div class="gallery-grid">
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3440.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3442.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3443.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3444.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3446.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3449.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3450.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2023/IMG_3460.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3440.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3442.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3443.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3444.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3446.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3449.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3450.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2023/IMG_3460.JPG" alt="2023 Amateurs photo" loading="lazy"></button>
       </div>
       <div class="yc-drive-link">
         <a class="album-link" href="https://drive.google.com/drive/folders/1RD5n8nrfSVKMuPPX-3_41mRWkCB6nSml" target="_blank" rel="noopener">View full 2023 album in Drive</a>
@@ -449,13 +506,13 @@
     <div class="yc-photos">
       <div class="yc-photos-label">Photos</div>
       <div class="gallery-grid">
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_0610.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_0612.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_2657.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_2672.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_4597.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_5025.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2022/IMG_5033.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_0610.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_0612.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_2657.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_2672.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_4597.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_5025.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2022/IMG_5033.jpeg" alt="2022 Amateurs photo" loading="lazy"></button>
       </div>
       <div class="yc-drive-link">
         <a class="album-link" href="https://drive.google.com/drive/folders/1KCYwvM4NZ2_1o9zirFt8JuCt7w_nv-9n" target="_blank" rel="noopener">View full 2022 album in Drive</a>
@@ -483,12 +540,12 @@
     <div class="yc-photos">
       <div class="yc-photos-label">Photos</div>
       <div class="gallery-grid">
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2021/IMG_3200_polarr.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2021/IMG_3683_polarr.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2021/IMG_6298.JPG" alt="2021 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2021/IMG_6832.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2021/IMG_6838.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
-        <button type="button" class="gallery-thumb"><img src="../Pictures/History_Highlights/2021/IMG_6843.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2021/IMG_3200_polarr.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2021/IMG_3683_polarr.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2021/IMG_6298.JPG" alt="2021 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2021/IMG_6832.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2021/IMG_6838.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
+        <button type="button" class="gallery-thumb"><img src="../Pictures/History/Highlights/2021/IMG_6843.jpeg" alt="2021 Amateurs photo" loading="lazy"></button>
       </div>
       <div class="yc-drive-link">
         <a class="album-link" href="https://drive.google.com/drive/folders/1rXTZMH38YHwualSd20cQezgjKDTRuMnk" target="_blank" rel="noopener">View full 2021 album in Drive</a>
@@ -590,6 +647,15 @@
       if (dx < 0) nextSlide(); else prevSlide();
     });
   })();
+</script>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.stats-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.stats-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.remove('hidden');
+    event.currentTarget.classList.add('active');
+  }
 </script>
 
 <script>
