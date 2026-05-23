@@ -782,12 +782,6 @@ a.inline-link:hover { color: var(--green); }
   justify-content: center;
   overflow: hidden;
 }
-.commissioner-photo img {
-  width: 100%;
-  object-fit: contain;
-  object-position: center center;
-  display: block;
-}
 .commissioner-photo-placeholder {
   text-align: center;
   font-size: 32px;
