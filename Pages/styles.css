@@ -728,6 +728,7 @@ a.inline-link:hover { color: var(--green); }
 .media-tile-img img.Official-Logo {
   object-fit: contain;
   padding: 12px;
+  background-color: #fbf6e8;
 }
 .media-tile-placeholder {
   text-align: center;
