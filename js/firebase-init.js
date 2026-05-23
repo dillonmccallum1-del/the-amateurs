@@ -33,6 +33,13 @@ import {
   orderBy,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 // -------------------------------------------------------------
 // 1. CONFIG — replace the placeholder values below with the
@@ -53,9 +60,10 @@ const firebaseConfig = {
 // -------------------------------------------------------------
 // 2. INITIALIZE
 // -------------------------------------------------------------
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const app     = initializeApp(firebaseConfig);
+const auth    = getAuth(app);
+const db      = getFirestore(app);
+const storage = getStorage(app);
 
 // -------------------------------------------------------------
 // 3. AUTH HELPERS
@@ -150,6 +158,44 @@ export async function saveTeam(id, data) {
 /** Admin: delete a team doc entirely. */
 export async function deleteTeam(id) {
   await deleteDoc(doc(db, "teams", id));
+}
+
+/** Admin: upload a team logo image. `file` is a File from an <input type=file>.
+ *  Stored at  team-logos/<teamId>.<ext>  and the resulting download URL is
+ *  written back onto the team doc as `logoUrl`. Returns the URL. */
+export async function uploadTeamLogo(teamId, file) {
+  if (!file) throw new Error("No file provided");
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("File must be an image (PNG, JPG, etc).");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Image too large — keep it under 5 MB.");
+  }
+  // Strip extension out of original filename to keep storage paths predictable.
+  const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+  const ext = extMatch ? extMatch[1].toLowerCase() : "png";
+  const path = `team-logos/${teamId}.${ext}`;
+  const ref = storageRef(storage, path);
+  await uploadBytes(ref, file, { contentType: file.type });
+  const url = await getDownloadURL(ref);
+  await updateDoc(doc(db, "teams", teamId), {
+    logoUrl: url,
+    logoPath: path,
+    updatedAt: serverTimestamp()
+  });
+  return url;
+}
+
+/** Admin: remove a team's logo (clears the URL and deletes the stored file). */
+export async function removeTeamLogo(teamId, logoPath) {
+  if (logoPath) {
+    try { await deleteObject(storageRef(storage, logoPath)); } catch (_) { /* file may already be gone */ }
+  }
+  await updateDoc(doc(db, "teams", teamId), {
+    logoUrl: null,
+    logoPath: null,
+    updatedAt: serverTimestamp()
+  });
 }
 
 /** Admin: update one hole's strokes for a team.
