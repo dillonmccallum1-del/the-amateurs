@@ -586,6 +586,9 @@ a.inline-link:hover { color: var(--green); }
   margin: -26px -24px 20px -24px;
   display: block;
   border-radius: 14px 14px 0 0;
+  aspect-ratio: 5 / 2;       /* wide, short banner — reduces height */
+  object-fit: cover;         /* fills the box; crops what doesn't fit */
+  object-position: 50% 8%;   /* bias toward the top so heads-to-trophy is visible */
 }
 .defending-champ-label {
   font-size: 16px;
