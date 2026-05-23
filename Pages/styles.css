@@ -2287,7 +2287,7 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   width: 100%;
   border-radius: 14px 14px 0 0;
   object-fit: cover;
-  object-position: center top;
+  object-position: center;
   aspect-ratio: 1536 / 940;
 }
 
