@@ -2278,28 +2278,6 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   white-space: nowrap;
 }
 
-/* Winner team photo above champion block.
-   Each year's photo is pre-cropped to its own preferred framing, so we let
-   the natural aspect ratio dictate height instead of forcing a fixed shape
-   that would clip the carefully chosen crop. The year-card has
-   `overflow: hidden`, so the card's outer radius automatically clips the
-   photo's top corners cleanly. */
-.winner-photo {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 14px 14px 0 0;
-}
-
-/* Home page override: inside the .defending-champ card the photo needs to
-   bleed past the card's internal padding (24px sides, 26px top) so it reads
-   as a header image rather than a padded inset. */
-.defending-champ .winner-photo {
-  width: calc(100% + 48px);
-  margin: -26px -24px 20px -24px;
-  max-width: none;
-}
-
 /* Team logo thumbnail in standings rows — height matches the surrounding
    text so the logo never towers over a 15px team name. Width auto-fits the
    image's native aspect ratio so non-square logos (e.g. HallOfFamers) don't
