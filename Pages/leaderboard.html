@@ -209,14 +209,14 @@
     const bonusVisible = currentConfig.bonusVisible === true;
 
     // Compute totals + sort high-to-low (Stableford: high wins)
+    // Bonus points always count toward the score; bonusVisible only controls
+    // whether the bonus breakdown section is shown in the expanded scorecard.
     const rows = currentTeams.map(t => {
       const totals = computeTeamTotals(t, par);
-      // If bonus is hidden, only use hole points for the displayed score
-      const displayPoints = bonusVisible ? totals.totalPoints : totals.holePointsTotal;
       return {
         team: t,
         ...totals,
-        displayPoints
+        displayPoints: totals.totalPoints
       };
     }).sort((a, b) => {
       if (b.displayPoints !== a.displayPoints) return b.displayPoints - a.displayPoints;

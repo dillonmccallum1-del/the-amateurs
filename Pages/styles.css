@@ -1712,6 +1712,44 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
 }
 .yc-narrative strong { color: var(--green-dark); font-style: normal; }
 
+/* ===== Stats Carousel Nav ===== */
+.stats-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--green-dark);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+.stats-nav-arrow {
+  background: rgba(244,216,56,0.15);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-size: 28px;
+  font-family: var(--font-serif);
+  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.stats-nav-arrow:hover,
+.stats-nav-arrow:active { background: rgba(244,216,56,0.35); }
+.stats-nav-label {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--yellow);
+  text-align: center;
+  flex: 1;
+  padding: 0 10px;
+}
+
 /* ===== Stats Tab Toggle ===== */
 .stats-tabs {
   display: flex;
@@ -2318,7 +2356,7 @@ a.inline-link:hover { color: var(--green); }
 .commissioner-photo {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: var(--cream-dark);
+  background: var(--green-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2327,13 +2365,8 @@ a.inline-link:hover { color: var(--green); }
 .commissioner-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 25%;
+  object-fit: contain;
   display: block;
-}
-/* Dillon's selfie: shift crop lower to trim more from the top */
-.commissioner-photo img.Dillon_Photo {
-  object-position: center 55%;
 }
 .commissioner-photo-placeholder {
   text-align: center;
