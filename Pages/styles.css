@@ -654,6 +654,24 @@ a.inline-link:hover { color: var(--green); }
   display: flex;
   flex-direction: column;
 }
+.course-card .course-logo {
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+}
+.course-card .course-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
 .course-card .course-host {
   font-size: 16px; letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -2011,6 +2029,14 @@ p.yc-narrative strong { color: var(--green-dark); font-style: normal; }
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   margin-top: 4px;
+}
+.year-card .yc-winner-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 5;          /* matches the home defending-champ banner */
+  object-fit: cover;            /* fills the box; crops what doesn't fit */
+  object-position: 50% 8%;      /* bias toward the top so hats stay in frame */
+  border-bottom: 1px solid var(--cream-dark);
 }
 .yc-narrative {
   font-size: 17px;
