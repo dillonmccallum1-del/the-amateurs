@@ -47,18 +47,21 @@
   <div class="header-divider"></div>
 </section>
 
-<!-- ===== STATS LEADERBOARD BUTTONS (open modal popups) ===== -->
-<div class="stats-btn-row">
-  <button type="button" class="stats-btn" data-modal="modal-superlatives">Most Superlatives</button>
-  <button type="button" class="stats-btn" data-modal="modal-winpct">Win Percentage</button>
-</div>
-
   <!-- ===== PANEL 1: Amateurs Stats ===== -->
 <section class="content">
   <h2 class="section-title">The Amateurs Stats</h2>
   <div class="section-rule"></div>
-  <div class="cup-leaderboard">
-    <div class="cup-lb-header">MacCallum Cup Leaderboard</div>
+
+  <!-- Tab buttons — click to swap which leaderboard is shown below -->
+  <div class="stats-btn-row">
+    <button type="button" class="stats-btn active" data-leaderboard="lb-cup">MacCallum Cup</button>
+    <button type="button" class="stats-btn" data-leaderboard="lb-superlatives">Most Superlatives</button>
+    <button type="button" class="stats-btn" data-leaderboard="lb-winpct">Win Percentage</button>
+  </div>
+
+  <!-- ===== MacCallum Cup Leaderboard (default visible on load) ===== -->
+  <div class="cup-leaderboard" id="lb-cup">
+    <div class="cup-lb-header">MacCallum Cups</div>
     <div class="cup-lb-row top">
       <div class="cup-lb-rank">T-1</div>
       <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2023 &middot; 2024</span></div>
@@ -113,6 +116,127 @@
       <div class="cup-lb-rank">T-4</div>
       <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">2025</span></div>
       <div><div class="cup-lb-wins">1</div></div>
+    </div>
+  </div>
+
+  <!-- ===== Most Superlatives Leaderboard (hidden until tab clicked) ===== -->
+  <div class="cup-leaderboard hidden" id="lb-superlatives">
+    <div class="cup-lb-header">Superlatives</div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-1</div>
+      <div class="cup-lb-name">Andrew Carson <span class="cup-lb-years">2024 &middot; 2025</span></div>
+      <div><div class="cup-lb-wins">2</div></div>
+    </div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-1</div>
+      <div class="cup-lb-name">Brian McCallum <span class="cup-lb-years">2024 &middot; 2025</span></div>
+      <div><div class="cup-lb-wins">2</div></div>
+    </div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-1</div>
+      <div class="cup-lb-name">Cheri McCallum <span class="cup-lb-years">2025</span></div>
+      <div><div class="cup-lb-wins">2</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">David McCallum <span class="cup-lb-years">2022</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Barrett Dunn <span class="cup-lb-years">2022</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Alex McCallum <span class="cup-lb-years">2022</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Dillon McCallum <span class="cup-lb-years">2022</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2023</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Drew McCallum <span class="cup-lb-years">2024</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Karen McCallum <span class="cup-lb-years">2025</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-4</div>
+      <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">2025</span></div>
+      <div><div class="cup-lb-wins">1</div></div>
+    </div>
+  </div>
+
+  <!-- ===== Win Percentage Leaderboard (hidden until tab clicked) ===== -->
+  <!-- Min. 2 cup appearances (2022-2025). 2021 pre-rebrand year not counted. -->
+  <div class="cup-leaderboard hidden" id="lb-winpct">
+    <div class="cup-lb-header">Win Percentage <span class="cup-lb-subnote">(min. 2 cups)</span></div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">1</div>
+      <div class="cup-lb-name">Geoffrey McVey <span class="cup-lb-years">2 of 2 cups</span></div>
+      <div><div class="cup-lb-pct">100%</div></div>
+    </div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-2</div>
+      <div class="cup-lb-name">Dillon McCallum <span class="cup-lb-years">2 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">50%</div></div>
+    </div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-2</div>
+      <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">50%</div></div>
+    </div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-2</div>
+      <div class="cup-lb-name">Brian Odelson <span class="cup-lb-years">1 of 2 cups</span></div>
+      <div><div class="cup-lb-pct">50%</div></div>
+    </div>
+    <div class="cup-lb-row top">
+      <div class="cup-lb-rank">T-2</div>
+      <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">1 of 2 cups</span></div>
+      <div><div class="cup-lb-pct">50%</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-6</div>
+      <div class="cup-lb-name">Brian McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">25%</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-6</div>
+      <div class="cup-lb-name">David McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">25%</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-6</div>
+      <div class="cup-lb-name">Erin McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">25%</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-6</div>
+      <div class="cup-lb-name">Joseph McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">25%</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-6</div>
+      <div class="cup-lb-name">Karen McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
+      <div><div class="cup-lb-pct">25%</div></div>
+    </div>
+    <div class="cup-lb-row">
+      <div class="cup-lb-rank">T-11</div>
+      <div class="cup-lb-name">Fourteen players tied <span class="cup-lb-years">Abby Odelson &middot; Alex McCallum &middot; Andrew Carson &middot; Annmarie Omilian &middot; Charlotte Fody &middot; Cheri McCallum &middot; Diane McCallum &middot; Drew McCallum &middot; Emily Beyer &middot; Karen Odelson &middot; Louann Muneio &middot; Mitch Fody &middot; Reid Omilian &middot; Suzanne Fody</span></div>
+      <div><div class="cup-lb-pct">0%</div></div>
     </div>
   </div>
 </section>
@@ -238,6 +362,7 @@
     <div class="yc-standings champion">
       <div class="yc-champ-header">
         <span class="yc-champ-eyebrow">&#127942;</span>
+        <img src="../Pictures/Team_Logos/2024/Life_ofthe_Party.PNG" alt="Life of the Par-Tee logo" class="yc-team-logo">
         <span class="yc-team-name">Life of the Par-Tee</span>
         <span class="yc-pts">26 pts</span>
       </div>
@@ -251,18 +376,21 @@
     <div class="yc-standings">
       <div class="yc-row silver">
         <span class="yc-rank">2</span>
+        <img src="../Pictures/Team_Logos/2024/What_Club_Should_I_Use.png" alt="What Club Should I Use? logo" class="yc-team-logo">
         <span class="yc-sname">What Club Should I Use?</span>
         <span class="yc-captain-note">Capt. Erin McCallum</span>
         <span class="yc-pts">25</span>
       </div>
       <div class="yc-row bronze">
         <span class="yc-rank">T-3</span>
+        <img src="../Pictures/Team_Logos/2024/You_Play_Golf.png" alt="You Play Golf? logo" class="yc-team-logo">
         <span class="yc-sname">You Play Golf?</span>
         <span class="yc-captain-note">Capt. David McCallum</span>
         <span class="yc-pts">20</span>
       </div>
       <div class="yc-row bronze">
         <span class="yc-rank">T-3</span>
+        <img src="../Pictures/Team_Logos/2024/STD.PNG" alt="Significant Turf Dependence logo" class="yc-team-logo">
         <span class="yc-sname">Significant Turf Dependence</span>
         <span class="yc-captain-note">Capt. Dillon McCallum</span>
         <span class="yc-pts">20</span>
@@ -485,135 +613,6 @@
   </div>
 </section>
 
-<!-- ===== STATS MODALS ===== -->
-<div class="stats-modal" id="modal-superlatives" aria-hidden="true">
-  <div class="stats-modal-content">
-    <button class="stats-modal-close" aria-label="Close">&times;</button>
-    <div class="cup-leaderboard">
-      <div class="cup-lb-header">Most Superlatives</div>
-      <div class="cup-lb-row top">
-        <div class="cup-lb-rank">T-1</div>
-        <div class="cup-lb-name">Andrew Carson <span class="cup-lb-years">2024 &middot; 2025</span></div>
-        <div><div class="cup-lb-wins">2</div></div>
-      </div>
-      <div class="cup-lb-row top">
-        <div class="cup-lb-rank">T-1</div>
-        <div class="cup-lb-name">Brian McCallum <span class="cup-lb-years">2024 &middot; 2025</span></div>
-        <div><div class="cup-lb-wins">2</div></div>
-      </div>
-      <div class="cup-lb-row top">
-        <div class="cup-lb-rank">T-1</div>
-        <div class="cup-lb-name">Cheri McCallum <span class="cup-lb-years">2025</span></div>
-        <div><div class="cup-lb-wins">2</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">David McCallum <span class="cup-lb-years">2022</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Barrett Dunn <span class="cup-lb-years">2022</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Alex McCallum <span class="cup-lb-years">2022</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Dillon McCallum <span class="cup-lb-years">2022</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2023</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Drew McCallum <span class="cup-lb-years">2024</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Karen McCallum <span class="cup-lb-years">2025</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">2025</span></div>
-        <div><div class="cup-lb-wins">1</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="stats-modal" id="modal-winpct" aria-hidden="true">
-  <div class="stats-modal-content">
-    <button class="stats-modal-close" aria-label="Close">&times;</button>
-    <div class="cup-leaderboard">
-      <div class="cup-lb-header">Win Percentage</div>
-      <div class="cup-lb-row top">
-        <div class="cup-lb-rank">T-1</div>
-        <div class="cup-lb-name">Dillon McCallum <span class="cup-lb-years">2 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">50%</div></div>
-      </div>
-      <div class="cup-lb-row top">
-        <div class="cup-lb-rank">T-1</div>
-        <div class="cup-lb-name">Andrea McCallum <span class="cup-lb-years">2 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">50%</div></div>
-      </div>
-      <div class="cup-lb-row top">
-        <div class="cup-lb-rank">T-1</div>
-        <div class="cup-lb-name">Jack Omilian <span class="cup-lb-years">1 of 2 cups</span></div>
-        <div><div class="cup-lb-pct">50%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">David McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">25%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Brian McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">25%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-4</div>
-        <div class="cup-lb-name">Karen McCallum <span class="cup-lb-years">1 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">25%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-7</div>
-        <div class="cup-lb-name">Andrew Carson <span class="cup-lb-years">0 of 2 cups</span></div>
-        <div><div class="cup-lb-pct">0%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-7</div>
-        <div class="cup-lb-name">Drew McCallum <span class="cup-lb-years">0 of 2 cups</span></div>
-        <div><div class="cup-lb-pct">0%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-7</div>
-        <div class="cup-lb-name">Cheri McCallum <span class="cup-lb-years">0 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">0%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-7</div>
-        <div class="cup-lb-name">Alex McCallum <span class="cup-lb-years">0 of 4 cups</span></div>
-        <div><div class="cup-lb-pct">0%</div></div>
-      </div>
-      <div class="cup-lb-row">
-        <div class="cup-lb-rank">T-7</div>
-        <div class="cup-lb-name">Barrett Dunn <span class="cup-lb-years">0 of 1 cup</span></div>
-        <div><div class="cup-lb-pct">0%</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ===== LIGHTBOX ===== -->
 <div class="lightbox" id="lightbox" aria-hidden="true">
   <button class="lightbox-close" aria-label="Close">&times;</button>
@@ -637,44 +636,23 @@
     document.querySelector('.nav-overlay').classList.toggle('open');
   }
 
-  // ===== STATS MODALS =====
+  // ===== STATS LEADERBOARD TABS =====
+  // Each .stats-btn references a leaderboard id via data-leaderboard.
+  // Clicking a tab hides all leaderboards in the group, shows the target,
+  // and moves the .active style onto the clicked tab.
   (function() {
-    const modals = document.querySelectorAll('.stats-modal');
+    const buttons = document.querySelectorAll('.stats-btn[data-leaderboard]');
+    const leaderboards = document.querySelectorAll('#lb-cup, #lb-superlatives, #lb-winpct');
 
-    function openModal(id) {
-      const modal = document.getElementById(id);
-      if (!modal) return;
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeModal(modal) {
-      modal.classList.remove('open');
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-    }
-    function closeAllModals() {
-      modals.forEach(closeModal);
-    }
-
-    document.querySelectorAll('.stats-btn[data-modal]').forEach(function(btn) {
+    buttons.forEach(function(btn) {
       btn.addEventListener('click', function() {
-        openModal(btn.getAttribute('data-modal'));
+        const targetId = btn.getAttribute('data-leaderboard');
+        leaderboards.forEach(function(lb) {
+          lb.classList.toggle('hidden', lb.id !== targetId);
+        });
+        buttons.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
       });
-    });
-
-    modals.forEach(function(modal) {
-      // Backdrop click — close when clicking outside the content card
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) closeModal(modal);
-      });
-      // X button
-      const closeBtn = modal.querySelector('.stats-modal-close');
-      if (closeBtn) closeBtn.addEventListener('click', function() { closeModal(modal); });
-    });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeAllModals();
     });
   })();
 
