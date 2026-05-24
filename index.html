@@ -51,18 +51,45 @@
   <div class="edition-badge">2026 &middot; Footgolf Edition</div>
   <div class="hero-meta">
     <div class="hero-meta-item"><div class="label">Format</div><div class="value">2-Person Alt. Kick</div></div>
-    <div class="hero-meta-item"><div class="label">Holes</div><div class="value">Nine</div></div>
-    <div class="hero-meta-item"><div class="label">Edition</div><div class="value">VI</div></div>
+    <div class="hero-meta-item"><div class="label">Course</div><div class="value">Strategic Fox at Fox Hills</div></div>
+  </div>
+  <div class="hero-meta">
+    <div class="host-course-actions">
+      <a class="map-btn map-btn-apple" href="https://maps.apple.com/?address=8600%E2%80%938798%20N%20Territorial%20Rd,%20Plymouth,%20MI%20%2048170,%20United%20States&ll=42.368749,-83.594320&q=Dropped%20Pin" target="_blank" rel="noopener">
+        <span>Apple Maps</span>
+      </a>
+      <a class="map-btn map-btn-google" href="https://www.google.com/maps/place/Fox+Hills+Golf+Performance+Center/@42.3687803,-83.5937679,18.79z/data=!4m6!3m5!1s0x883cab3dbc5d7be7:0xe053db7836c9df48!8m2!3d42.3687809!4d-83.5943031!16s%2Fg%2F11yrx3r1p3?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">
+        <span>Google Maps</span>
+      </a>
+    </div>    
   </div>
 </section>
 
-<!-- ===== WHAT'S NOW (live status from event config) ===== -->
+<!-- ===== WHAT'S NOW (pre-event status — countdown) ===== -->
 <section class="content">
   <div id="status-card" class="status-card pre-event">
     <span class="status-label" id="status-label">Pre-Event</span>
-    <h2 id="status-headline">Coming Summer 2026</h2>
-    <p id="status-body">The format is set, the rules are written, the draft is pending. The 2026 Footgolf Edition tees off this summer &mdash; pull up a chair and follow along.</p>
-    <div class="status-meta" id="status-meta">9-hole footgolf &middot; 2-person alternate kick &middot; Modified Stableford</div>
+    <div id="countdown" class="countdown" data-target="2026-06-13T14:00:00-04:00">
+      <div class="countdown-label">Tee-Off In</div>
+      <div class="countdown-grid">
+        <div class="countdown-unit">
+          <span class="countdown-num" id="cd-days">--</span>
+          <span class="countdown-unit-label">Days</span>
+        </div>
+        <div class="countdown-unit">
+          <span class="countdown-num" id="cd-hours">--</span>
+          <span class="countdown-unit-label">Hours</span>
+        </div>
+        <div class="countdown-unit">
+          <span class="countdown-num" id="cd-mins">--</span>
+          <span class="countdown-unit-label">Minutes</span>
+        </div>
+        <div class="countdown-unit">
+          <span class="countdown-num" id="cd-secs">--</span>
+          <span class="countdown-unit-label">Seconds</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -75,27 +102,26 @@
     <a class="nav-tile" href="Pages/about.html">
       <div class="nav-tile-icon">&#128214;</div>
       <div class="nav-tile-name">About</div>
-      <div class="nav-tile-desc">The story of the invitational</div>
     </a>
     <a class="nav-tile" href="Pages/rules.html">
       <div class="nav-tile-icon">&#128203;</div>
       <div class="nav-tile-name">Rules &amp; Scoring</div>
-      <div class="nav-tile-desc">Modified Stableford &middot; High score wins</div>
     </a>
     <a class="nav-tile" href="Pages/leaderboard.html">
       <div class="nav-tile-icon">&#128202;</div>
       <div class="nav-tile-name">Live Leaderboard</div>
-      <div class="nav-tile-desc">Goes live on event day</div>
     </a>
     <a class="nav-tile" href="Pages/draft.html">
       <div class="nav-tile-icon">&#127919;</div>
       <div class="nav-tile-name">Draft</div>
-      <div class="nav-tile-desc">This year's class &amp; draft order</div>
     </a>
     <a class="nav-tile" href="Pages/history.html">
       <div class="nav-tile-icon">&#127942;</div>
       <div class="nav-tile-name">History</div>
-      <div class="nav-tile-desc">Past champions &amp; superlatives</div>
+    </a>
+    <a class="nav-tile" href="Pages/captains.html">
+      <div class="nav-tile-icon">&#129506;</div>
+      <div class="nav-tile-name">Captains</div>
     </a>
   </div>
 </section>
@@ -104,7 +130,7 @@
 <section class="content">
   <h2 class="section-title">Defending Champions</h2>
   <div class="section-rule"></div>
-  <div class="defending-champ">
+  <a class="defending-champ" href="Pages/history.html#year-2025">
     <img src="Pictures/History/Winners/Team/2025.JPG" alt="2025 Champions – Fairway to Heaven" class="defending-champ-photo">
     <div class="defending-champ-label">MacCallum Cup &middot; 2025</div>
     <div class="defending-champ-team">Fairway to Heaven</div>
@@ -113,7 +139,7 @@
       Geoffrey McVey (Captain) &middot; Dillon McCallum &middot; Jo&atilde;o Paulo Gurgel &middot; Jack Omilian
     </div>
     <span class="defending-champ-arrow">View their year &rarr;</span>
-  </div>
+  </a>
 </section>
 
 <!-- ===== FOOTER ===== -->
@@ -129,6 +155,36 @@
     document.querySelector('nav.drawer').classList.toggle('open');
     document.querySelector('.nav-overlay').classList.toggle('open');
   }
+
+  // ===== COUNTDOWN — ticks each second toward the data-target ISO timestamp =====
+  (function() {
+    const card = document.getElementById('countdown');
+    if (!card) return;
+    const target = new Date(card.dataset.target).getTime();
+    const dEl = document.getElementById('cd-days');
+    const hEl = document.getElementById('cd-hours');
+    const mEl = document.getElementById('cd-mins');
+    const sEl = document.getElementById('cd-secs');
+    const pad = n => String(n).padStart(2, '0');
+
+    function tick() {
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        card.classList.add('live');
+        dEl.textContent = '0';
+        hEl.textContent = '00';
+        mEl.textContent = '00';
+        sEl.textContent = '00';
+        return false;
+      }
+      dEl.textContent = Math.floor(diff / 86400000);
+      hEl.textContent = pad(Math.floor((diff / 3600000) % 24));
+      mEl.textContent = pad(Math.floor((diff / 60000) % 60));
+      sEl.textContent = pad(Math.floor((diff / 1000) % 60));
+      return true;
+    }
+    if (tick()) setInterval(tick, 1000);
+  })();
 </script>
 
 <script>

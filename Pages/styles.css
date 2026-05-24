@@ -292,6 +292,17 @@ footer.app-footer p {
   color: var(--green-dark);
   white-space: nowrap;
   font-weight: 600;
+  text-align: center;
+}
+@media (max-width: 540px) {
+  .year-edition {
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .year-edition span {
+    font-size: 14px;
+    letter-spacing: 0.14em;
+  }
 }
 
 /* ===== NOTE / CALLOUT ===== */
@@ -370,7 +381,25 @@ a.inline-link:hover { color: var(--green); }
   border-left: 4px solid var(--green);
 }
 .status-card.pre-event {
-  background: linear-gradient(135deg, rgba(244,216,56,0.18) 0%, rgba(244,216,56,0.04) 100%);
+  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+  color: var(--cream);
+  border: 1px solid rgba(244, 216, 56, 0.45);
+  border-left: 4px solid var(--yellow);
+}
+.status-card.pre-event .status-label {
+  color: var(--yellow);
+  background: rgba(244, 216, 56, 0.18);
+}
+.status-card.pre-event .countdown-label {
+  color: var(--yellow);
+}
+.status-card.pre-event .countdown-unit {
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(244, 216, 56, 0.25);
+}
+.status-card.pre-event .countdown-target {
+  color: var(--cream);
+  opacity: 0.92;
 }
 .status-card.live {
   border-left-color: var(--red);
@@ -553,6 +582,61 @@ a.inline-link:hover { color: var(--green); }
   font-style: italic;
 }
 
+/* ===== COUNTDOWN (lives inside the pre-event status card) ===== */
+.countdown {
+  text-align: center;
+}
+.countdown-label {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 4.5vw, 28px);
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 480px;
+  margin: 0 auto 14px;
+}
+.countdown-unit {
+  background: var(--green-dark);
+  border: 1px solid rgba(244, 216, 56, 0.35);
+  border-radius: 10px;
+  padding: 14px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+}
+.countdown-num {
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 8vw, 38px);
+  font-weight: 700;
+  color: var(--yellow);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.countdown-unit-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cream);
+  opacity: 0.9;
+}
+.countdown-target {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.countdown.live .countdown-label::after {
+  content: ' \2014 Underway!';
+}
+
 /* ===== DEFENDING CHAMPIONS card (home — celebratory link) ===== */
 .defending-champ {
   background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
@@ -639,6 +723,79 @@ a.inline-link:hover { color: var(--green); }
    4. ABOUT PAGE  (about.html)
    ========================================================= */
 
+/* ===== HOST COURSE CARD (home page — this year's venue + map links) ===== */
+.host-course-card {
+  background: var(--white);
+  border: 1px solid var(--cream-dark);
+  border-left: 4px solid var(--green);
+  border-radius: 12px;
+  padding: 22px 22px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.host-course-eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--yellow-dark);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.host-course-name {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: var(--green-dark);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+.host-course-venue {
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.host-course-location {
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+.host-course-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.map-btn {
+  flex: 1;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+}
+.map-btn::after {
+  content: '\2197';
+  font-size: 14px;
+}
+.map-btn:hover { transform: translateY(-1px); }
+.map-btn-apple {
+  background: var(--green-dark);
+  color: var(--cream);
+  border-color: var(--green-dark);
+}
+.map-btn-apple:hover { background: var(--green); }
+.map-btn-google {
+  background: rgba(244, 216, 56, 0.20);
+  color: var(--green-dark);
+  border-color: rgba(15, 89, 40, 0.20);
+}
+.map-btn-google:hover { background: rgba(244, 216, 56, 0.40); }
+
 /* ===== COURSE CARDS (with external website links) ===== */
 .course-grid {
   display: grid; grid-template-columns: 1fr;
@@ -663,12 +820,17 @@ a.inline-link:hover { color: var(--green); }
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 16 / 9;
+  height: 160px;             /* fixed so logos never balloon on mobile */
 }
 .course-card .course-logo img {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
+}
+@media (min-width: 720px) {
+  .course-card .course-logo { height: 180px; }
 }
 .course-card .course-host {
   font-size: 16px; letter-spacing: 0.15em;
