@@ -431,7 +431,7 @@
 
       <!-- ----- Subsection A: Scorecard holes ----- -->
       <h3>Scorecard holes</h3>
-      <p class="small-hint">Define yardage and par for each hole. This populates the scorecard captains will see after signing in.</p>
+      <p class="small-hint">Define yardage, par, and the hole game for each hole. This populates the scorecard captains will see after signing in. The game name + description are shown to captains at the top of each hole when they enter scores.</p>
 
       <label for="hole-num">Hole number</label>
       <select id="hole-num">
@@ -457,6 +457,12 @@
         <option value="4">4</option>
         <option value="5">5</option>
       </select>
+
+      <label for="hole-game-name">Game name (optional)</label>
+      <input id="hole-game-name" type="text" placeholder="e.g. Spin-o-kickem">
+
+      <label for="hole-game-description">Game description (optional)</label>
+      <textarea id="hole-game-description" rows="3" placeholder="e.g. Before kicking, each player teeing off spins around a club 5 times."></textarea>
 
       <div class="btn-row">
         <button id="save-hole" class="btn btn-primary">Save hole</button>
@@ -517,7 +523,19 @@
       <select id="score-team"><option value="">—</option></select>
 
       <div id="score-area" class="hidden">
-        <div class="scores-grid par-row">
+
+        <!-- Captain-side lock indicator. Once a captain hits final submit
+             on captains.html, scoresLocked=true is written to their team
+             doc. The button below flips it back so they can re-enter. -->
+        <div id="captain-lock-row" class="toggle-row" style="margin-top: 0;">
+          <div>
+            <span class="toggle-label">Captain editing</span>
+            <span class="toggle-hint" id="captain-lock-hint">—</span>
+          </div>
+          <button id="unlock-captain" class="btn btn-secondary hidden" type="button" style="padding: 8px 14px; font-size: 14px;">Unlock</button>
+        </div>
+
+        <div class="scores-grid par-row" style="margin-top: 14px;">
           <div class="row-label">Par</div>
           <div id="par-1"></div><div id="par-2"></div><div id="par-3"></div>
           <div id="par-4"></div><div id="par-5"></div><div id="par-6"></div>
@@ -633,6 +651,12 @@
       refreshScoreTeamDropdown(teams);
       // Rebuild draft-pick dropdown so "taken by" annotations stay current.
       populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
+      // If the score-entry team is loaded, refresh its lock state in case
+      // the captain just hit final submit (or another admin unlocked them).
+      if (selectedTeamId) {
+        const t = teams.find(x => x.id === selectedTeamId);
+        if (t) renderCaptainLockState(t);
+      }
     });
   }
 
@@ -657,18 +681,23 @@
   }
 
   function emptyHoles() {
-    return Array.from({ length: 9 }, () => ({ yardage: null, par: null }));
+    return Array.from({ length: 9 }, () => ({
+      yardage: null, par: null, gameName: "", gameDescription: ""
+    }));
   }
 
-  // Normalize whatever's stored to a length-9 array of {yardage,par}.
+  // Normalize whatever's stored to a length-9 array of
+  // {yardage, par, gameName, gameDescription}.
   function normalizeHoles(holes) {
     const out = emptyHoles();
     if (Array.isArray(holes)) {
       for (let i = 0; i < 9; i++) {
         const h = holes[i] || {};
         out[i] = {
-          yardage: Number.isFinite(h.yardage) ? h.yardage : null,
-          par:     Number.isFinite(h.par)     ? h.par     : null
+          yardage:         Number.isFinite(h.yardage) ? h.yardage : null,
+          par:             Number.isFinite(h.par)     ? h.par     : null,
+          gameName:        typeof h.gameName        === "string" ? h.gameName        : "",
+          gameDescription: typeof h.gameDescription === "string" ? h.gameDescription : ""
         };
       }
     }
@@ -848,16 +877,20 @@
     }
     const holes = normalizeHoles(currentConfig?.holes);
     const h = holes[idx];
-    $("hole-yardage").value = h.yardage == null ? "" : h.yardage;
-    $("hole-par").value     = h.par     == null ? "" : String(h.par);
+    $("hole-yardage").value         = h.yardage == null ? "" : h.yardage;
+    $("hole-par").value             = h.par     == null ? "" : String(h.par);
+    $("hole-game-name").value        = h.gameName        || "";
+    $("hole-game-description").value = h.gameDescription || "";
   }
 
   $("save-hole").addEventListener("click", async () => {
     const fb = $("hole-feedback");
     hide(fb);
-    const holeNum = Number($("hole-num").value);
-    const yardage = $("hole-yardage").value === "" ? null : Number($("hole-yardage").value);
-    const par     = $("hole-par").value     === "" ? null : Number($("hole-par").value);
+    const holeNum         = Number($("hole-num").value);
+    const yardage         = $("hole-yardage").value === "" ? null : Number($("hole-yardage").value);
+    const par             = $("hole-par").value     === "" ? null : Number($("hole-par").value);
+    const gameName        = $("hole-game-name").value.trim();
+    const gameDescription = $("hole-game-description").value.trim();
 
     if (!Number.isInteger(holeNum) || holeNum < 1 || holeNum > 9) {
       fb.textContent = "Pick a hole (1–9) first.";
@@ -876,7 +909,7 @@
     }
 
     const holes = normalizeHoles(currentConfig?.holes);
-    holes[holeNum - 1] = { yardage, par };
+    holes[holeNum - 1] = { yardage, par, gameName, gameDescription };
 
     // Keep coursePar in sync so the existing Stableford math still works.
     // A null par falls back to 3 (the historic default).
@@ -885,9 +918,11 @@
     try {
       await updateEventConfig({ holes, coursePar });
       // Clear the form so the next hole is easy to enter.
-      $("hole-num").value     = "";
-      $("hole-yardage").value = "";
-      $("hole-par").value     = "";
+      $("hole-num").value              = "";
+      $("hole-yardage").value          = "";
+      $("hole-par").value              = "";
+      $("hole-game-name").value        = "";
+      $("hole-game-description").value = "";
       fb.textContent = `Saved hole ${holeNum}.`;
       fb.className = "feedback ok";
     } catch (err) {
@@ -898,7 +933,9 @@
 
   function renderScorecardPreview(holes) {
     const wrap = $("scorecard-preview");
-    const anySet = holes.some(h => h.yardage != null || h.par != null);
+    const anySet = holes.some(h =>
+      h.yardage != null || h.par != null || h.gameName || h.gameDescription
+    );
     if (!anySet) {
       wrap.innerHTML = '<p class="small-hint">No holes set yet.</p>';
       return;
@@ -906,7 +943,7 @@
     let html = `
       <table>
         <thead>
-          <tr><th>Hole</th><th>Yardage</th><th>Par</th><th></th></tr>
+          <tr><th>Hole</th><th>Yardage</th><th>Par</th><th>Game</th><th></th></tr>
         </thead>
         <tbody>
     `;
@@ -918,12 +955,20 @@
       const par = h.par == null
         ? '<span class="muted">—</span>'
         : h.par;
-      const unset = (h.yardage == null && h.par == null) ? " unset" : "";
+      const gameCell = (h.gameName || h.gameDescription)
+        ? `<div style="font-weight:600;color:var(--green-dark);">${escapeHtml(h.gameName || "")}</div>` +
+          (h.gameDescription
+            ? `<div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(h.gameDescription)}</div>`
+            : "")
+        : '<span class="muted">—</span>';
+      const unset = (h.yardage == null && h.par == null && !h.gameName && !h.gameDescription)
+        ? " unset" : "";
       html += `
         <tr class="hole-row${unset}">
           <td class="hole-cell">#${i + 1}</td>
           <td>${yard}</td>
           <td>${par}</td>
+          <td>${gameCell}</td>
           <td class="action-cell">
             <button type="button" class="row-clear" data-hole="${i + 1}" aria-label="Clear hole ${i + 1}">×</button>
           </td>
@@ -938,9 +983,9 @@
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const holeNum = Number(btn.dataset.hole);
-        if (!confirm(`Clear yardage and par for hole ${holeNum}?`)) return;
+        if (!confirm(`Clear yardage, par, and game info for hole ${holeNum}?`)) return;
         const next = normalizeHoles(currentConfig?.holes);
-        next[holeNum - 1] = { yardage: null, par: null };
+        next[holeNum - 1] = { yardage: null, par: null, gameName: "", gameDescription: "" };
         const coursePar = next.map(h => (h.par == null ? 3 : h.par));
         try {
           await updateEventConfig({ holes: next, coursePar });
@@ -1170,7 +1215,37 @@
       $("s-" + (i+1)).value = (v == null ? "" : v);
     }
     renderBonusRows((t && t.bonusPoints) || []);
+    renderCaptainLockState(t);
   }
+
+  // Shows whether the captain has locked their scorecard from captains.html.
+  // When locked, surface an Unlock button so we can let them re-enter scores
+  // (e.g. a captain texts asking to fix a hole after they hit final submit).
+  function renderCaptainLockState(team) {
+    const hint = $("captain-lock-hint");
+    const btn  = $("unlock-captain");
+    const locked = !!(team && team.scoresLocked);
+    if (locked) {
+      hint.textContent = "Captain submitted their final scorecard — they can no longer edit on captains.html.";
+      btn.classList.remove("hidden");
+    } else {
+      hint.textContent = "Captain can still enter or edit scores on captains.html.";
+      btn.classList.add("hidden");
+    }
+  }
+
+  $("unlock-captain").addEventListener("click", async () => {
+    if (!selectedTeamId) return;
+    const t = currentTeams.find(x => x.id === selectedTeamId);
+    const name = (t && t.name) || selectedTeamId;
+    if (!confirm(`Unlock ${name}'s scorecard so the captain can edit again?`)) return;
+    try {
+      await saveTeam(selectedTeamId, { scoresLocked: false });
+      flash("scores-feedback", `Unlocked ${name}'s scorecard.`, "ok");
+    } catch (err) {
+      flash("scores-feedback", err.message, "err");
+    }
+  });
 
   function renderBonusRows(bonuses) {
     const wrap = $("bonus-list");
