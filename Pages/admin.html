@@ -220,6 +220,145 @@
     margin-left: auto;
   }
   .bonus-opp-item .points-pill + button { margin-left: 4px; }
+
+  /* ---- Enter scores: status panel + scorecard editor ---- */
+  #score-status-card {
+    margin-top: 4px;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: var(--cream);
+    border: 1px solid rgba(15,89,40,0.12);
+    border-radius: 10px;
+  }
+  .score-status-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .score-status-block { min-width: 0; }
+  .score-status-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .score-status-value {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .score-status-value.locked  { color: var(--red); }
+  .score-status-value.open    { color: var(--green); }
+  .score-status-value.partial { color: var(--ink); }
+  .score-status-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .score-status-actions .btn { padding: 8px 14px; font-size: 14px; }
+
+  /* Scorecard editor: holes across, rows for Par / Kicks / Points.
+     Wrap in a horizontal-scroll container so on a narrow phone the
+     inputs stay tap-sized rather than getting squashed. */
+  .admin-scorecard-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid rgba(15,89,40,0.12);
+  }
+  .admin-scorecard-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .admin-scorecard-table th, .admin-scorecard-table td {
+    padding: 8px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .admin-scorecard-table thead th {
+    background: var(--green-dark);
+    color: var(--yellow);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .admin-scorecard-table thead th:first-child {
+    text-align: left;
+    padding-left: 14px;
+    width: 78px;
+  }
+  .admin-scorecard-table thead th.col-out {
+    background: var(--green);
+  }
+  .admin-scorecard-table tbody th[scope="row"] {
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--cream);
+    width: 78px;
+  }
+  .admin-scorecard-table tr.row-par td {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .admin-scorecard-table tr.row-kicks td input.score-input {
+    width: 100%;
+    max-width: 56px;
+    padding: 8px 2px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    text-align: center;
+    border: 1px solid rgba(15,89,40,0.18);
+    border-radius: 6px;
+    background: var(--cream);
+    color: var(--ink);
+    -moz-appearance: textfield;
+  }
+  .admin-scorecard-table tr.row-kicks td input.score-input:focus {
+    outline: 2px solid var(--green);
+    outline-offset: 1px;
+    background: var(--white);
+  }
+  .admin-scorecard-table tr.row-kicks td input.score-input::-webkit-outer-spin-button,
+  .admin-scorecard-table tr.row-kicks td input.score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .admin-scorecard-table tr.row-kicks td.col-out {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+  .admin-scorecard-table tr.row-pts td {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .admin-scorecard-table tr.row-pts td.pts-eagle  { color: #c0392b; }
+  .admin-scorecard-table tr.row-pts td.pts-birdie { color: #2a9c4f; }
+  .admin-scorecard-table tr.row-pts td.pts-par    { color: var(--green-dark); }
+  .admin-scorecard-table tr.row-pts td.pts-bogey  { color: var(--ink-soft); }
+  .admin-scorecard-table tr.row-pts td.pts-double { color: #aaa; }
+  .admin-scorecard-table td.col-out, .admin-scorecard-table th.col-out {
+    background: rgba(15,89,40,0.06);
+    font-weight: 700;
+    color: var(--green-dark);
+  }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -514,47 +653,92 @@
       </div>
     </div>
 
-    <!-- Score entry -->
+    <!-- ============================================================
+         SECTION 4 — Enter scores
+         Pick a team to inspect / edit their scorecard in real time.
+         Lets the commissioner add, edit, or clear any hole, see how
+         far along they are, manage the captain lock, and nuke a final
+         submission if it was wrong.
+         ============================================================ -->
     <div class="admin-card">
       <h2>Enter scores</h2>
-      <p class="small-hint">Pick a team, type strokes for each hole, hit Save. Empty cells = hole not played yet. Viewers see updates instantly.</p>
+      <p class="small-hint">Pick a team to see their live scorecard. Edit any hole inline — changes save when you hit Save. Use this to monitor progress, fix typos, or wipe a bad submission.</p>
 
       <label for="score-team">Team</label>
       <select id="score-team"><option value="">—</option></select>
 
       <div id="score-area" class="hidden">
 
-        <!-- Captain-side lock indicator. Once a captain hits final submit
-             on captains.html, scoresLocked=true is written to their team
-             doc. The button below flips it back so they can re-enter. -->
-        <div id="captain-lock-row" class="toggle-row" style="margin-top: 0;">
-          <div>
-            <span class="toggle-label">Captain editing</span>
-            <span class="toggle-hint" id="captain-lock-hint">—</span>
+        <!-- ----- Status panel: lock state, holes filled, last updated ----- -->
+        <div id="score-status-card">
+          <div class="score-status-row">
+            <div class="score-status-block">
+              <div class="score-status-label">Status</div>
+              <div id="score-status-value" class="score-status-value">—</div>
+            </div>
+            <div class="score-status-block">
+              <div class="score-status-label">Holes filled</div>
+              <div id="score-filled-value" class="score-status-value">0 / 9</div>
+            </div>
+            <div class="score-status-block">
+              <div class="score-status-label">Last updated</div>
+              <div id="score-updated-value" class="score-status-value">—</div>
+            </div>
           </div>
-          <button id="unlock-captain" class="btn btn-secondary hidden" type="button" style="padding: 8px 14px; font-size: 14px;">Unlock</button>
+          <div class="score-status-actions">
+            <button id="unlock-captain" class="btn btn-secondary hidden" type="button">Unlock captain editing</button>
+          </div>
         </div>
 
-        <div class="scores-grid par-row" style="margin-top: 14px;">
-          <div class="row-label">Par</div>
-          <div id="par-1"></div><div id="par-2"></div><div id="par-3"></div>
-          <div id="par-4"></div><div id="par-5"></div><div id="par-6"></div>
-          <div id="par-7"></div><div id="par-8"></div><div id="par-9"></div>
-        </div>
-        <div class="scores-grid">
-          <div class="row-label">Strokes</div>
-          <input id="s-1" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-2" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-3" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-4" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-5" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-6" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-7" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-8" type="number" min="1" max="15" inputmode="numeric">
-          <input id="s-9" type="number" min="1" max="15" inputmode="numeric">
+        <!-- ----- Horizontal scorecard editor (matches captains.html layout) ----- -->
+        <div class="admin-scorecard-wrap">
+          <table class="admin-scorecard-table">
+            <thead>
+              <tr>
+                <th class="row-label-th">Hole</th>
+                <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+                <th>6</th><th>7</th><th>8</th><th>9</th>
+                <th class="col-out">OUT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="row-par">
+                <th scope="row">Par</th>
+                <td id="par-1">—</td><td id="par-2">—</td><td id="par-3">—</td>
+                <td id="par-4">—</td><td id="par-5">—</td><td id="par-6">—</td>
+                <td id="par-7">—</td><td id="par-8">—</td><td id="par-9">—</td>
+                <td id="par-out" class="col-out">—</td>
+              </tr>
+              <tr class="row-kicks">
+                <th scope="row">Kicks</th>
+                <td><input id="s-1" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-2" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-3" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-4" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-5" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-6" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-7" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-8" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td><input id="s-9" class="score-input" type="number" min="1" max="20" inputmode="numeric"></td>
+                <td id="kicks-out" class="col-out">—</td>
+              </tr>
+              <tr class="row-pts">
+                <th scope="row">Points</th>
+                <td id="pts-1">—</td><td id="pts-2">—</td><td id="pts-3">—</td>
+                <td id="pts-4">—</td><td id="pts-5">—</td><td id="pts-6">—</td>
+                <td id="pts-7">—</td><td id="pts-8">—</td><td id="pts-9">—</td>
+                <td id="pts-out" class="col-out">—</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <h3>Bonus points</h3>
+        <p class="small-hint" style="margin-top: 8px;">
+          Type strokes into the Kicks row — Points and totals update live. Leave a cell blank to mark a hole as not played. Hit <strong>Save scores &amp; bonuses</strong> below to push your changes to the leaderboard.
+        </p>
+
+        <h3 style="margin-top: 20px;">Bonus points</h3>
+        <p class="small-hint">Manual bonuses for things like Closest-to-Pin or Guess the Grass. Captains don't enter these — only the commissioner does.</p>
         <div id="bonus-list"></div>
         <div class="btn-row">
           <button id="add-bonus" class="btn btn-secondary" type="button">+ Add bonus row</button>
@@ -562,6 +746,7 @@
 
         <div class="btn-row" style="margin-top: 18px;">
           <button id="save-scores" class="btn btn-primary">Save scores &amp; bonuses</button>
+          <button id="delete-all-scores" class="btn btn-danger" type="button">Delete all scores</button>
         </div>
         <div id="scores-feedback" class="feedback hidden"></div>
       </div>
@@ -588,7 +773,8 @@
   import {
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig,
-    onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus
+    onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus,
+    pointsForHole
   } from "../js/firebase-init.js";
 
   // ----- Element refs
@@ -655,7 +841,23 @@
       // the captain just hit final submit (or another admin unlocked them).
       if (selectedTeamId) {
         const t = teams.find(x => x.id === selectedTeamId);
-        if (t) renderCaptainLockState(t);
+        if (t) {
+          renderScoreStatusFromTeam(t);
+          // Live-sync the strokes inputs so the admin sees the captain's
+          // per-hole submissions flow in. Skip any input the admin has
+          // focused (they're mid-edit — don't clobber their typing).
+          const strokes = Array.isArray(t.strokes) ? t.strokes : [];
+          const focusedId = document.activeElement && document.activeElement.id;
+          let changed = false;
+          for (let i = 0; i < 9; i++) {
+            const input = $("s-" + (i+1));
+            if (input.id === focusedId) continue;
+            const v = strokes[i];
+            const next = Number.isFinite(v) ? String(v) : "";
+            if (input.value !== next) { input.value = next; changed = true; }
+          }
+          if (changed) refreshDerivedRows();
+        }
       }
     });
   }
@@ -727,9 +929,17 @@
     // the latest saved values (in case another commissioner edited it).
     refreshHoleFormFromConfig();
 
-    // Par row in score grid still reads coursePar (kept in sync with holes).
-    const par = cfg.coursePar || [3,3,3,3,3,3,3,3,3];
-    for (let i = 0; i < 9; i++) $("par-" + (i+1)).textContent = par[i] ?? "—";
+    // Par row + OUT total + Points row in the Score Entry scorecard are
+    // derived from the inputs + holes config. Recompute whenever the
+    // event config changes upstream so another admin's hole edit shows up
+    // immediately in this admin's open Score Entry view.
+    if (selectedTeamId) refreshDerivedRows();
+    else {
+      // Score entry not open yet — set par-N text cheaply so the column
+      // header shows correct par when the section is later expanded.
+      const par = cfg.coursePar || [3,3,3,3,3,3,3,3,3];
+      for (let i = 0; i < 9; i++) $("par-" + (i+1)).textContent = par[i] ?? "—";
+    }
   }
 
   $("save-config").addEventListener("click", async () => {
@@ -1209,29 +1419,122 @@
     if (!id) { area.classList.add("hidden"); return; }
     area.classList.remove("hidden");
     const t = currentTeams.find(x => x.id === id);
+    // Strokes inputs.
     const strokes = (t && t.strokes) || [];
     for (let i = 0; i < 9; i++) {
       const v = strokes[i];
-      $("s-" + (i+1)).value = (v == null ? "" : v);
+      $("s-" + (i+1)).value = (Number.isFinite(v) ? v : "");
     }
     renderBonusRows((t && t.bonusPoints) || []);
-    renderCaptainLockState(t);
+    renderScoreStatusFromTeam(t);
+    // Par row + points row + OUT totals are derived from current inputs
+    // and event config — recompute every time we load a team or strokes
+    // change (a change listener calls this too).
+    refreshDerivedRows();
   }
 
-  // Shows whether the captain has locked their scorecard from captains.html.
-  // When locked, surface an Unlock button so we can let them re-enter scores
-  // (e.g. a captain texts asking to fix a hole after they hit final submit).
-  function renderCaptainLockState(team) {
-    const hint = $("captain-lock-hint");
-    const btn  = $("unlock-captain");
-    const locked = !!(team && team.scoresLocked);
-    if (locked) {
-      hint.textContent = "Captain submitted their final scorecard — they can no longer edit on captains.html.";
-      btn.classList.remove("hidden");
-    } else {
-      hint.textContent = "Captain can still enter or edit scores on captains.html.";
-      btn.classList.add("hidden");
+  // Pulls par from currentConfig (Section 3 holes), recomputes Points row
+  // and the OUT totals. Called when the admin loads a team, types in any
+  // stroke input, or when the event config changes upstream.
+  function refreshDerivedRows() {
+    const holes = normalizeHoles(currentConfig?.holes);
+    // Par row + OUT.
+    let parTotal = 0;
+    let anyPar = false;
+    for (let i = 0; i < 9; i++) {
+      const p = holes[i].par;
+      $("par-" + (i+1)).textContent = (p == null ? "—" : String(p));
+      if (p != null) { parTotal += p; anyPar = true; }
     }
+    $("par-out").textContent = anyPar ? String(parTotal) : "—";
+
+    // Kicks total + per-hole Points.
+    let kicksTotal = 0;
+    let anyKicks = false;
+    let ptsTotal = 0;
+    for (let i = 0; i < 9; i++) {
+      const raw = $("s-" + (i+1)).value;
+      const k = raw === "" || raw == null ? null : Number(raw);
+      const p = holes[i].par;
+      if (Number.isFinite(k)) { kicksTotal += k; anyKicks = true; }
+      const ptsCell = $("pts-" + (i+1));
+      ptsCell.className = "";
+      if (k == null || !Number.isFinite(k) || p == null) {
+        ptsCell.textContent = "—";
+      } else {
+        const pts = pointsForHole(k, p);
+        ptsCell.textContent = (pts == null ? "—" : "+" + pts);
+        if (pts != null) ptsTotal += pts;
+        const diff = k - p;
+        ptsCell.className =
+          diff <= -2 ? "pts-eagle"  :
+          diff === -1 ? "pts-birdie" :
+          diff === 0  ? "pts-par"    :
+          diff === 1  ? "pts-bogey"  : "pts-double";
+      }
+    }
+    $("kicks-out").textContent = anyKicks ? String(kicksTotal) : "—";
+    $("pts-out").textContent   = "+" + ptsTotal;
+
+    // Holes-filled status mirrors what's in the inputs right now.
+    const filled = Array.from({length: 9}, (_, i) => $("s-" + (i+1)).value)
+      .filter(v => v !== "" && Number.isFinite(Number(v))).length;
+    $("score-filled-value").textContent = `${filled} / 9`;
+  }
+
+  // Live recompute as the commissioner types into any stroke input.
+  for (let i = 1; i <= 9; i++) {
+    $("s-" + i).addEventListener("input", refreshDerivedRows);
+  }
+
+  // Reads the latest team doc and fills the status panel + lock toggle.
+  // Status combines lock state and filled-count so the commissioner can
+  // see at a glance: locked / open / not started.
+  function renderScoreStatusFromTeam(team) {
+    const statusEl  = $("score-status-value");
+    const updatedEl = $("score-updated-value");
+    const unlockBtn = $("unlock-captain");
+    const locked = !!(team && team.scoresLocked);
+    const strokes = (team && Array.isArray(team.strokes)) ? team.strokes : [];
+    const filled  = strokes.filter(v => Number.isFinite(v)).length;
+
+    if (locked) {
+      statusEl.textContent = "Locked (captain submitted final)";
+      statusEl.className   = "score-status-value locked";
+      unlockBtn.classList.remove("hidden");
+    } else if (filled === 0) {
+      statusEl.textContent = "Not started";
+      statusEl.className   = "score-status-value open";
+      unlockBtn.classList.add("hidden");
+    } else if (filled === 9) {
+      statusEl.textContent = "All 9 in — awaiting captain confirm";
+      statusEl.className   = "score-status-value partial";
+      unlockBtn.classList.add("hidden");
+    } else {
+      statusEl.textContent = `In progress (${filled}/9 holes)`;
+      statusEl.className   = "score-status-value partial";
+      unlockBtn.classList.add("hidden");
+    }
+
+    // updatedAt is a Firestore Timestamp ({seconds, nanoseconds}) or null.
+    const ts = team && team.updatedAt;
+    updatedEl.textContent = ts ? formatRelativeTime(ts) : "—";
+  }
+
+  // Render a "5 min ago" / "just now" / "2 hr ago" / absolute fallback.
+  function formatRelativeTime(ts) {
+    let ms;
+    if (ts && typeof ts.toDate === "function")     ms = ts.toDate().getTime();
+    else if (ts && Number.isFinite(ts.seconds))    ms = ts.seconds * 1000;
+    else if (ts instanceof Date)                   ms = ts.getTime();
+    else if (Number.isFinite(ts))                  ms = ts;
+    else return "—";
+    const diff = Date.now() - ms;
+    if (diff < 0)              return "just now";
+    if (diff < 45 * 1000)      return "just now";
+    if (diff < 60 * 60 * 1000) return Math.round(diff / 60000) + " min ago";
+    if (diff < 24 * 3600000)   return Math.round(diff / 3600000) + " hr ago";
+    return new Date(ms).toLocaleString();
   }
 
   $("unlock-captain").addEventListener("click", async () => {
@@ -1287,6 +1590,33 @@
       await setTeamStrokes(selectedTeamId, strokes);
       await setTeamBonus(selectedTeamId, bonuses);
       flash("scores-feedback", "Scores saved. Viewers updating now.", "ok");
+    } catch (err) {
+      flash("scores-feedback", err.message, "err");
+    }
+  });
+
+  // Danger zone: wipe a team's scorecard entirely. Used when a captain
+  // submits something they meant not to (e.g. wrong team), or when we
+  // need to clean up before the round. Resets strokes, bonuses, AND the
+  // scoresLocked flag so the captain can re-enter from scratch.
+  $("delete-all-scores").addEventListener("click", async () => {
+    if (!selectedTeamId) return;
+    const t = currentTeams.find(x => x.id === selectedTeamId);
+    const name = (t && t.name) || selectedTeamId;
+    if (!confirm(`Delete ALL scores for "${name}"?\n\nThis wipes their strokes, bonus points, and unlocks their scorecard so the captain can re-enter from scratch. Can't be undone.`)) {
+      return;
+    }
+    try {
+      await saveTeam(selectedTeamId, {
+        strokes: Array(9).fill(null),
+        bonusPoints: [],
+        scoresLocked: false
+      });
+      // Clear the on-screen inputs immediately so the UI matches.
+      for (let i = 1; i <= 9; i++) $("s-" + i).value = "";
+      renderBonusRows([]);
+      refreshDerivedRows();
+      flash("scores-feedback", `Wiped all scores for "${name}". The captain can now re-enter.`, "ok");
     } catch (err) {
       flash("scores-feedback", err.message, "err");
     }

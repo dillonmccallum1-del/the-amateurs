@@ -42,7 +42,7 @@
   }
   .hidden { display: none !important; }
 
-  /* ===== SCREEN 1 — FLAG LOGIN (unchanged from original) ===== */
+  /* ===== SCREEN 1 — FLAG LOGIN ===== */
   #screen-login {
     display: flex;
     flex-direction: column;
@@ -172,11 +172,7 @@
   }
 
   /* ===== SCREEN 2 — MENU (Draft / Scoring) ===== */
-  #screen-menu {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-  }
+  #screen-menu { display: flex; flex-direction: column; min-height: 100dvh; }
   .menu-body {
     flex: 1;
     padding: 28px 20px 24px;
@@ -222,18 +218,16 @@
   .menu-btn:active { transform: scale(0.98); }
   .menu-btn:hover  { border-color: var(--green); box-shadow: 0 4px 20px rgba(15,89,40,0.15); }
   .menu-btn-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    background: var(--green-dark);
-    color: var(--yellow);
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--cream);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-family: var(--font-serif);
-    font-size: 26px;
-    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
   }
   .menu-btn-text { flex: 1; min-width: 0; }
   .menu-btn-title {
@@ -275,12 +269,8 @@
   }
   .menu-switch-link:hover { color: var(--green-dark); }
 
-  /* ===== SCREEN 3 — OVERALL SCORECARD (read-only / final review / locked) ===== */
-  #screen-overall {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-  }
+  /* ===== SCREEN 3 — OVERALL SCORECARD (horizontal, Excel-style) ===== */
+  #screen-overall { display: flex; flex-direction: column; min-height: 100dvh; }
   .ov-lock-bar {
     background: #7a2600;
     color: #fff;
@@ -290,12 +280,10 @@
     padding: 8px 16px;
     letter-spacing: 0.02em;
   }
-  .ov-lock-bar.flash {
-    animation: lockFlash 0.5s ease;
-  }
+  .ov-lock-bar.flash { animation: lockFlash 0.5s ease; }
   @keyframes lockFlash {
     0%,100% { background: #7a2600; }
-    50%      { background: var(--red); }
+    50%     { background: var(--red); }
   }
   .ov-locked-banner {
     background: var(--green);
@@ -325,73 +313,80 @@
     box-shadow: var(--shadow);
     border: 1px solid var(--cream-dark);
   }
+  /* Excel-style scorecard: holes are columns, attributes are rows.
+     The whole thing is horizontally scrollable on narrow phones so
+     numbers stay tap-sized. */
+  .ov-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .ov-table {
     width: 100%;
+    min-width: 520px; /* forces a scroll on small phones rather than squishing digits */
     border-collapse: collapse;
-    font-size: 15px;
+    font-size: 14px;
   }
-  .ov-table thead tr {
+  .ov-table th, .ov-table td {
+    padding: 9px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .ov-table thead th {
     background: var(--green-dark);
     color: var(--yellow);
-  }
-  .ov-table th {
-    padding: 10px 8px;
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    text-align: center;
   }
-  .ov-table th:nth-child(2) { text-align: left; }
-  .ov-row td {
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--cream-dark);
-    text-align: center;
-    vertical-align: middle;
+  .ov-table thead th:first-child {
+    text-align: left;
+    padding-left: 14px;
+    width: 78px;
   }
-  .ov-row:last-child td { border-bottom: none; }
-  .ov-row:nth-child(even) { background: var(--cream); }
-  .ov-row.editable { cursor: pointer; }
-  .ov-row.editable:hover td { background: rgba(42,156,79,0.08); }
-  .ov-hole-num {
+  .ov-table thead th.col-out {
+    background: var(--green);
+    color: var(--yellow);
+  }
+  .ov-table tbody th.row-label {
+    text-align: left;
+    padding-left: 14px;
     font-weight: 700;
-    font-family: var(--font-serif);
-    font-size: 17px;
-    color: var(--green-dark);
-    width: 40px;
-  }
-  .ov-game-cell {
-    text-align: left !important;
-    padding-left: 8px !important;
-    line-height: 1.3;
-  }
-  .ov-game-name { font-weight: 600; font-size: 14px; color: var(--ink); }
-  .ov-game-desc { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
-  .ov-game-empty { font-size: 13px; color: var(--ink-soft); font-style: italic; }
-  .ov-par-val, .ov-yard-val {
-    font-size: 13px;
     color: var(--ink-soft);
-    width: 44px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 78px;
+    background: var(--cream);
   }
-  .ov-strokes {
-    font-weight: 700;
+  .ov-table tr.row-yards td  { color: var(--ink-soft); font-size: 13px; }
+  .ov-table tr.row-par td    { color: var(--ink); font-weight: 600; }
+  .ov-table tr.row-kicks td  {
+    font-family: var(--font-serif);
     font-size: 18px;
-    color: var(--green-dark);
-    width: 48px;
-    font-family: var(--font-serif);
-  }
-  .ov-strokes.empty { color: var(--cream-dark); }
-  .ov-pts-cell {
     font-weight: 700;
-    font-size: 16px;
-    width: 44px;
+    color: var(--green-dark);
+  }
+  .ov-table tr.row-kicks td.empty { color: var(--cream-dark); }
+  .ov-table tr.row-kicks td.editable { cursor: pointer; }
+  .ov-table tr.row-kicks td.editable:hover { background: rgba(42,156,79,0.10); }
+  .ov-table tr.row-pts td   {
+    font-weight: 700;
+    font-size: 15px;
     color: var(--ink-soft);
   }
-  .ov-pts-cell.pts-eagle  { color: #c0392b; }
-  .ov-pts-cell.pts-birdie { color: #2a9c4f; }
-  .ov-pts-cell.pts-par    { color: var(--green-dark); }
-  .ov-pts-cell.pts-bogey  { color: var(--ink-soft); }
-  .ov-pts-cell.pts-double { color: #aaa; }
+  .ov-table tr.row-pts td.pts-eagle  { color: #c0392b; }
+  .ov-table tr.row-pts td.pts-birdie { color: #2a9c4f; }
+  .ov-table tr.row-pts td.pts-par    { color: var(--green-dark); }
+  .ov-table tr.row-pts td.pts-bogey  { color: var(--ink-soft); }
+  .ov-table tr.row-pts td.pts-double { color: #aaa; }
+  .ov-table td.col-out, .ov-table th.col-out {
+    background: rgba(15,89,40,0.06);
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+  .ov-table tr.row-pts td.col-out { color: var(--green-dark); }
 
   .ov-totals-row {
     display: flex;
@@ -468,16 +463,15 @@
     border-radius: 12px;
     cursor: pointer;
     transition: border-color 0.15s, transform 0.1s;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
   }
   .btn-secondary-big:active { transform: scale(0.98); }
   .btn-secondary-big:hover  { border-color: var(--green); }
 
   /* ===== SCREEN 4 — HOLE ENTRY ===== */
-  #screen-hole {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-  }
+  #screen-hole { display: flex; flex-direction: column; min-height: 100dvh; }
   .he-body {
     flex: 1;
     padding: 20px 16px 32px;
@@ -516,11 +510,7 @@
     font-weight: 700;
     box-shadow: 0 4px 14px rgba(15,89,40,0.3);
   }
-  .he-hole-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+  .he-hole-meta { display: flex; flex-direction: column; gap: 2px; }
   .he-hole-meta-label {
     font-size: 11px;
     color: var(--ink-soft);
@@ -556,8 +546,7 @@
     color: var(--ink);
     line-height: 1.5;
   }
-  .he-game-empty {
-    font-size: 14px;
+  .he-game-desc.he-game-empty {
     color: var(--ink-soft);
     font-style: italic;
   }
@@ -695,16 +684,18 @@
     <h2 class="menu-prompt">Welcome, captain</h2>
     <p class="menu-prompt-sub">Pick where you want to go.</p>
 
+    <!-- Draft uses the same target emoji as the home page's Draft tile. -->
     <a href="draft.html" class="menu-btn" id="menu-btn-draft">
-      <div class="menu-btn-icon">D</div>
+      <div class="menu-btn-icon">&#127919;</div>
       <div class="menu-btn-text">
         <div class="menu-btn-title">Draft</div>
         <div class="menu-btn-sub">Pick your partner</div>
       </div>
     </a>
 
+    <!-- Scoring uses the leaderboard bar-chart emoji from the home page. -->
     <button type="button" class="menu-btn" id="menu-btn-scoring">
-      <div class="menu-btn-icon">S</div>
+      <div class="menu-btn-icon">&#128202;</div>
       <div class="menu-btn-text">
         <div class="menu-btn-title">Scoring</div>
         <div class="menu-btn-sub" id="menu-scoring-sub">Enter your team's scores</div>
@@ -728,26 +719,29 @@
     </div>
   </div>
 
-  <!-- Bar shows lock state. Three variants: hidden / "in-progress lock" / "locked submission". -->
+  <!-- Bar shows lock state. Hidden by default; flipped by JS depending on screen state. -->
   <div id="ov-lock-bar" class="ov-lock-bar hidden">⚠️ Stay on this page until you submit</div>
   <div id="ov-locked-banner" class="ov-locked-banner hidden">✓ Scorecard locked — ask the Commissioner to make changes</div>
 
   <div class="ov-body">
     <h3 class="ov-section-title" id="ov-title">Course overview</h3>
+
     <div class="ov-card">
-      <table class="ov-table">
-        <thead>
-          <tr id="ov-thead-row">
-            <th>Hole</th>
-            <th>Game</th>
-            <th>Par</th>
-            <th>Yds</th>
-            <th id="ov-th-kicks" class="hidden">Kicks</th>
-            <th id="ov-th-pts"   class="hidden">Pts</th>
-          </tr>
-        </thead>
-        <tbody id="ov-tbody"></tbody>
-      </table>
+      <div class="ov-scroll">
+        <table class="ov-table" id="ov-table">
+          <thead>
+            <tr id="ov-thead-row">
+              <th>Hole</th>
+              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+              <th>6</th><th>7</th><th>8</th><th>9</th>
+              <th class="col-out">OUT</th>
+            </tr>
+          </thead>
+          <tbody id="ov-tbody">
+            <!-- rows injected by JS: Yards, Par, (Kicks, Points if any) -->
+          </tbody>
+        </table>
+      </div>
       <div class="ov-totals-row" id="ov-totals-row" style="display:none;">
         <span>Total</span>
         <span><span id="ov-total-kicks" style="opacity:0.7;font-size:14px;margin-right:12px;">— kicks</span><span id="ov-total-pts" class="ov-total-pts-val">+0</span></span>
@@ -755,7 +749,7 @@
     </div>
 
     <div class="ov-edit-hint hidden" id="ov-edit-hint">
-      <strong>Review your card.</strong> Tap any row to edit that hole. When everything's right, hit <strong>Confirm &amp; submit</strong>. After that the Commissioner has to unlock it for you to change anything.
+      <strong>Review your card.</strong> Tap any score in the <em>Kicks</em> row to edit that hole. When everything's right, hit <strong>Confirm &amp; submit</strong>. After that the Commissioner has to unlock it for you to change anything.
     </div>
 
     <div class="ov-action-area">
@@ -763,6 +757,7 @@
       <button class="btn-primary-big hidden" id="ov-btn-enter">Enter Scores</button>
       <button class="btn-primary-big hidden" id="ov-btn-final">Confirm &amp; Submit</button>
       <button class="btn-secondary-big hidden" id="ov-btn-back-menu">Back to menu</button>
+      <a href="../index.html" class="btn-secondary-big hidden" id="ov-btn-home">Back to home</a>
     </div>
   </div>
 </div>
@@ -819,21 +814,22 @@
 
 <script type="module">
   import {
-    onTeams, onEventConfig, saveTeam, pointsForHole
+    onTeams, onEventConfig, saveTeam, setTeamStrokes, pointsForHole
   } from "../js/firebase-init.js";
 
   // ─── State ───────────────────────────────────────────────
   let teams        = [];
-  // holes[i] = { yardage, par, gameName, gameDescription }
+  // holes[i] = { yardage, par, gameName, gameDescription } — pulled from event config.
   let holes        = emptyHoles();
   let coursePar    = [3,3,3,3,3,3,3,3,3];
   let selectedTeam = null;
-  // strokes[i] = number | null. The captain's working copy (in memory + localStorage).
+  // strokes[i] = number | null. The captain's working copy.
   let strokes      = Array(9).fill(null);
   // 0-based index of the hole currently displayed on screen-hole.
   let currentHoleIdx = 0;
-  // Tracks whether we're returning to overall scorecard after entering scores
-  // (vs. coming in fresh). Drives which buttons / hint show on screen-overall.
+  // True when we're on the overall scorecard AFTER the captain finished
+  // hole 9 (or refreshed back into that state with all 9 filled). Drives
+  // which buttons show + whether rows are tappable.
   let inReviewMode = false;
   // True once the captain has hit final Confirm & Submit (scoresLocked = true).
   let finalLocked  = false;
@@ -872,8 +868,6 @@
     coursePar = (cfg && Array.isArray(cfg.coursePar) && cfg.coursePar.length === 9)
       ? cfg.coursePar.slice()
       : holes.map(h => h.par == null ? 3 : h.par);
-    // If captain is currently looking at the overall or hole screens,
-    // re-render so any commissioner edits flow through.
     if (selectedTeam) {
       if (!$("screen-overall").classList.contains("hidden")) renderOverallScreen();
       if (!$("screen-hole").classList.contains("hidden"))    renderHoleScreen();
@@ -884,22 +878,32 @@
     teams = t;
     renderFlagGrid();
     // If the captain is signed in and their team data just changed (e.g.
-    // commissioner unlocked them), refresh their view.
+    // commissioner unlocked or edited them), refresh state.
     if (selectedTeam) {
       const updated = t.find(x => x.id === selectedTeam.id);
       if (updated) {
+        const wasLocked = finalLocked;
         selectedTeam = updated;
         finalLocked = !!updated.scoresLocked;
-        // If they were locked and got unlocked, deactivate the in-page lock
-        // and let them edit. If they got locked, drop them onto the locked overall.
-        if (finalLocked) {
-          // Show the locked overall view, regardless of current screen.
-          // Don't disrupt them if they're still on menu.
+        // Commissioner just locked them: drop into the locked overall view.
+        if (!wasLocked && finalLocked) {
+          inReviewMode = false;
+          deactivateLock();
           if (!$("screen-overall").classList.contains("hidden") ||
               !$("screen-hole").classList.contains("hidden")) {
-            inReviewMode = false;
-            deactivateLock();
             goToOverall();
+          }
+        }
+        // Commissioner just unlocked them: keep them where they are, but
+        // refresh the overall screen if they're looking at it.
+        if (wasLocked && !finalLocked) {
+          // Pull whatever strokes the commissioner left in place so the
+          // captain's working copy matches what's on the leaderboard.
+          strokes = (updated.strokes || []).slice(0, 9);
+          while (strokes.length < 9) strokes.push(null);
+          if (!$("screen-overall").classList.contains("hidden")) {
+            inReviewMode = strokes.every(s => s != null);
+            renderOverallScreen();
           }
         }
       }
@@ -946,12 +950,26 @@
   function loginAsTeam(team) {
     selectedTeam = team;
     finalLocked  = !!team.scoresLocked;
-    // Pull any in-progress strokes from device storage so a refresh / crash
-    // mid-round doesn't lose work. Only meaningful when scorecard isn't yet
-    // locked — once locked, the source of truth is Firebase.
-    strokes = finalLocked
-      ? (team.strokes || Array(9).fill(null)).slice(0, 9)
-      : loadDraftFromStorage(team.id);
+    // If the scorecard is locked, source of truth is Firebase. Otherwise
+    // prefer the device's draft (covers refresh / network blip mid-round).
+    if (finalLocked) {
+      strokes = (team.strokes || []).slice(0, 9);
+      while (strokes.length < 9) strokes.push(null);
+    } else {
+      strokes = loadDraftFromStorage(team.id);
+      // If the device draft is empty but Firebase has partial progress
+      // (commissioner started entering, or earlier device session), prefer
+      // whatever Firebase has so we don't drop scores on the floor.
+      const fbStrokes = (team.strokes || []).slice(0, 9);
+      const fbHasData = fbStrokes.some(s => Number.isFinite(s));
+      const deviceHasData = strokes.some(s => s != null);
+      if (fbHasData && !deviceHasData) {
+        strokes = Array(9).fill(null);
+        for (let i = 0; i < 9; i++) {
+          strokes[i] = Number.isFinite(fbStrokes[i]) ? fbStrokes[i] : null;
+        }
+      }
+    }
     populateTeamHeaders(team);
     updateMenuScoringSubLabel();
     hide('screen-login');
@@ -965,8 +983,6 @@
     const flagSrc = team.flagFile
       ? `../Pictures/Team_Logos/2026/${encodeURIComponent(team.flagFile)}`
       : '';
-
-    // Repeat across each screen's header. Tiny duplication is fine here.
     ['menu', 'ov', 'he'].forEach(prefix => {
       $(`${prefix}-team-name`).textContent    = name;
       $(`${prefix}-team-captain`).textContent = captain;
@@ -995,20 +1011,12 @@
   // ─── Menu actions ────────────────────────────────────────
   $('menu-btn-scoring').addEventListener('click', () => {
     if (!selectedTeam) return;
-    // Review mode = all 9 holes have a stroke but not yet locked. This is
-    // the post-hole-9 review screen (or someone refreshed after entering
-    // all 9 but before hitting final submit). Partial / no data shows the
-    // course preview with an Enter Scores or Resume button instead.
     inReviewMode = !finalLocked && strokes.every(s => s != null);
     hide('screen-menu');
     goToOverall();
   });
 
   $('menu-switch').addEventListener('click', () => {
-    // Letting them switch teams blows away the in-memory draft for the
-    // CURRENT team, but localStorage still has it — so if they reselect the
-    // same flag the draft comes back. That matches the user's "save progress
-    // to device so they can resume" answer.
     selectedTeam = null;
     strokes = Array(9).fill(null);
     finalLocked = false;
@@ -1030,67 +1038,78 @@
     window.scrollTo(0, 0);
   }
 
+  // Excel-style scorecard: holes as columns; Yards / Par / Kicks / Points
+  // as rows. Kicks + Points rows only show when there's data to show.
   function renderOverallScreen() {
-    // Title + which columns to show.
     const showScores = finalLocked || inReviewMode || strokes.some(s => s != null);
     $('ov-title').textContent = finalLocked
       ? 'Your final scorecard'
       : (inReviewMode ? 'Review your scorecard' : 'Course overview');
 
-    // Toggle Kicks + Pts columns.
-    $('ov-th-kicks').classList.toggle('hidden', !showScores);
-    $('ov-th-pts').classList.toggle('hidden',   !showScores);
-
-    // Build rows.
     const tbody = $('ov-tbody');
     tbody.innerHTML = '';
 
+    // ----- Row: Yards -----
+    let yardsRow = '<tr class="row-yards"><th scope="row" class="row-label">Yards</th>';
+    let yardsTotal = 0;
+    let anyYards = false;
+    for (let i = 0; i < 9; i++) {
+      const y = holes[i].yardage;
+      if (y != null) { yardsTotal += y; anyYards = true; }
+      yardsRow += `<td>${y == null ? '—' : y}</td>`;
+    }
+    yardsRow += `<td class="col-out">${anyYards ? yardsTotal : '—'}</td></tr>`;
+    tbody.insertAdjacentHTML('beforeend', yardsRow);
+
+    // ----- Row: Par -----
+    let parRow = '<tr class="row-par"><th scope="row" class="row-label">Par</th>';
+    let parTotal = 0;
+    let anyPar = false;
+    for (let i = 0; i < 9; i++) {
+      const p = (holes[i].par == null) ? coursePar[i] : holes[i].par;
+      if (p != null) { parTotal += p; anyPar = true; }
+      parRow += `<td>${p == null ? '—' : p}</td>`;
+    }
+    parRow += `<td class="col-out">${anyPar ? parTotal : '—'}</td></tr>`;
+    tbody.insertAdjacentHTML('beforeend', parRow);
+
+    // ----- Row: Kicks (only when there's anything to show) -----
     let totalKicks = 0;
     let totalPts   = 0;
     let anyKicks   = false;
-
-    for (let i = 0; i < 9; i++) {
-      const h    = holes[i];
-      const par  = (h.par == null) ? coursePar[i] : h.par;
-      const yard = (h.yardage == null) ? '—' : `${h.yardage}`;
-      const kicks = strokes[i];
-      const pts   = (kicks != null && par != null) ? pointsForHole(kicks, par) : null;
-
-      if (kicks != null) {
-        totalKicks += kicks;
-        anyKicks    = true;
-        if (pts != null) totalPts += pts;
-      }
-
-      const ptsClass = scoreClass(kicks, par);
-      const gameCell = (h.gameName || h.gameDescription)
-        ? `<div class="ov-game-name">${escHtml(h.gameName || '')}</div>` +
-          (h.gameDescription
-            ? `<div class="ov-game-desc">${escHtml(h.gameDescription)}</div>`
-            : '')
-        : '<span class="ov-game-empty">—</span>';
-
-      // Rows are tappable for editing only during review mode (post-hole-9,
-      // pre-final-lock). Outside review mode, rows stay informational.
+    if (showScores) {
       const editable = !finalLocked && inReviewMode;
+      let kicksRow = '<tr class="row-kicks"><th scope="row" class="row-label">Kicks</th>';
+      for (let i = 0; i < 9; i++) {
+        const k = strokes[i];
+        if (k != null) { totalKicks += k; anyKicks = true; }
+        kicksRow += `<td class="${k == null ? 'empty' : ''}${editable ? ' editable' : ''}" data-hole="${i}">${k == null ? '—' : k}</td>`;
+      }
+      kicksRow += `<td class="col-out">${anyKicks ? totalKicks : '—'}</td></tr>`;
+      tbody.insertAdjacentHTML('beforeend', kicksRow);
 
-      const tr = document.createElement('tr');
-      tr.className = 'ov-row' + (editable ? ' editable' : '');
-      tr.innerHTML = `
-        <td class="ov-hole-num">${i + 1}</td>
-        <td class="ov-game-cell">${gameCell}</td>
-        <td class="ov-par-val">${par ?? '—'}</td>
-        <td class="ov-yard-val">${yard}</td>
-        <td class="ov-strokes ${kicks == null ? 'empty' : ''}" style="${showScores ? '' : 'display:none'}">${kicks == null ? '—' : kicks}</td>
-        <td class="ov-pts-cell ${ptsClass}" style="${showScores ? '' : 'display:none'}">${pts == null ? '—' : `+${pts}`}</td>
-      `;
+      // ----- Row: Points -----
+      let ptsRow = '<tr class="row-pts"><th scope="row" class="row-label">Points</th>';
+      for (let i = 0; i < 9; i++) {
+        const k = strokes[i];
+        const p = (holes[i].par == null) ? coursePar[i] : holes[i].par;
+        const pts = (k != null && p != null) ? pointsForHole(k, p) : null;
+        if (pts != null) totalPts += pts;
+        const cls = scoreClass(k, p);
+        ptsRow += `<td class="${cls}">${pts == null ? '—' : `+${pts}`}</td>`;
+      }
+      ptsRow += `<td class="col-out">+${totalPts}</td></tr>`;
+      tbody.insertAdjacentHTML('beforeend', ptsRow);
+
+      // Wire row clicks for review-mode editing.
       if (editable) {
-        tr.addEventListener('click', () => {
-          currentHoleIdx = i;
-          goToHole();
+        tbody.querySelectorAll('tr.row-kicks td.editable').forEach(td => {
+          td.addEventListener('click', () => {
+            currentHoleIdx = Number(td.dataset.hole);
+            goToHole();
+          });
         });
       }
-      tbody.appendChild(tr);
     }
 
     // Totals row visible only when scoring data is shown.
@@ -1110,19 +1129,20 @@
     const btnEnter    = $('ov-btn-enter');
     const btnFinal    = $('ov-btn-final');
     const btnBackMenu = $('ov-btn-back-menu');
+    const btnHome     = $('ov-btn-home');
     const hint        = $('ov-action-hint');
 
+    // Reset all to hidden, then enable per-state below.
+    hide('ov-btn-enter'); hide('ov-btn-final');
+    hide('ov-btn-back-menu'); hide('ov-btn-home');
+
     if (finalLocked) {
-      hide('ov-btn-enter'); hide('ov-btn-final');
-      btnBackMenu.classList.remove('hidden');
+      btnHome.classList.remove('hidden');
       hint.textContent = '';
+      hint.className   = 'ov-action-hint';
     } else if (inReviewMode) {
-      // Review mode only fires when every hole has a stroke, so the final
-      // submit button is always enabled here.
-      hide('ov-btn-enter');
       btnFinal.classList.remove('hidden');
       btnFinal.disabled = false;
-      hide('ov-btn-back-menu');
       hint.textContent = 'Everything looks right? Hit confirm to lock it in.';
       hint.className = 'ov-action-hint ready';
     } else {
@@ -1133,7 +1153,6 @@
         ? `Resume — pick up at hole ${(strokes.findIndex(s => s == null) + 1) || 1}`
         : 'Enter Scores';
       btnEnter.classList.remove('hidden');
-      hide('ov-btn-final');
       btnBackMenu.classList.remove('hidden');
       hint.textContent = isResume
         ? `${filled}/9 holes done — tap above to keep going.`
@@ -1153,7 +1172,6 @@
   }
 
   $('ov-btn-enter').addEventListener('click', () => {
-    // Start fresh at the first hole that doesn't yet have a stroke, or hole 1.
     const firstEmpty = strokes.findIndex(s => s == null);
     currentHoleIdx = firstEmpty === -1 ? 0 : firstEmpty;
     activateLock();
@@ -1161,11 +1179,7 @@
   });
 
   $('ov-btn-back-menu').addEventListener('click', () => {
-    if (lockActive) {
-      // Shouldn't be possible — the button is hidden in the locked-in flow.
-      // But be defensive.
-      deactivateLock();
-    }
+    if (lockActive) deactivateLock();
     hide('screen-overall');
     show('screen-menu');
     window.scrollTo(0, 0);
@@ -1226,8 +1240,7 @@
       }
       btn.innerHTML = `${n}${subLabel ? `<span class="he-score-btn-sub">${subLabel}</span>` : ''}`;
       btn.addEventListener('click', () => {
-        // Toggle: tapping the already-selected button clears the selection
-        // so the captain can change their mind without keyboard fiddling.
+        // Toggle: tapping the already-selected button clears the selection.
         const next = currentSelection === n ? null : n;
         strokes[i] = next;
         saveDraftToStorage();
@@ -1236,11 +1249,13 @@
       grid.appendChild(btn);
     }
 
-    // Buttons row: back is hidden on hole 1.
+    // Back hidden on hole 1.
     $('he-btn-back').classList.toggle('hidden', i === 0);
     const submitBtn = $('he-btn-submit');
     submitBtn.disabled = strokes[i] == null;
-    submitBtn.textContent = (i === 8) ? 'Submit hole — review card' : 'Submit hole';
+    submitBtn.textContent = inReviewMode
+      ? 'Save & return to review'
+      : (i === 8 ? 'Submit hole — review card' : 'Submit hole');
   }
 
   $('he-btn-back').addEventListener('click', () => {
@@ -1250,15 +1265,31 @@
     }
   });
 
-  $('he-btn-submit').addEventListener('click', () => {
+  $('he-btn-submit').addEventListener('click', async () => {
     const i = currentHoleIdx;
     if (strokes[i] == null) return;
     saveDraftToStorage();
-    if (i < 8) {
+
+    // Push the latest strokes array to Firebase so the leaderboard updates
+    // live, hole by hole. Failures are logged but don't block the captain —
+    // the localStorage draft + final submit will still capture everything.
+    if (selectedTeam) {
+      try {
+        await setTeamStrokes(selectedTeam.id, strokes.slice());
+      } catch (err) {
+        console.warn('Live stroke push failed; continuing anyway.', err);
+      }
+    }
+
+    if (inReviewMode) {
+      // Came from the review screen — return to it after the edit so the
+      // captain doesn't get bounced forward into hole 7 when they meant to
+      // fix hole 4.
+      goToOverall();
+    } else if (i < 8) {
       currentHoleIdx = i + 1;
       goToHole();
     } else {
-      // Finished hole 9 — drop into review mode on the overall scorecard.
       inReviewMode = true;
       goToOverall();
     }
@@ -1269,20 +1300,18 @@
     if (!selectedTeam) return;
     if (!strokes.every(s => s != null)) return;
 
+    if (!confirm("Lock in your final scorecard? You won't be able to edit after this — only the Commissioner can.")) {
+      return;
+    }
+
     const btn  = $('ov-btn-final');
     const hint = $('ov-action-hint');
     btn.disabled    = true;
     btn.textContent = 'Submitting…';
 
-    if (!confirm("Lock in your final scorecard? You won't be able to edit after this — only the Commissioner can.")) {
-      btn.disabled    = false;
-      btn.textContent = 'Confirm & Submit';
-      return;
-    }
-
     try {
       // One atomic write: strokes + lock flag together. saveTeam uses setDoc
-      // with merge, so other team fields (name, captain, etc.) are preserved.
+      // with merge so other team fields (name, captain, etc.) are preserved.
       await saveTeam(selectedTeam.id, {
         strokes: strokes.slice(),
         scoresLocked: true
@@ -1302,9 +1331,6 @@
   }
 
   // ─── localStorage draft (resume on refresh / crash) ──────
-  // Key includes team id so a shared device between captains doesn't mix
-  // drafts. We only persist the strokes array — re-derive everything else
-  // from Firebase / event config on load.
   function draftKey(teamId) { return `the-amateurs-captain-draft-${teamId}`; }
 
   function loadDraftFromStorage(teamId) {
@@ -1340,9 +1366,6 @@
   }
 
   // ─── Navigation lock ─────────────────────────────────────
-  // Active during hole-by-hole entry and review (so accidentally swiping
-  // back doesn't toss in-progress work). Released on final submit or when
-  // the captain explicitly switches teams from the menu.
   function activateLock() {
     if (lockActive) return;
     lockActive = true;
