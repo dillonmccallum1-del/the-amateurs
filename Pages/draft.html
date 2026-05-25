@@ -29,6 +29,8 @@
     width: 100%;
     max-width: 420px;       /* keep nicely sized on tablet/desktop */
     height: auto;
+    aspect-ratio: 1080 / 1350;  /* reserve space so partial loads don't look "cut off" */
+    background: #0f5928;        /* matches theme — visible while bytes stream in */
     border-radius: 12px;
     box-shadow: var(--shadow-md);
   }
@@ -36,6 +38,8 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="../icons/favicon.png">
+<!-- Kick off the first profile image immediately, before the browser parses the carousel -->
+<link rel="preload" as="image" href="../Pictures/Draft_Profiles/andrea.png" fetchpriority="high">
 </head>
 <body>
 
@@ -104,18 +108,18 @@
 
     <div class="player-cards">
       <!-- Card-image carousel. Each PNG is a fully-styled profile card. -->
-      <article class="player-card card-image active"><img class="player-card-img" src="../Pictures/Draft_Profiles/andrea.png" alt="Andrea McCallum"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/andrew-carson.png" alt="Andrew Carson" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/dillon.png" alt="Dillon McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/alex.png" alt="Alex McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/karen.png" alt="Karen McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/erin.png" alt="Erin McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/david.png" alt="David McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/brian.png" alt="Brian McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/cheri.png" alt="Cheri McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/emily-beyer.png" alt="Emily Beyer" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/joe.png" alt="Joe McCallum" loading="lazy"></article>
-      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/jack-omilian.png" alt="Jack Omilian" loading="lazy"></article>
+      <article class="player-card card-image active"><img class="player-card-img" src="../Pictures/Draft_Profiles/andrea.png" alt="Andrea McCallum" width="1080" height="1350" fetchpriority="high" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/andrew-carson.png" alt="Andrew Carson" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/dillon.png" alt="Dillon McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/alex.png" alt="Alex McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/karen.png" alt="Karen McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/erin.png" alt="Erin McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/david.png" alt="David McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/brian.png" alt="Brian McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/cheri.png" alt="Cheri McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/emily-beyer.png" alt="Emily Beyer" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/joe.png" alt="Joe McCallum" width="1080" height="1350" loading="lazy" decoding="async"></article>
+      <article class="player-card card-image"><img class="player-card-img" src="../Pictures/Draft_Profiles/jack-omilian.png" alt="Jack Omilian" width="1080" height="1350" loading="lazy" decoding="async"></article>
     </div>
   </div>
 </section>
@@ -196,6 +200,9 @@
     for (let i = 1; i <= maxPick; i++) {
       const t = teams.find(x => (x.draftPick || 0) === i);
       if (t) {
+        const flagHtml = t.flagFile
+          ? `<img class="draft-flag" src="../Pictures/Team_Logos/2026/${encodeURIComponent(t.flagFile)}" alt="${escapeHtml(t.name || "")} flag" onerror="this.style.display='none'">`
+          : `<div></div>`;
         html += `
           <div class="draft-board-row">
             <div class="draft-pick-label">Pick ${i}</div>
@@ -203,6 +210,7 @@
               <div class="draft-team-name">${escapeHtml(t.name || "Unnamed team")}</div>
               <div class="draft-roster">${escapeHtml(t.captain || "—")} &middot; ${escapeHtml(t.partner || "—")}</div>
             </div>
+            ${flagHtml}
           </div>`;
       } else {
         html += emptyRow(i);
@@ -234,6 +242,7 @@
           <div class="draft-team-name empty">Team name TBD</div>
           <div class="draft-roster">Capt. ${escapeHtml(captain)} &middot; <em>Partner TBD</em></div>
         </div>
+        <div></div>
       </div>`;
   }
   function escapeHtml(s) {

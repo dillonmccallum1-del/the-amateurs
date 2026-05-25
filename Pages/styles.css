@@ -1197,10 +1197,18 @@ a.inline-link:hover { color: var(--green); }
   padding: 18px 20px;
   border-bottom: 1px solid var(--cream-dark);
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 80px 1fr auto;
   gap: 16px;
   align-items: center;
   min-height: 76px;
+}
+.draft-flag {
+  /* 90% of the 76px min-row-height minus vertical padding */
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  display: block;
 }
 .draft-board-row:last-child { border-bottom: none; }
 .draft-pick-label {
