@@ -71,7 +71,7 @@
 </section>
 
 <!-- ===== HOLE GAMES ===== -->
-<section class="content">
+<section id="hole-games-section" class="content">
   <h2 class="section-title">Hole Games</h2>
   <div class="section-rule"></div>
   <p>Each hole has its own twist this year. Read up before you tee it up &mdash; some holes carry bonus points.</p>
@@ -200,7 +200,7 @@
 </section>
 
 <!-- ===== BONUS POINTS ===== -->
-<section class="content">
+<section id="bonus-points-section" class="content">
   <h2 class="section-title">Bonus Points</h2>
   <div class="section-rule"></div>
   <p>Five ways to pad your score outside the standard Stableford count.</p>
@@ -242,6 +242,23 @@
     document.querySelector('nav.drawer').classList.toggle('open');
     document.querySelector('.nav-overlay').classList.toggle('open');
   }
+</script>
+
+<script type="module">
+  // Live-toggle the Hole Games and Bonus Points sections based on the
+  // event config the Commissioner controls in admin.html. Sections stay
+  // visible by default (only hidden when the flag is explicitly false).
+  import { onEventConfig } from "../js/firebase-init.js";
+
+  const holeGames = document.getElementById("hole-games-section");
+  const bonus     = document.getElementById("bonus-points-section");
+
+  onEventConfig((cfg) => {
+    const showHoleGames = !(cfg && cfg.holeGamesVisible === false);
+    const showBonus     = !(cfg && cfg.bonusVisible      === false);
+    if (holeGames) holeGames.style.display = showHoleGames ? "" : "none";
+    if (bonus)     bonus.style.display     = showBonus     ? "" : "none";
+  });
 </script>
 
 <script>

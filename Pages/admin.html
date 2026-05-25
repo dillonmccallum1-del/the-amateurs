@@ -106,6 +106,65 @@
     display: grid; grid-template-columns: 1fr 80px auto; gap: 8px;
     margin-bottom: 8px; align-items: center;
   }
+
+  /* ---- Toggle switch (used in Event settings) ---- */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 12px 14px; margin-top: 12px;
+    background: var(--cream); border: 1px solid rgba(15,89,40,0.18);
+    border-radius: 8px;
+  }
+  .toggle-row .toggle-label {
+    font-size: 15px; font-weight: 600; color: var(--ink);
+    text-transform: none; letter-spacing: 0; margin: 0;
+    font-family: var(--font-sans);
+  }
+  .toggle-row .toggle-hint {
+    display: block; font-size: 13px; font-weight: 400;
+    color: var(--ink-soft); margin-top: 2px; letter-spacing: 0;
+    text-transform: none;
+  }
+  .toggle-switch {
+    position: relative; flex: 0 0 auto;
+    width: 52px; height: 30px;
+  }
+  .toggle-switch input {
+    opacity: 0; width: 0; height: 0;
+  }
+  .toggle-track {
+    position: absolute; inset: 0; cursor: pointer;
+    background: rgba(15,89,40,0.22); border-radius: 999px;
+    transition: background 0.18s ease;
+  }
+  .toggle-track::before {
+    content: ""; position: absolute;
+    width: 24px; height: 24px; left: 3px; top: 3px;
+    background: var(--white); border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: transform 0.18s ease;
+  }
+  .toggle-switch input:checked + .toggle-track { background: var(--green); }
+  .toggle-switch input:checked + .toggle-track::before { transform: translateX(22px); }
+  .toggle-switch input:focus-visible + .toggle-track {
+    outline: 2px solid var(--green-dark); outline-offset: 2px;
+  }
+
+  /* ---- Draft total readout (Teams & draft, Subsection A) ---- */
+  .draft-total-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 14px 16px; margin-top: 16px;
+    background: var(--green-dark); color: var(--cream);
+    border-radius: 8px;
+  }
+  .draft-total-label {
+    font-family: var(--font-sans); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em; font-size: 14px;
+  }
+  .draft-total-value {
+    font-family: var(--font-sans); font-weight: 700; font-size: 26px;
+    color: var(--yellow); line-height: 1;
+  }
+  .draft-total-value.warn { color: var(--red); }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -175,14 +234,24 @@
       <button id="signout-btn" class="btn btn-secondary" style="padding: 6px 14px; font-size: 14px;">Sign out</button>
     </div>
 
-    <!-- Event config -->
+    <!-- ============================================================
+         SECTION 1 — Event settings
+         Controls the year, tournament format, current status, and
+         whether the Hole Games / Bonus Points sections appear on
+         the Rules page.
+         ============================================================ -->
     <div class="admin-card">
       <h2>Event settings</h2>
+
       <label for="evt-year">Year</label>
       <input id="evt-year" type="number" min="2021" max="2099">
 
-      <label for="evt-edition">Edition name</label>
-      <input id="evt-edition" type="text" placeholder="e.g. 2026 Footgolf Edition">
+      <label for="evt-format">Format</label>
+      <select id="evt-format">
+        <option value="4-person-scramble">4-person scramble</option>
+        <option value="2-person-scramble">2-person scramble</option>
+        <option value="2-person-alternate-kick">2-person alternate kick</option>
+      </select>
 
       <label for="evt-status">Status</label>
       <select id="evt-status">
@@ -193,14 +262,29 @@
         <option value="final">Final</option>
       </select>
 
-      <label for="evt-visible">Leaderboard visible to viewers?</label>
-      <select id="evt-visible">
-        <option value="true">Yes — public can see live scores</option>
-        <option value="false">No — show placeholder only</option>
-      </select>
+      <label style="margin-top: 18px;">Rules page sections</label>
 
-      <label for="evt-par">Course par (9 numbers, comma-separated)</label>
-      <input id="evt-par" type="text" placeholder="3,3,3,3,3,3,3,3,3">
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">Show Hole Games section</span>
+          <span class="toggle-hint">Toggles the Hole Games block on the Rules page.</span>
+        </div>
+        <label class="toggle-switch" for="evt-hole-games-visible">
+          <input id="evt-hole-games-visible" type="checkbox">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">Show Bonus Points section</span>
+          <span class="toggle-hint">Toggles the Bonus Points block on the Rules page.</span>
+        </div>
+        <label class="toggle-switch" for="evt-bonus-visible">
+          <input id="evt-bonus-visible" type="checkbox">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
 
       <div class="btn-row">
         <button id="save-config" class="btn btn-primary">Save event settings</button>
@@ -208,12 +292,37 @@
       <div id="config-feedback" class="feedback hidden"></div>
     </div>
 
-    <!-- Teams -->
+    <!-- ============================================================
+         SECTION 2 — Teams & draft
+         Subsection A: Draft setup (sizes the draft)
+         Subsection B: Add / edit a team
+         Subsection C: Current teams list
+         ============================================================ -->
     <div class="admin-card">
       <h2>Teams &amp; draft</h2>
-      <p class="small-hint">Add or edit a team. Draft pick controls leaderboard tie-breaker order and shows up on the draft board.</p>
 
-      <h3>Add / edit a team</h3>
+      <!-- ----- Subsection A: Draft setup ----- -->
+      <h3>Draft setup</h3>
+      <p class="small-hint">Total draft picks = number of participants minus number of teams (one slot per team is the captain).</p>
+
+      <label for="evt-num-teams">Number of teams</label>
+      <input id="evt-num-teams" type="number" min="0" step="1" inputmode="numeric">
+
+      <label for="evt-num-participants">Number of participants</label>
+      <input id="evt-num-participants" type="number" min="0" step="1" inputmode="numeric">
+
+      <div class="draft-total-row">
+        <span class="draft-total-label">Total draft picks</span>
+        <span id="draft-total-value" class="draft-total-value">—</span>
+      </div>
+
+      <div class="btn-row">
+        <button id="save-draft-setup" class="btn btn-primary">Save draft setup</button>
+      </div>
+      <div id="draft-setup-feedback" class="feedback hidden"></div>
+
+      <!-- ----- Subsection B: Add / edit a team ----- -->
+      <h3 style="margin-top: 26px;">Add / edit a team</h3>
       <label for="team-id">Team ID (lowercase, no spaces — e.g. <code>team-a</code>)</label>
       <input id="team-id" type="text" placeholder="team-a">
 
@@ -226,8 +335,10 @@
       <label for="team-partner">Partner</label>
       <input id="team-partner" type="text">
 
-      <label for="team-draft">Draft pick (1, 2, 3…)</label>
-      <input id="team-draft" type="number" min="1">
+      <label for="team-draft">Draft pick</label>
+      <select id="team-draft">
+        <option value="">— Set draft setup first —</option>
+      </select>
 
       <label for="team-flag">Country flag (captain scorecard login)</label>
       <select id="team-flag">
@@ -382,21 +493,34 @@
   function defaultConfig() {
     return {
       year: 2026,
-      edition: "2026 Footgolf Edition",
+      format: "2-person-alternate-kick",
       status: "pre-event",
-      leaderboardVisible: false,
+      holeGamesVisible: true,
+      bonusVisible: true,
+      numTeams: 0,
+      numParticipants: 0,
+      // coursePar is managed in a separate settings section.
       coursePar: [3,3,3,3,3,3,3,3,3]
     };
   }
 
   function fillConfigForm(cfg) {
-    $("evt-year").value         = cfg.year ?? 2026;
-    $("evt-edition").value      = cfg.edition ?? "";
-    $("evt-status").value       = cfg.status ?? "pre-event";
-    $("evt-visible").value      = String(cfg.leaderboardVisible ?? false);
-    $("evt-bonus-visible").value = String(cfg.bonusVisible ?? false);
-    $("evt-par").value          = (cfg.coursePar || [3,3,3,3,3,3,3,3,3]).join(",");
-    // also fill par row in score grid
+    // Section 1 — Event settings
+    $("evt-year").value   = cfg.year ?? 2026;
+    $("evt-format").value = cfg.format ?? "2-person-alternate-kick";
+    $("evt-status").value = cfg.status ?? "pre-event";
+    $("evt-hole-games-visible").checked = cfg.holeGamesVisible !== false; // default ON
+    $("evt-bonus-visible").checked      = cfg.bonusVisible      !== false; // default ON
+
+    // Section 2 — Draft setup
+    $("evt-num-teams").value        = cfg.numTeams        ?? "";
+    $("evt-num-participants").value = cfg.numParticipants ?? "";
+    renderDraftTotal();
+    // Repopulate draft-pick dropdown using whichever team (if any) is loaded
+    // in the form right now, so its selection survives a config refresh.
+    populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
+
+    // Par row in score grid still reads coursePar (set elsewhere).
     const par = cfg.coursePar || [3,3,3,3,3,3,3,3,3];
     for (let i = 0; i < 9; i++) $("par-" + (i+1)).textContent = par[i] ?? "—";
   }
@@ -405,17 +529,12 @@
     const fb = $("config-feedback");
     hide(fb);
     try {
-      const parArr = $("evt-par").value.split(",")
-        .map(s => Number(s.trim()))
-        .filter(n => Number.isFinite(n));
-      if (parArr.length !== 9) throw new Error("Course par must be exactly 9 numbers.");
       await updateEventConfig({
-        year: Number($("evt-year").value),
-        edition: $("evt-edition").value.trim(),
-        status: $("evt-status").value,
-        leaderboardVisible: $("evt-visible").value === "true",
-        bonusVisible: $("evt-bonus-visible").value === "true",
-        coursePar: parArr
+        year:             Number($("evt-year").value),
+        format:           $("evt-format").value,
+        status:           $("evt-status").value,
+        holeGamesVisible: $("evt-hole-games-visible").checked,
+        bonusVisible:     $("evt-bonus-visible").checked
       });
       fb.textContent = "Saved.";
       fb.className = "feedback ok";
@@ -424,6 +543,108 @@
       fb.className = "feedback err";
     }
   });
+
+  // ----- Draft setup ------------------------------------------------
+  // Total draft picks = number of participants minus number of teams.
+  // We always read the live input values so the readout updates on
+  // each keystroke, even before the commissioner hits Save.
+
+  function readDraftSetupInputs() {
+    const t = Number($("evt-num-teams").value);
+    const p = Number($("evt-num-participants").value);
+    return {
+      numTeams:        Number.isFinite(t) && t >= 0 ? t : 0,
+      numParticipants: Number.isFinite(p) && p >= 0 ? p : 0
+    };
+  }
+
+  function computeTotalDraftPicks() {
+    // Prefer live form values; fall back to saved config when fields are blank.
+    const liveTeamsRaw = $("evt-num-teams").value;
+    const livePartsRaw = $("evt-num-participants").value;
+    const teams = liveTeamsRaw === ""
+      ? Number(currentConfig?.numTeams || 0)
+      : Number(liveTeamsRaw);
+    const parts = livePartsRaw === ""
+      ? Number(currentConfig?.numParticipants || 0)
+      : Number(livePartsRaw);
+    const total = (parts || 0) - (teams || 0);
+    return total > 0 ? total : 0;
+  }
+
+  function renderDraftTotal() {
+    const total = computeTotalDraftPicks();
+    const el = $("draft-total-value");
+    el.textContent = total > 0 ? String(total) : "—";
+    el.classList.toggle("warn", total <= 0 && ($("evt-num-teams").value || $("evt-num-participants").value));
+  }
+
+  // Live readout updates as the commissioner types.
+  $("evt-num-teams").addEventListener("input", () => {
+    renderDraftTotal();
+    populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
+  });
+  $("evt-num-participants").addEventListener("input", () => {
+    renderDraftTotal();
+    populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
+  });
+
+  $("save-draft-setup").addEventListener("click", async () => {
+    const fb = $("draft-setup-feedback");
+    hide(fb);
+    const { numTeams, numParticipants } = readDraftSetupInputs();
+    if (numParticipants < numTeams) {
+      fb.textContent = "Participants must be at least equal to teams.";
+      fb.className = "feedback err";
+      return;
+    }
+    try {
+      await updateEventConfig({ numTeams, numParticipants });
+      fb.textContent = `Saved. Total draft picks: ${numParticipants - numTeams}.`;
+      fb.className = "feedback ok";
+    } catch (err) {
+      fb.textContent = err.message;
+      fb.className = "feedback err";
+    }
+  });
+
+  // ----- Draft pick dropdown ---------------------------------------
+  // Options run 1..totalDraftPicks. A pick already assigned to another
+  // team is annotated "(taken by Team X)" but stays selectable so the
+  // commissioner can swap. We pass selfTeamId so the team currently
+  // loaded in the form is excluded from the "taken-by" check.
+
+  function populateDraftPickDropdown(selectedValue, selfTeamId) {
+    const sel = $("team-draft");
+    const total = computeTotalDraftPicks();
+    if (total <= 0) {
+      sel.innerHTML = '<option value="">— Set draft setup first —</option>';
+      return;
+    }
+
+    // Map pick number → team that holds it (other than self).
+    const takenBy = new Map();
+    for (const t of currentTeams) {
+      if (selfTeamId && t.id === selfTeamId) continue;
+      if (Number.isFinite(t.draftPick)) takenBy.set(t.draftPick, t);
+    }
+
+    let html = '<option value="">— Select pick —</option>';
+    for (let n = 1; n <= total; n++) {
+      const owner = takenBy.get(n);
+      const label = owner
+        ? `${n} (taken by ${owner.name || owner.id})`
+        : String(n);
+      html += `<option value="${n}">${escapeHtml(label)}</option>`;
+    }
+    // If the team's saved pick is outside the new range, surface it so
+    // we don't silently drop their selection on render.
+    if (selectedValue && Number(selectedValue) > total) {
+      html += `<option value="${escapeHtml(selectedValue)}">${escapeHtml(selectedValue)} (out of range)</option>`;
+    }
+    sel.innerHTML = html;
+    if (selectedValue !== "" && selectedValue != null) sel.value = String(selectedValue);
+  }
 
   // ----- Team list
   function renderTeamList(teams) {
