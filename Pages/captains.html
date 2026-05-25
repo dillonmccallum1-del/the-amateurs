@@ -48,13 +48,16 @@
     flex-direction: column;
     align-items: center;
     min-height: 100dvh;
-    padding: 32px 20px 48px;
+    /* Extra top padding clears the iPhone status bar AND the back arrow that
+       lives inside this container (positioned with the same safe-area offset). */
+    padding: calc(56px + env(safe-area-inset-top)) 20px 48px;
     position: relative;
   }
   .login-back {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    /* Sit below the notch / status-bar clock on iPhones */
+    top: calc(12px + env(safe-area-inset-top));
+    left: calc(12px + env(safe-area-inset-left));
     display: flex;
     align-items: center;
     gap: 6px;
@@ -165,7 +168,9 @@
   .sc-team-header {
     background: var(--green-dark);
     color: var(--white);
-    padding: 18px 20px 16px;
+    /* Top padding accounts for iPhone status bar when launched from home screen
+       with viewport-fit=cover + black-translucent status bar. */
+    padding: calc(18px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 16px calc(20px + env(safe-area-inset-left));
     display: flex;
     align-items: center;
     gap: 14px;
