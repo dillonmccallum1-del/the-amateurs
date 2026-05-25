@@ -212,6 +212,14 @@
     font-size: 15px; color: var(--ink); font-weight: 500;
     word-break: break-word;
   }
+  .bonus-opp-item .points-pill {
+    flex: 0 0 auto; padding: 6px 12px; border-radius: 999px;
+    background: var(--green-dark); color: var(--yellow);
+    font-family: var(--font-sans); font-weight: 700;
+    font-size: 14px; letter-spacing: 0.02em;
+    margin-left: auto;
+  }
+  .bonus-opp-item .points-pill + button { margin-left: 4px; }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -480,6 +488,14 @@
 
       <label for="bonus-label">Description / name</label>
       <input id="bonus-label" type="text" placeholder="e.g. Closest to the Pin">
+
+      <label for="bonus-points">Points</label>
+      <select id="bonus-points">
+        <option value="">— Select points —</option>
+        <option value="1">+1</option>
+        <option value="2">+2</option>
+        <option value="3">+3</option>
+      </select>
 
       <div class="btn-row">
         <button id="save-bonus-opp" class="btn btn-primary">Save bonus</button>
@@ -941,8 +957,9 @@
   $("save-bonus-opp").addEventListener("click", async () => {
     const fb = $("bonus-opp-feedback");
     hide(fb);
-    const hole  = Number($("bonus-hole").value);
-    const label = $("bonus-label").value.trim();
+    const hole   = Number($("bonus-hole").value);
+    const label  = $("bonus-label").value.trim();
+    const points = Number($("bonus-points").value);
 
     if (!Number.isInteger(hole) || hole < 1 || hole > 9) {
       fb.textContent = "Pick a hole (1–9) first.";
@@ -954,17 +971,23 @@
       fb.className = "feedback err";
       return;
     }
+    if (![1, 2, 3].includes(points)) {
+      fb.textContent = "Pick a point value (1, 2, or 3).";
+      fb.className = "feedback err";
+      return;
+    }
 
     const existing = Array.isArray(currentConfig?.bonusOpportunities)
       ? [...currentConfig.bonusOpportunities]
       : [];
-    existing.push({ hole, label });
+    existing.push({ hole, label, points });
 
     try {
       await updateEventConfig({ bonusOpportunities: existing });
-      $("bonus-hole").value  = "";
-      $("bonus-label").value = "";
-      fb.textContent = `Added bonus for hole ${hole}.`;
+      $("bonus-hole").value   = "";
+      $("bonus-label").value  = "";
+      $("bonus-points").value = "";
+      fb.textContent = `Added +${points} bonus for hole ${hole}.`;
       fb.className = "feedback ok";
     } catch (err) {
       fb.textContent = err.message;
@@ -982,11 +1005,13 @@
     items.forEach((b, idx) => {
       const row = document.createElement("div");
       row.className = "bonus-opp-item";
+      const ptsLabel = Number.isFinite(b.points) ? `+${b.points}` : "—";
       row.innerHTML = `
         <div class="meta">
           <span class="hole-tag">Hole ${escapeHtml(String(b.hole ?? "?"))}</span>
           <span class="label">${escapeHtml(b.label || "")}</span>
         </div>
+        <span class="points-pill" aria-label="Points">${escapeHtml(ptsLabel)}</span>
         <button type="button" class="btn btn-danger" data-idx="${idx}" style="padding: 6px 12px; font-size: 14px;" aria-label="Delete bonus">×</button>
       `;
       row.querySelector("button").addEventListener("click", async () => {
