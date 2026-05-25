@@ -165,6 +165,53 @@
     color: var(--yellow); line-height: 1;
   }
   .draft-total-value.warn { color: var(--red); }
+
+  /* ---- Scorecard preview table (Scoring, Subsection A) ---- */
+  .scorecard-preview { margin-top: 8px; overflow-x: auto; }
+  .scorecard-preview table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--font-sans); font-size: 15px;
+  }
+  .scorecard-preview th, .scorecard-preview td {
+    padding: 9px 10px; text-align: left;
+    border-bottom: 1px solid rgba(15,89,40,0.10);
+  }
+  .scorecard-preview th {
+    background: var(--cream-dark); color: var(--ink-soft);
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .scorecard-preview td.hole-cell {
+    font-weight: 700; color: var(--green-dark);
+    width: 60px;
+  }
+  .scorecard-preview td.muted { color: var(--ink-soft); font-style: italic; }
+  .scorecard-preview tr.unset td { background: rgba(15,89,40,0.02); }
+  .scorecard-preview td.action-cell { text-align: right; width: 56px; }
+  .scorecard-preview .row-clear {
+    background: transparent; border: none; cursor: pointer;
+    color: var(--ink-soft); font-size: 18px; line-height: 1;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .scorecard-preview .row-clear:hover { color: var(--red); background: rgba(232,67,36,0.08); }
+
+  /* ---- Bonus opportunities list (Scoring, Subsection B) ---- */
+  .bonus-opp-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .bonus-opp-item {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 12px 14px;
+    background: var(--cream); border: 1px solid rgba(15,89,40,0.10);
+    border-radius: 8px;
+  }
+  .bonus-opp-item .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .bonus-opp-item .hole-tag {
+    font-size: 12px; font-weight: 700; color: var(--green-dark);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .bonus-opp-item .label {
+    font-size: 15px; color: var(--ink); font-weight: 500;
+    word-break: break-word;
+  }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -364,6 +411,87 @@
       <div id="team-list" class="team-list"><p class="small-hint">No teams yet.</p></div>
     </div>
 
+    <!-- ============================================================
+         SECTION 3 — Scoring
+         Subsection A: Scorecard holes (yardage + par)
+         Subsection B: Bonus point opportunities (hole + description)
+         The data is saved to the event config so a later wiring pass
+         can read it from the captains page.
+         ============================================================ -->
+    <div class="admin-card">
+      <h2>Scoring</h2>
+
+      <!-- ----- Subsection A: Scorecard holes ----- -->
+      <h3>Scorecard holes</h3>
+      <p class="small-hint">Define yardage and par for each hole. This populates the scorecard captains will see after signing in.</p>
+
+      <label for="hole-num">Hole number</label>
+      <select id="hole-num">
+        <option value="">— Select hole —</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+
+      <label for="hole-yardage">Yardage</label>
+      <input id="hole-yardage" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 110">
+
+      <label for="hole-par">Par</label>
+      <select id="hole-par">
+        <option value="">— Select par —</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+
+      <div class="btn-row">
+        <button id="save-hole" class="btn btn-primary">Save hole</button>
+      </div>
+      <div id="hole-feedback" class="feedback hidden"></div>
+
+      <h3 style="margin-top: 26px;">Current scorecard</h3>
+      <div id="scorecard-preview" class="scorecard-preview">
+        <p class="small-hint">No holes set yet.</p>
+      </div>
+
+      <!-- ----- Subsection B: Bonus point opportunities ----- -->
+      <h3 style="margin-top: 30px;">Bonus point opportunities</h3>
+      <p class="small-hint">Add a named bonus tied to a hole. Captains will see these on their scorecard.</p>
+
+      <label for="bonus-hole">Hole number</label>
+      <select id="bonus-hole">
+        <option value="">— Select hole —</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+
+      <label for="bonus-label">Description / name</label>
+      <input id="bonus-label" type="text" placeholder="e.g. Closest to the Pin">
+
+      <div class="btn-row">
+        <button id="save-bonus-opp" class="btn btn-primary">Save bonus</button>
+      </div>
+      <div id="bonus-opp-feedback" class="feedback hidden"></div>
+
+      <h3 style="margin-top: 26px;">Current bonus opportunities</h3>
+      <div id="bonus-opp-list" class="bonus-opp-list">
+        <p class="small-hint">No bonus opportunities yet.</p>
+      </div>
+    </div>
+
     <!-- Score entry -->
     <div class="admin-card">
       <h2>Enter scores</h2>
@@ -487,6 +615,8 @@
       currentTeams = teams;
       renderTeamList(teams);
       refreshScoreTeamDropdown(teams);
+      // Rebuild draft-pick dropdown so "taken by" annotations stay current.
+      populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
     });
   }
 
@@ -499,9 +629,34 @@
       bonusVisible: true,
       numTeams: 0,
       numParticipants: 0,
-      // coursePar is managed in a separate settings section.
+      // Scoring (Section 3)
+      // holes: 9 entries, each {yardage:number|null, par:number|null}
+      holes: emptyHoles(),
+      // bonusOpportunities: [{ hole: 1..9, label: string }]
+      bonusOpportunities: [],
+      // coursePar is kept in sync with holes[*].par so the existing
+      // Stableford math in firebase-init.js keeps working.
       coursePar: [3,3,3,3,3,3,3,3,3]
     };
+  }
+
+  function emptyHoles() {
+    return Array.from({ length: 9 }, () => ({ yardage: null, par: null }));
+  }
+
+  // Normalize whatever's stored to a length-9 array of {yardage,par}.
+  function normalizeHoles(holes) {
+    const out = emptyHoles();
+    if (Array.isArray(holes)) {
+      for (let i = 0; i < 9; i++) {
+        const h = holes[i] || {};
+        out[i] = {
+          yardage: Number.isFinite(h.yardage) ? h.yardage : null,
+          par:     Number.isFinite(h.par)     ? h.par     : null
+        };
+      }
+    }
+    return out;
   }
 
   function fillConfigForm(cfg) {
@@ -520,7 +675,14 @@
     // in the form right now, so its selection survives a config refresh.
     populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
 
-    // Par row in score grid still reads coursePar (set elsewhere).
+    // Section 3 — Scoring previews
+    renderScorecardPreview(normalizeHoles(cfg.holes));
+    renderBonusOppList(Array.isArray(cfg.bonusOpportunities) ? cfg.bonusOpportunities : []);
+    // If a hole is currently selected in the form, refresh its inputs from
+    // the latest saved values (in case another commissioner edited it).
+    refreshHoleFormFromConfig();
+
+    // Par row in score grid still reads coursePar (kept in sync with holes).
     const par = cfg.coursePar || [3,3,3,3,3,3,3,3,3];
     for (let i = 0; i < 9; i++) $("par-" + (i+1)).textContent = par[i] ?? "—";
   }
@@ -646,6 +808,202 @@
     if (selectedValue !== "" && selectedValue != null) sel.value = String(selectedValue);
   }
 
+  // ----- Scoring (Section 3) --------------------------------------
+  // Two flows in this section:
+  //   A) Per-hole yardage + par. Selecting a hole loads its saved
+  //      values into the form. Save writes that index back and keeps
+  //      `coursePar` in sync for the existing scoring math.
+  //   B) Bonus opportunities. Save appends to the array; rows have
+  //      a delete (×) button.
+
+  // ---- Subsection A: holes ----
+
+  // When the user picks a hole from the dropdown, load whatever is
+  // saved for that hole into the yardage / par inputs.
+  $("hole-num").addEventListener("change", () => {
+    refreshHoleFormFromConfig();
+  });
+
+  function refreshHoleFormFromConfig() {
+    const idx = Number($("hole-num").value) - 1;
+    if (!Number.isInteger(idx) || idx < 0 || idx > 8) {
+      // No hole selected — leave inputs alone so an in-progress entry isn't wiped.
+      return;
+    }
+    const holes = normalizeHoles(currentConfig?.holes);
+    const h = holes[idx];
+    $("hole-yardage").value = h.yardage == null ? "" : h.yardage;
+    $("hole-par").value     = h.par     == null ? "" : String(h.par);
+  }
+
+  $("save-hole").addEventListener("click", async () => {
+    const fb = $("hole-feedback");
+    hide(fb);
+    const holeNum = Number($("hole-num").value);
+    const yardage = $("hole-yardage").value === "" ? null : Number($("hole-yardage").value);
+    const par     = $("hole-par").value     === "" ? null : Number($("hole-par").value);
+
+    if (!Number.isInteger(holeNum) || holeNum < 1 || holeNum > 9) {
+      fb.textContent = "Pick a hole (1–9) first.";
+      fb.className = "feedback err";
+      return;
+    }
+    if (yardage != null && (!Number.isFinite(yardage) || yardage < 0)) {
+      fb.textContent = "Yardage must be a positive number.";
+      fb.className = "feedback err";
+      return;
+    }
+    if (par != null && ![3,4,5].includes(par)) {
+      fb.textContent = "Par must be 3, 4, or 5.";
+      fb.className = "feedback err";
+      return;
+    }
+
+    const holes = normalizeHoles(currentConfig?.holes);
+    holes[holeNum - 1] = { yardage, par };
+
+    // Keep coursePar in sync so the existing Stableford math still works.
+    // A null par falls back to 3 (the historic default).
+    const coursePar = holes.map(h => (h.par == null ? 3 : h.par));
+
+    try {
+      await updateEventConfig({ holes, coursePar });
+      // Clear the form so the next hole is easy to enter.
+      $("hole-num").value     = "";
+      $("hole-yardage").value = "";
+      $("hole-par").value     = "";
+      fb.textContent = `Saved hole ${holeNum}.`;
+      fb.className = "feedback ok";
+    } catch (err) {
+      fb.textContent = err.message;
+      fb.className = "feedback err";
+    }
+  });
+
+  function renderScorecardPreview(holes) {
+    const wrap = $("scorecard-preview");
+    const anySet = holes.some(h => h.yardage != null || h.par != null);
+    if (!anySet) {
+      wrap.innerHTML = '<p class="small-hint">No holes set yet.</p>';
+      return;
+    }
+    let html = `
+      <table>
+        <thead>
+          <tr><th>Hole</th><th>Yardage</th><th>Par</th><th></th></tr>
+        </thead>
+        <tbody>
+    `;
+    for (let i = 0; i < 9; i++) {
+      const h = holes[i];
+      const yard = h.yardage == null
+        ? '<span class="muted">—</span>'
+        : `${h.yardage} yds`;
+      const par = h.par == null
+        ? '<span class="muted">—</span>'
+        : h.par;
+      const unset = (h.yardage == null && h.par == null) ? " unset" : "";
+      html += `
+        <tr class="hole-row${unset}">
+          <td class="hole-cell">#${i + 1}</td>
+          <td>${yard}</td>
+          <td>${par}</td>
+          <td class="action-cell">
+            <button type="button" class="row-clear" data-hole="${i + 1}" aria-label="Clear hole ${i + 1}">×</button>
+          </td>
+        </tr>
+      `;
+    }
+    html += `</tbody></table>`;
+    wrap.innerHTML = html;
+
+    // Wire the per-row clear buttons.
+    wrap.querySelectorAll(".row-clear").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const holeNum = Number(btn.dataset.hole);
+        if (!confirm(`Clear yardage and par for hole ${holeNum}?`)) return;
+        const next = normalizeHoles(currentConfig?.holes);
+        next[holeNum - 1] = { yardage: null, par: null };
+        const coursePar = next.map(h => (h.par == null ? 3 : h.par));
+        try {
+          await updateEventConfig({ holes: next, coursePar });
+          flash("hole-feedback", `Cleared hole ${holeNum}.`, "ok");
+        } catch (err) {
+          flash("hole-feedback", err.message, "err");
+        }
+      });
+    });
+  }
+
+  // ---- Subsection B: bonus opportunities ----
+
+  $("save-bonus-opp").addEventListener("click", async () => {
+    const fb = $("bonus-opp-feedback");
+    hide(fb);
+    const hole  = Number($("bonus-hole").value);
+    const label = $("bonus-label").value.trim();
+
+    if (!Number.isInteger(hole) || hole < 1 || hole > 9) {
+      fb.textContent = "Pick a hole (1–9) first.";
+      fb.className = "feedback err";
+      return;
+    }
+    if (!label) {
+      fb.textContent = "Description is required.";
+      fb.className = "feedback err";
+      return;
+    }
+
+    const existing = Array.isArray(currentConfig?.bonusOpportunities)
+      ? [...currentConfig.bonusOpportunities]
+      : [];
+    existing.push({ hole, label });
+
+    try {
+      await updateEventConfig({ bonusOpportunities: existing });
+      $("bonus-hole").value  = "";
+      $("bonus-label").value = "";
+      fb.textContent = `Added bonus for hole ${hole}.`;
+      fb.className = "feedback ok";
+    } catch (err) {
+      fb.textContent = err.message;
+      fb.className = "feedback err";
+    }
+  });
+
+  function renderBonusOppList(items) {
+    const wrap = $("bonus-opp-list");
+    if (!items.length) {
+      wrap.innerHTML = '<p class="small-hint">No bonus opportunities yet.</p>';
+      return;
+    }
+    wrap.innerHTML = "";
+    items.forEach((b, idx) => {
+      const row = document.createElement("div");
+      row.className = "bonus-opp-item";
+      row.innerHTML = `
+        <div class="meta">
+          <span class="hole-tag">Hole ${escapeHtml(String(b.hole ?? "?"))}</span>
+          <span class="label">${escapeHtml(b.label || "")}</span>
+        </div>
+        <button type="button" class="btn btn-danger" data-idx="${idx}" style="padding: 6px 12px; font-size: 14px;" aria-label="Delete bonus">×</button>
+      `;
+      row.querySelector("button").addEventListener("click", async () => {
+        const label = b.label || `hole ${b.hole}`;
+        if (!confirm(`Delete bonus "${label}"?`)) return;
+        const next = (currentConfig?.bonusOpportunities || []).filter((_, i) => i !== idx);
+        try {
+          await updateEventConfig({ bonusOpportunities: next });
+          flash("bonus-opp-feedback", `Deleted "${label}".`, "ok");
+        } catch (err) {
+          flash("bonus-opp-feedback", err.message, "err");
+        }
+      });
+      wrap.appendChild(row);
+    });
+  }
+
   // ----- Team list
   function renderTeamList(teams) {
     const wrap = $("team-list");
@@ -694,8 +1052,10 @@
     $("team-name").value = "";
     $("team-captain").value = "";
     $("team-partner").value = "";
-    $("team-draft").value = "";
     $("team-flag").value = "";
+    // Rebuild draft-pick dropdown with no team loaded (so every taken
+    // pick now reads "taken by X"), and clear the selection.
+    populateDraftPickDropdown("", "");
   }
 
   function loadTeamIntoForm(t) {
@@ -703,8 +1063,10 @@
     $("team-name").value    = t.name || "";
     $("team-captain").value = t.captain || "";
     $("team-partner").value = t.partner || "";
-    $("team-draft").value   = t.draftPick ?? "";
     $("team-flag").value    = t.flagFile || "";
+    // Rebuild the dropdown excluding this team from the taken-by check,
+    // then select its current pick.
+    populateDraftPickDropdown(t.draftPick ?? "", t.id);
     // also select in score dropdown
     $("score-team").value = t.id;
     onScoreTeamChange();
@@ -720,15 +1082,20 @@
   $("save-team").addEventListener("click", async () => {
     const id = $("team-id").value.trim();
     if (!id) { flash("team-feedback", "Team ID is required.", "err"); return; }
+    const pickRaw = $("team-draft").value;
+    const pick = pickRaw === "" ? 99 : (Number(pickRaw) || 99);
+    const teamName = $("team-name").value.trim() || id;
     try {
       await saveTeam(id, {
         name: $("team-name").value.trim(),
         captain: $("team-captain").value.trim(),
         partner: $("team-partner").value.trim(),
-        draftPick: Number($("team-draft").value) || 99,
+        draftPick: pick,
         flagFile: $("team-flag").value || null
       });
-      flash("team-feedback", "Team saved.", "ok");
+      // Clear the form so it's ready for the next team entry.
+      clearTeamForm();
+      flash("team-feedback", `Saved "${teamName}". Form cleared for the next team.`, "ok");
     } catch (err) {
       flash("team-feedback", err.message, "err");
     }
