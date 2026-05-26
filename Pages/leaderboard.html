@@ -91,6 +91,22 @@
     <div id="leaderboard-rows"></div>
     <div class="leaderboard-footer" id="live-footer">Tap a team to expand its scorecard.</div>
   </div>
+
+  <!-- ===== FARTHEST THROW (hole 5) ===== -->
+  <div class="leaderboard farthest-board">
+    <div class="leaderboard-header">
+      <div class="title">Farthest Throw</div>
+      <div class="live-dot">Live</div>
+    </div>
+    <div class="ft-cols">
+      <div>#</div>
+      <div>Player</div>
+      <div>Team</div>
+      <div>When</div>
+    </div>
+    <div id="farthest-rows"></div>
+    <div class="leaderboard-footer" id="farthest-footer">No throws past the marker yet.</div>
+  </div>
 </section>
 
 <!-- ===== FOOTER ===== -->
@@ -106,6 +122,74 @@
      touching the shared stylesheet. */
   .hidden-by-default { display: none !important; }
   .show { display: block !important; }
+
+  /* ===== Farthest Throw leaderboard (hole 5) ===== */
+  .farthest-board { margin-top: 24px; }
+  .ft-cols {
+    display: grid;
+    grid-template-columns: 36px 1.4fr 1fr 70px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 18px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--cream-dark);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .ft-cols > *:last-child { text-align: right; }
+  .ft-row {
+    display: grid;
+    grid-template-columns: 36px 1.4fr 1fr 70px;
+    gap: 10px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--cream-dark);
+    transition: background 0.4s ease;
+  }
+  .ft-row:last-child { border-bottom: none; }
+  .ft-row.leader { background: rgba(244, 216, 56, 0.14); }
+  .ft-row.fresh  { background: rgba(42, 156, 79, 0.12); }
+  .ft-rank {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--yellow-dark);
+    text-align: center;
+    line-height: 1;
+  }
+  .ft-row.leader .ft-rank { color: var(--green); }
+  .ft-player {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .ft-team {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ft-flag {
+    width: 22px;
+    height: 16px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid var(--cream-dark);
+    flex-shrink: 0;
+  }
+  .ft-when {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: right;
+    font-style: italic;
+    line-height: 1.3;
+  }
 </style>
 
 <script>
@@ -307,6 +391,92 @@
     // Footer note
     const status = currentConfig.status === "final" ? "Final results" : "Live · refreshing automatically";
     $("live-footer").textContent = status + " · Tap a team to expand its scorecard.";
+
+    // Render the Farthest Throw (hole 5) leaderboard alongside the standings.
+    renderFarthestThrow();
+  }
+
+  // ─── Farthest Throw leaderboard ─────────────────────────────
+  // The order is purely "newest submission on top." Every fresh submit on
+  // hole 5 with thrownFarther === true bumps everyone else down a row,
+  // because we sort by the team's `farthestThrow.submittedAt` timestamp
+  // descending. A team can only have one entry — re-submitting updates it.
+  let lastFarthestOrder = []; // teamIds in last-rendered order
+  function renderFarthestThrow() {
+    const rowsWrap   = $("farthest-rows");
+    const footer     = $("farthest-footer");
+
+    const entries = currentTeams
+      .filter(t => t.farthestThrow && t.farthestThrow.thrownFarther === true && t.farthestThrow.thrower)
+      .map(t => ({
+        team:        t,
+        thrower:     t.farthestThrow.thrower,
+        submittedMs: toMillis(t.farthestThrow.submittedAt)
+      }))
+      .sort((a, b) => b.submittedMs - a.submittedMs);
+
+    rowsWrap.innerHTML = "";
+
+    if (!entries.length) {
+      footer.textContent = "No throws past the marker yet — captain on hole 5, you're up.";
+      lastFarthestOrder = [];
+      return;
+    }
+
+    const previousLeader = lastFarthestOrder[0];
+    entries.forEach((e, idx) => {
+      const row = document.createElement("div");
+      const isLeader = idx === 0;
+      // Highlight whoever just jumped to #1 (different from last render).
+      const isFresh  = isLeader && previousLeader && previousLeader !== e.team.id;
+      row.className  = "ft-row" + (isLeader ? " leader" : "") + (isFresh ? " fresh" : "");
+
+      const teamName = e.team.name || "(unnamed team)";
+      const flagSrc  = e.team.flagFile
+        ? `../Pictures/Team_Logos/2026/${encodeURIComponent(e.team.flagFile)}`
+        : "";
+      const flagHtml = flagSrc
+        ? `<img class="ft-flag" src="${escapeHtml(flagSrc)}" alt="${escapeHtml(teamName)} flag" onerror="this.style.display='none'">`
+        : "";
+
+      row.innerHTML = `
+        <div class="ft-rank">${idx + 1}</div>
+        <div class="ft-player">${escapeHtml(e.thrower)}</div>
+        <div class="ft-team">${flagHtml}<span>${escapeHtml(teamName)}</span></div>
+        <div class="ft-when">${escapeHtml(timeAgo(e.submittedMs))}</div>
+      `;
+      rowsWrap.appendChild(row);
+    });
+
+    footer.textContent = entries.length === 1
+      ? "Current longest throw — next throw past the marker bumps it down."
+      : `${entries.length} throws past the marker · newest on top.`;
+
+    lastFarthestOrder = entries.map(e => e.team.id);
+  }
+
+  // Firestore Timestamp → millis, with graceful fallback so we still sort
+  // a brand-new local write (where `submittedAt` is still null pending the
+  // server round-trip) above older entries.
+  function toMillis(ts) {
+    if (!ts) return Date.now();
+    if (typeof ts.toMillis === "function") return ts.toMillis();
+    if (typeof ts.seconds === "number")    return ts.seconds * 1000;
+    if (typeof ts === "number")            return ts;
+    return Date.now();
+  }
+
+  function timeAgo(ms) {
+    if (!ms) return "just now";
+    const diff = Math.max(0, Date.now() - ms);
+    const sec  = Math.floor(diff / 1000);
+    if (sec < 45)         return "just now";
+    const min = Math.floor(sec / 60);
+    if (min < 60)         return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr  < 24)         return `${hr}h ago`;
+    const day = Math.floor(hr / 24);
+    return `${day}d ago`;
   }
 
   function toggleRow(row, sc) {
