@@ -615,6 +615,98 @@
   }
   .he-pickup-note strong { color: var(--red); }
 
+  /* ===== Hole 5 — "Did your team throw farther than the marker?" card ===== */
+  .he-throw-card {
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: 14px;
+    padding: 16px 16px 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .he-throw-title {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .he-throw-sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .he-throw-q {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .he-throw-yesno {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .he-throw-btn {
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid var(--cream-dark);
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.08s, border-color 0.12s, background 0.12s, color 0.12s;
+  }
+  .he-throw-btn:active { transform: scale(0.97); }
+  .he-throw-btn:hover  { border-color: var(--green); }
+  .he-throw-btn.selected {
+    background: var(--green-dark);
+    color: var(--yellow);
+    border-color: var(--green-dark);
+  }
+  .he-throw-picker { display: none; }
+  .he-throw-picker.show { display: block; }
+  .he-throw-picker-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .he-throw-select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--cream-dark);
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%230f5928'><path d='M5.5 7.5l4.5 4.5 4.5-4.5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 38px;
+    cursor: pointer;
+  }
+  .he-throw-select:focus { outline: none; border-color: var(--green); }
+  .he-throw-warn {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 600;
+    display: none;
+  }
+  .he-throw-warn.show { display: block; }
+
   .he-action-row {
     display: flex;
     gap: 10px;
@@ -802,7 +894,25 @@
     </div>
 
     <div class="he-pickup-note">
-      Remember — if you don't hole out by your <strong>5th shot</strong> (par 3/4) or <strong>7th shot</strong> (par 5), pick up and record the max score.
+      Max score is <strong>double bogey</strong> (par + 2). If you reach the max, pick up and move on.
+    </div>
+
+    <!-- Hole 5 only: throw-in marker question. Hidden on every other hole. -->
+    <div class="he-throw-card hidden" id="he-throw-card">
+      <div class="he-throw-title">Longest Throw-In Marker</div>
+      <div class="he-throw-sub">If your team threw past the marker, you're in the running for the <strong>+1 longest throw-in</strong> bonus. The current leader will be bumped down when you submit.</div>
+      <div class="he-throw-q">Did your team throw farther than the marker?</div>
+      <div class="he-throw-yesno" role="group" aria-label="Threw farther than the marker">
+        <button type="button" class="he-throw-btn" id="he-throw-no" data-val="no">No</button>
+        <button type="button" class="he-throw-btn" id="he-throw-yes" data-val="yes">Yes</button>
+      </div>
+      <div class="he-throw-picker" id="he-throw-picker">
+        <div class="he-throw-picker-label">Who threw the farthest?</div>
+        <select class="he-throw-select" id="he-throw-select" aria-label="Player who threw the farthest">
+          <option value="">— Select a player —</option>
+        </select>
+        <div class="he-throw-warn" id="he-throw-warn">Pick which teammate threw the farthest before submitting.</div>
+      </div>
     </div>
 
     <div class="he-action-row">
@@ -814,8 +924,12 @@
 
 <script type="module">
   import {
-    onTeams, onEventConfig, saveTeam, setTeamStrokes, pointsForHole
+    onTeams, onEventConfig, saveTeam, setTeamStrokes, pointsForHole,
+    setTeamFarthestThrow
   } from "../js/firebase-init.js";
+
+  // The throw-in question lives on hole 5 only. 0-based index.
+  const FARTHEST_THROW_HOLE_IDX = 4;
 
   // ─── State ───────────────────────────────────────────────
   let teams        = [];
@@ -825,6 +939,13 @@
   let selectedTeam = null;
   // strokes[i] = number | null. The captain's working copy.
   let strokes      = Array(9).fill(null);
+  // Captain's working copy of the hole 5 throw question.
+  //   thrownFarther: true | false | null   (null = unanswered)
+  //   thrower:       name string | null    (only meaningful when thrownFarther === true)
+  //   dirty:         true once the captain has touched it this session — used so
+  //                  a Yes→No flip on a hole-5 re-submit writes the cleared state
+  //                  to Firestore instead of leaving the old "Yes Dillon" record.
+  let farthestThrow = { thrownFarther: null, thrower: null, dirty: false };
   // 0-based index of the hole currently displayed on screen-hole.
   let currentHoleIdx = 0;
   // True when we're on the overall scorecard AFTER the captain finished
@@ -901,6 +1022,9 @@
           // captain's working copy matches what's on the leaderboard.
           strokes = (updated.strokes || []).slice(0, 9);
           while (strokes.length < 9) strokes.push(null);
+          // Same idea for the throw-in answer — surface whatever's on the
+          // team doc so we don't overwrite it on the next hole-5 edit.
+          farthestThrow = readFarthestThrowFromTeam(updated, null);
           if (!$("screen-overall").classList.contains("hidden")) {
             inReviewMode = strokes.every(s => s != null);
             renderOverallScreen();
@@ -952,11 +1076,12 @@
     finalLocked  = !!team.scoresLocked;
     // If the scorecard is locked, source of truth is Firebase. Otherwise
     // prefer the device's draft (covers refresh / network blip mid-round).
+    const draftSnapshot = loadDraftFromStorage(team.id);
     if (finalLocked) {
       strokes = (team.strokes || []).slice(0, 9);
       while (strokes.length < 9) strokes.push(null);
     } else {
-      strokes = loadDraftFromStorage(team.id);
+      strokes = draftSnapshot.strokes;
       // If the device draft is empty but Firebase has partial progress
       // (commissioner started entering, or earlier device session), prefer
       // whatever Firebase has so we don't drop scores on the floor.
@@ -970,11 +1095,36 @@
         }
       }
     }
+    // Seed the throw-in answer. Firebase wins if present (covers another
+    // device); otherwise fall back to whatever's in the localStorage draft.
+    farthestThrow = readFarthestThrowFromTeam(team, draftSnapshot.farthestThrow);
     populateTeamHeaders(team);
     updateMenuScoringSubLabel();
     hide('screen-login');
     show('screen-menu');
     window.scrollTo(0, 0);
+  }
+
+  // Pull the latest throw-in answer from either Firebase or the device draft.
+  // Firebase wins if it has a real answer (true/false). Otherwise we use the
+  // local draft so a refresh mid-round doesn't clear what the captain picked.
+  function readFarthestThrowFromTeam(team, draftAnswer) {
+    const fb = team && team.farthestThrow;
+    if (fb && (fb.thrownFarther === true || fb.thrownFarther === false)) {
+      return {
+        thrownFarther: fb.thrownFarther,
+        thrower:       fb.thrower || null,
+        dirty:         false
+      };
+    }
+    if (draftAnswer && (draftAnswer.thrownFarther === true || draftAnswer.thrownFarther === false)) {
+      return {
+        thrownFarther: draftAnswer.thrownFarther,
+        thrower:       draftAnswer.thrower || null,
+        dirty:         false
+      };
+    }
+    return { thrownFarther: null, thrower: null, dirty: false };
   }
 
   function populateTeamHeaders(team) {
@@ -1019,6 +1169,7 @@
   $('menu-switch').addEventListener('click', () => {
     selectedTeam = null;
     strokes = Array(9).fill(null);
+    farthestThrow = { thrownFarther: null, thrower: null, dirty: false };
     finalLocked = false;
     inReviewMode = false;
     deactivateLock();
@@ -1220,7 +1371,7 @@
     const grid = $('he-score-grid');
     grid.innerHTML = '';
     const currentSelection = strokes[i];
-    const maxScore = par === 5 ? 7 : 6;
+    const maxScore = (par != null) ? par + 2 : 6;
     for (let n = 1; n <= maxScore; n++) {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -1248,14 +1399,99 @@
       grid.appendChild(btn);
     }
 
+    // Hole 5 only — render the "did you throw farther than the marker?" card.
+    renderThrowCard(i);
+
     // Back hidden on hole 1.
     $('he-btn-back').classList.toggle('hidden', i === 0);
     const submitBtn = $('he-btn-submit');
-    submitBtn.disabled = strokes[i] == null;
+    submitBtn.disabled = !canSubmitCurrentHole();
     submitBtn.textContent = inReviewMode
       ? 'Save & return to review'
       : (i === 8 ? 'Submit hole — review card' : 'Submit hole');
   }
+
+  // Show/hide and (re-)populate the hole-5 throw-in marker card.
+  function renderThrowCard(holeIdx) {
+    const card = $('he-throw-card');
+    if (holeIdx !== FARTHEST_THROW_HOLE_IDX) {
+      card.classList.add('hidden');
+      return;
+    }
+    card.classList.remove('hidden');
+
+    // Yes/No button visual state.
+    const yes = $('he-throw-yes');
+    const no  = $('he-throw-no');
+    yes.classList.toggle('selected', farthestThrow.thrownFarther === true);
+    no.classList.toggle('selected',  farthestThrow.thrownFarther === false);
+
+    // Populate the dropdown from the team's draft (captain + partner).
+    const select = $('he-throw-select');
+    const options = teamPlayerNames();
+    select.innerHTML = '<option value="">— Select a player —</option>' +
+      options.map(name => `<option value="${escHtml(name)}">${escHtml(name)}</option>`).join('');
+    select.value = farthestThrow.thrower && options.includes(farthestThrow.thrower)
+      ? farthestThrow.thrower
+      : '';
+
+    // Picker only shows once "Yes" is picked.
+    const picker = $('he-throw-picker');
+    picker.classList.toggle('show', farthestThrow.thrownFarther === true);
+
+    // Clear the "pick a name" warning until the next failed submit attempt.
+    $('he-throw-warn').classList.remove('show');
+  }
+
+  function teamPlayerNames() {
+    if (!selectedTeam) return [];
+    return [selectedTeam.captain, selectedTeam.partner]
+      .map(n => (n || '').trim())
+      .filter(Boolean);
+  }
+
+  // Submit is allowed when strokes are picked AND (if we're on hole 5) the
+  // throw-in question is answered consistently (No alone is fine; Yes needs
+  // a name from the dropdown).
+  function canSubmitCurrentHole() {
+    const i = currentHoleIdx;
+    if (strokes[i] == null) return false;
+    if (i === FARTHEST_THROW_HOLE_IDX) {
+      if (farthestThrow.thrownFarther === null) return false;
+      if (farthestThrow.thrownFarther === true && !farthestThrow.thrower) return false;
+    }
+    return true;
+  }
+
+  function refreshSubmitButton() {
+    $('he-btn-submit').disabled = !canSubmitCurrentHole();
+  }
+
+  // Wire the Yes/No + dropdown listeners once. They mutate `farthestThrow`
+  // and rerender the card so the picker shows/hides as needed.
+  $('he-throw-yes').addEventListener('click', () => {
+    farthestThrow.thrownFarther = true;
+    farthestThrow.dirty = true;
+    saveDraftToStorage();
+    renderThrowCard(currentHoleIdx);
+    refreshSubmitButton();
+  });
+  $('he-throw-no').addEventListener('click', () => {
+    farthestThrow.thrownFarther = false;
+    farthestThrow.thrower = null;
+    farthestThrow.dirty = true;
+    saveDraftToStorage();
+    renderThrowCard(currentHoleIdx);
+    refreshSubmitButton();
+  });
+  $('he-throw-select').addEventListener('change', (e) => {
+    farthestThrow.thrower = e.target.value || null;
+    farthestThrow.dirty = true;
+    saveDraftToStorage();
+    refreshSubmitButton();
+    $('he-throw-warn').classList.toggle('show',
+      farthestThrow.thrownFarther === true && !farthestThrow.thrower);
+  });
 
   $('he-btn-back').addEventListener('click', () => {
     if (currentHoleIdx > 0) {
@@ -1266,7 +1502,15 @@
 
   $('he-btn-submit').addEventListener('click', async () => {
     const i = currentHoleIdx;
-    if (strokes[i] == null) return;
+    if (!canSubmitCurrentHole()) {
+      // If the only thing missing is the thrower name, point at the dropdown.
+      if (i === FARTHEST_THROW_HOLE_IDX &&
+          farthestThrow.thrownFarther === true &&
+          !farthestThrow.thrower) {
+        $('he-throw-warn').classList.add('show');
+      }
+      return;
+    }
     saveDraftToStorage();
 
     // Push the latest strokes array to Firebase so the leaderboard updates
@@ -1277,6 +1521,25 @@
         await setTeamStrokes(selectedTeam.id, strokes.slice());
       } catch (err) {
         console.warn('Live stroke push failed; continuing anyway.', err);
+      }
+    }
+
+    // Hole 5 only: if the captain actually touched the throw-in answer this
+    // session, push it so the Farthest Throw leaderboard updates. Writing
+    // always uses a fresh server timestamp, which is what bumps a new winner
+    // to the top of the leaderboard.
+    if (selectedTeam &&
+        i === FARTHEST_THROW_HOLE_IDX &&
+        farthestThrow.dirty &&
+        (farthestThrow.thrownFarther === true || farthestThrow.thrownFarther === false)) {
+      try {
+        await setTeamFarthestThrow(selectedTeam.id, {
+          thrownFarther: farthestThrow.thrownFarther,
+          thrower:       farthestThrow.thrower
+        });
+        farthestThrow.dirty = false;
+      } catch (err) {
+        console.warn('Farthest-throw push failed; continuing anyway.', err);
       }
     }
 
@@ -1333,19 +1596,31 @@
   function draftKey(teamId) { return `the-amateurs-captain-draft-${teamId}`; }
 
   function loadDraftFromStorage(teamId) {
+    const empty = { strokes: Array(9).fill(null), farthestThrow: null };
     try {
       const raw = localStorage.getItem(draftKey(teamId));
-      if (!raw) return Array(9).fill(null);
+      if (!raw) return empty;
       const parsed = JSON.parse(raw);
-      if (!parsed || !Array.isArray(parsed.strokes)) return Array(9).fill(null);
+      if (!parsed) return empty;
       const out = Array(9).fill(null);
-      for (let i = 0; i < 9; i++) {
-        const v = parsed.strokes[i];
-        out[i] = Number.isFinite(v) ? v : null;
+      if (Array.isArray(parsed.strokes)) {
+        for (let i = 0; i < 9; i++) {
+          const v = parsed.strokes[i];
+          out[i] = Number.isFinite(v) ? v : null;
+        }
       }
-      return out;
+      let ft = null;
+      if (parsed.farthestThrow &&
+          (parsed.farthestThrow.thrownFarther === true ||
+           parsed.farthestThrow.thrownFarther === false)) {
+        ft = {
+          thrownFarther: parsed.farthestThrow.thrownFarther,
+          thrower:       parsed.farthestThrow.thrower || null
+        };
+      }
+      return { strokes: out, farthestThrow: ft };
     } catch (_) {
-      return Array(9).fill(null);
+      return empty;
     }
   }
 
@@ -1354,6 +1629,10 @@
     try {
       localStorage.setItem(draftKey(selectedTeam.id), JSON.stringify({
         strokes,
+        farthestThrow: {
+          thrownFarther: farthestThrow.thrownFarther,
+          thrower:       farthestThrow.thrower
+        },
         updatedAt: Date.now()
       }));
     } catch (_) { /* quota / private mode — silently no-op */ }

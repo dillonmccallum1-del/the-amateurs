@@ -215,6 +215,39 @@ export async function setTeamBonus(teamId, bonusArray) {
   });
 }
 
+/** Record (or clear) a team's hole-5 "longest throw-in" answer.
+ *  Stored on the team doc as a nested `farthestThrow` object so it
+ *  rides along with the rest of the team data and we don't need a
+ *  separate collection. The Farthest Throw leaderboard sorts by the
+ *  `submittedAt` server timestamp inside this object so the newest
+ *  submission naturally bumps everyone else down a spot.
+ *
+ *  payload shape:
+ *    { thrownFarther: true,  thrower: "Dillon McCallum" }  → adds/updates the entry
+ *    { thrownFarther: false }                              → marks them out of the running
+ *    null                                                  → clears the entry entirely
+ */
+export async function setTeamFarthestThrow(teamId, payload) {
+  if (payload === null) {
+    await setDoc(
+      doc(db, "teams", teamId),
+      { farthestThrow: null, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+    return;
+  }
+  const data = {
+    thrownFarther: payload.thrownFarther === true,
+    thrower: payload.thrownFarther === true ? (payload.thrower || null) : null,
+    submittedAt: serverTimestamp()
+  };
+  await setDoc(
+    doc(db, "teams", teamId),
+    { farthestThrow: data, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
 // -------------------------------------------------------------
 // 6. SCORING MATH — modified Stableford, high score wins.
 //    Default points (matches rules.html intent — confirm with
