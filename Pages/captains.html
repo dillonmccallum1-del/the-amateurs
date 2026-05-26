@@ -773,7 +773,7 @@
     </div>
   </div>
 
-  <div class="ov-lock-bar" id="he-lock-bar">⚠️ Stay on this page until you finish all 9 holes</div>
+  <div class="ov-lock-bar hidden" id="he-lock-bar">⚠️ Stay on this page until you finish all 9 holes</div>
 
   <div class="he-body">
     <div class="he-progress" id="he-progress">Hole 1 of 9</div>
@@ -802,7 +802,7 @@
     </div>
 
     <div class="he-pickup-note">
-      Remember — if you don't hole out by your <strong>5th shot</strong>, pick up and record a <strong>6 (double par)</strong>.
+      Remember — if you don't hole out by your <strong>5th shot</strong> (par 3/4) or <strong>7th shot</strong> (par 5), pick up and record the max score.
     </div>
 
     <div class="he-action-row">
@@ -1119,7 +1119,7 @@
     $('ov-total-pts').textContent   = `+${totalPts}`;
 
     // Lock bars.
-    $('ov-lock-bar').classList.toggle('hidden',     finalLocked || !inReviewMode);
+    $('ov-lock-bar').classList.add('hidden');
     $('ov-locked-banner').classList.toggle('hidden', !finalLocked);
 
     // Edit hint visible only during review-not-yet-locked.
@@ -1174,7 +1174,6 @@
   $('ov-btn-enter').addEventListener('click', () => {
     const firstEmpty = strokes.findIndex(s => s == null);
     currentHoleIdx = firstEmpty === -1 ? 0 : firstEmpty;
-    activateLock();
     goToHole();
   });
 
@@ -1217,12 +1216,12 @@
       $('he-game-desc').classList.add('he-game-empty');
     }
 
-    // Render the six score buttons. Highlight whichever score is currently
-    // selected (handy when the captain comes back to edit a hole).
+    // Render score buttons. Par 5 goes up to 7 (double bogey); all others stop at 6.
     const grid = $('he-score-grid');
     grid.innerHTML = '';
     const currentSelection = strokes[i];
-    for (let n = 1; n <= 6; n++) {
+    const maxScore = par === 5 ? 7 : 6;
+    for (let n = 1; n <= maxScore; n++) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'he-score-btn' + (currentSelection === n ? ' selected' : '');
