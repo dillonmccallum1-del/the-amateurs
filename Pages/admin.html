@@ -107,6 +107,37 @@
     margin-bottom: 8px; align-items: center;
   }
 
+  /* ---- Captain special-hole entries (hole 5 + hole 8) ---- */
+  .special-card {
+    border: 1px solid var(--cream-dark);
+    background: var(--cream);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .special-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .special-card-body { font-size: 15px; color: var(--ink); line-height: 1.4; }
+  .special-card-body .yes { color: var(--green-dark); font-weight: 700; }
+  .special-card-body .no  { color: var(--ink-soft); font-weight: 600; }
+  .special-card-body .none { color: var(--ink-soft); font-style: italic; }
+  .special-card-meta {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .special-card .btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+
   /* ---- Toggle switch (used in Event settings) ---- */
   .toggle-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -745,6 +776,34 @@
           <button id="add-bonus" class="btn btn-secondary" type="button">+ Add bonus row</button>
         </div>
 
+        <!-- Live read-out of what captains submitted on the special-question
+             holes. Updates automatically as soon as a captain hits submit.
+             Each card has a Clear button that wipes only that entry. -->
+        <h3 style="margin-top: 20px;">Captain special-hole entries</h3>
+        <p class="small-hint">Live submissions from the captain's hole 5 and hole 8 questions. Use <strong>Clear</strong> to wipe just one without touching the rest of the scorecard.</p>
+        <div id="special-entries">
+          <div class="special-card">
+            <div>
+              <div class="special-card-title">Hole 5 · Longest throw-in</div>
+              <div class="special-card-body" id="special-farthest-body">
+                <span class="none">Pick a team above to see their entry.</span>
+              </div>
+              <div class="special-card-meta" id="special-farthest-meta"></div>
+            </div>
+            <button id="special-farthest-clear" class="btn btn-secondary hidden" type="button">Clear</button>
+          </div>
+          <div class="special-card">
+            <div>
+              <div class="special-card-title">Hole 8 · Closest to the pin</div>
+              <div class="special-card-body" id="special-ctp-body">
+                <span class="none">Pick a team above to see their entry.</span>
+              </div>
+              <div class="special-card-meta" id="special-ctp-meta"></div>
+            </div>
+            <button id="special-ctp-clear" class="btn btn-secondary hidden" type="button">Clear</button>
+          </div>
+        </div>
+
         <div class="btn-row" style="margin-top: 18px;">
           <button id="save-scores" class="btn btn-primary">Save scores &amp; bonuses</button>
           <button id="delete-all-scores" class="btn btn-danger" type="button">Delete all scores</button>
@@ -775,6 +834,7 @@
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig,
     onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus,
+    setTeamFarthestThrow, setTeamClosestToPin,
     pointsForHole
   } from "../js/firebase-init.js";
 
@@ -844,6 +904,7 @@
         const t = teams.find(x => x.id === selectedTeamId);
         if (t) {
           renderScoreStatusFromTeam(t);
+          renderSpecialEntries(t);
           // Live-sync the strokes inputs so the admin sees the captain's
           // per-hole submissions flow in. Skip any input the admin has
           // focused (they're mid-edit — don't clobber their typing).
@@ -1428,6 +1489,7 @@
     }
     renderBonusRows((t && t.bonusPoints) || []);
     renderScoreStatusFromTeam(t);
+    renderSpecialEntries(t);
     // Par row + points row + OUT totals are derived from current inputs
     // and event config — recompute every time we load a team or strokes
     // change (a change listener calls this too).
@@ -1522,6 +1584,79 @@
     updatedEl.textContent = ts ? formatRelativeTime(ts) : "—";
   }
 
+  // Renders the read-out of the captain's hole-5 and hole-8 submissions.
+  // Empty/cleared states show a soft-grey "not submitted yet" line; an
+  // active answer shows the players + (for hole 8) the inches measurement
+  // and the relative submission time. The Clear button calls the same
+  // helpers the captain page uses, with a null payload to wipe the entry.
+  function renderSpecialEntries(team) {
+    // ----- Hole 5: Longest throw-in -----
+    const ft = team && team.farthestThrow;
+    const ftBody = $("special-farthest-body");
+    const ftMeta = $("special-farthest-meta");
+    const ftBtn  = $("special-farthest-clear");
+    if (!ft || (ft.thrownFarther !== true && ft.thrownFarther !== false)) {
+      ftBody.innerHTML = `<span class="none">Captain hasn't answered yet.</span>`;
+      ftMeta.textContent = "";
+      ftBtn.classList.add("hidden");
+    } else if (ft.thrownFarther === false) {
+      ftBody.innerHTML = `<span class="no">No</span> — team didn't beat the marker.`;
+      ftMeta.textContent = ft.submittedAt ? `Submitted ${formatRelativeTime(ft.submittedAt)}` : "";
+      ftBtn.classList.remove("hidden");
+    } else {
+      const who = ft.thrower ? escapeHtml(ft.thrower) : "<em>(no player picked)</em>";
+      ftBody.innerHTML = `<span class="yes">Yes</span> — longest throw by <strong>${who}</strong>.`;
+      ftMeta.textContent = ft.submittedAt ? `Submitted ${formatRelativeTime(ft.submittedAt)}` : "";
+      ftBtn.classList.remove("hidden");
+    }
+
+    // ----- Hole 8: Closest to the pin -----
+    const ctp = team && team.closestToPin;
+    const ctpBody = $("special-ctp-body");
+    const ctpMeta = $("special-ctp-meta");
+    const ctpBtn  = $("special-ctp-clear");
+    if (!ctp || (ctp.closerThanMarker !== true && ctp.closerThanMarker !== false)) {
+      ctpBody.innerHTML = `<span class="none">Captain hasn't answered yet.</span>`;
+      ctpMeta.textContent = "";
+      ctpBtn.classList.add("hidden");
+    } else if (ctp.closerThanMarker === false) {
+      ctpBody.innerHTML = `<span class="no">No</span> — team didn't beat the marker.`;
+      ctpMeta.textContent = ctp.submittedAt ? `Submitted ${formatRelativeTime(ctp.submittedAt)}` : "";
+      ctpBtn.classList.remove("hidden");
+    } else {
+      const who = ctp.player ? escapeHtml(ctp.player) : "<em>(no player picked)</em>";
+      const inches = Number.isFinite(ctp.inches)
+        ? `<strong>${ctp.inches}</strong> in from the pin`
+        : "<em>(no inches submitted)</em>";
+      ctpBody.innerHTML = `<span class="yes">Yes</span> — closest by <strong>${who}</strong>, ${inches}.`;
+      ctpMeta.textContent = ctp.submittedAt ? `Submitted ${formatRelativeTime(ctp.submittedAt)}` : "";
+      ctpBtn.classList.remove("hidden");
+    }
+  }
+
+  // Per-entry clears. Both use the same null-payload contract as the
+  // captain helpers — sets the field to null on the team doc.
+  $("special-farthest-clear").addEventListener("click", async () => {
+    if (!selectedTeamId) return;
+    if (!confirm("Wipe this team's hole 5 throw-in answer?")) return;
+    try {
+      await setTeamFarthestThrow(selectedTeamId, null);
+      flash("scores-feedback", "Hole 5 throw-in entry cleared.", "ok");
+    } catch (err) {
+      flash("scores-feedback", err.message, "err");
+    }
+  });
+  $("special-ctp-clear").addEventListener("click", async () => {
+    if (!selectedTeamId) return;
+    if (!confirm("Wipe this team's hole 8 closest-to-pin answer?")) return;
+    try {
+      await setTeamClosestToPin(selectedTeamId, null);
+      flash("scores-feedback", "Hole 8 closest-to-pin entry cleared.", "ok");
+    } catch (err) {
+      flash("scores-feedback", err.message, "err");
+    }
+  });
+
   // Render a "5 min ago" / "just now" / "2 hr ago" / absolute fallback.
   function formatRelativeTime(ts) {
     let ms;
@@ -1611,11 +1746,17 @@
       await saveTeam(selectedTeamId, {
         strokes: Array(9).fill(null),
         bonusPoints: [],
+        farthestThrow: null,
+        closestToPin:  null,
         scoresLocked: false
       });
       // Clear the on-screen inputs immediately so the UI matches.
       for (let i = 1; i <= 9; i++) $("s-" + i).value = "";
       renderBonusRows([]);
+      // Re-render the special panel from the wiped data shape so the
+      // commissioner sees the cleared state without waiting for the
+      // round-trip onTeams snapshot.
+      renderSpecialEntries({});
       refreshDerivedRows();
       flash("scores-feedback", `Wiped all scores for "${name}". The captain can now re-enter.`, "ok");
     } catch (err) {
