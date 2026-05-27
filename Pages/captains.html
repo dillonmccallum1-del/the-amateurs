@@ -779,6 +779,104 @@
   .btn-submit-hole:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-submit-hole:not(:disabled):active { transform: scale(0.98); }
   .btn-submit-hole:not(:disabled):hover  { opacity: 0.9; }
+
+  /* ===== SCREEN 5 — GUESS THE GRASS =====
+     Standalone screen reached from the menu. The captain picks one of
+     four grass varieties; once submitted the choice rides along on the
+     team doc as `grassGuess` so the admin page can grade them. */
+  #screen-grass { display: flex; flex-direction: column; min-height: 100dvh; }
+  .gg-body {
+    flex: 1;
+    padding: 24px 18px 32px;
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .gg-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--green-dark);
+    text-align: center;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .gg-sub {
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  .gg-status-pill {
+    display: inline-block;
+    margin: 0 auto 18px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(42,156,79,0.15);
+    color: var(--green);
+    align-self: center;
+  }
+  .gg-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .gg-tile {
+    background: var(--white);
+    border: 2px solid var(--cream-dark);
+    border-radius: 14px;
+    padding: 22px 14px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green-dark);
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: border-color 0.15s, transform 0.1s, background 0.15s, color 0.15s, box-shadow 0.15s;
+    min-height: 92px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.3;
+  }
+  .gg-tile:active { transform: scale(0.97); }
+  .gg-tile:hover  { border-color: var(--green); box-shadow: 0 4px 20px rgba(15,89,40,0.15); }
+  .gg-tile.selected {
+    background: var(--green-dark);
+    color: var(--yellow);
+    border-color: var(--green-dark);
+    box-shadow: 0 4px 18px rgba(15,89,40,0.3);
+  }
+  .gg-tile[disabled] { cursor: default; opacity: 0.85; }
+  .gg-tile[disabled]:hover { border-color: var(--cream-dark); box-shadow: var(--shadow); }
+  .gg-tile[disabled].selected:hover {
+    border-color: var(--green-dark);
+    box-shadow: 0 4px 18px rgba(15,89,40,0.3);
+  }
+  .gg-action-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .gg-feedback {
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-align: center;
+    min-height: 20px;
+  }
+  .gg-feedback.ok  { color: var(--green); font-weight: 600; }
+  .gg-feedback.err { color: var(--red);   font-weight: 600; }
 </style>
 </head>
 <body>
@@ -827,6 +925,17 @@
       <div class="menu-btn-text">
         <div class="menu-btn-title">Scoring</div>
         <div class="menu-btn-sub" id="menu-scoring-sub">Enter your team's scores</div>
+      </div>
+    </button>
+
+    <!-- Guess the Grass — side game, one submission per team. The sub line
+         flips to "Answer submitted" once they've picked, so they know it's
+         already in. They can still revisit the screen to change it. -->
+    <button type="button" class="menu-btn" id="menu-btn-grass">
+      <div class="menu-btn-icon">&#127807;</div>
+      <div class="menu-btn-text">
+        <div class="menu-btn-title">Guess the Grass</div>
+        <div class="menu-btn-sub" id="menu-grass-sub">What kind of grass is in the trophy?</div>
       </div>
     </button>
 
@@ -991,11 +1100,49 @@
   </div>
 </div>
 
+<!-- ===== SCREEN 5: GUESS THE GRASS ===== -->
+<div id="screen-grass" class="hidden">
+
+  <div class="team-header">
+    <img id="gg-flag" class="team-header-flag" src="" alt="" style="display:none">
+    <div class="team-header-info">
+      <div id="gg-team-name" class="team-header-name">—</div>
+      <div id="gg-team-captain" class="team-header-captain">—</div>
+    </div>
+  </div>
+
+  <div class="gg-body">
+    <h2 class="gg-title">What type of grass is in the trophy?</h2>
+    <p class="gg-sub">One guess per team. You can come back and change your answer until the Commissioner closes the round.</p>
+    <span class="gg-status-pill hidden" id="gg-status-pill">Answer submitted</span>
+
+    <div class="gg-grid" id="gg-grid" role="radiogroup" aria-label="Grass varieties">
+      <!-- 4 tiles injected by JS so selection state stays in sync -->
+    </div>
+
+    <div class="gg-action-area">
+      <p class="gg-feedback" id="gg-feedback"></p>
+      <button type="button" class="btn-primary-big" id="gg-btn-submit" disabled>Submit answer</button>
+      <button type="button" class="btn-secondary-big" id="gg-btn-back">Back to menu</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import {
     onTeams, onEventConfig, saveTeam, setTeamStrokes, pointsForHole,
-    setTeamFarthestThrow, setTeamClosestToPin
+    setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess
   } from "../js/firebase-init.js";
+
+  // Multiple-choice options for the "Guess the Grass" side game. The correct
+  // answer is graded on the admin page so it can be changed there without
+  // touching this file — keep this list in sync if the options ever rotate.
+  const GRASS_OPTIONS = [
+    "Seashore Paspalum",
+    "Hybrid Bermudagrass",
+    "Kentucky Bluegrass",
+    "Dallisgrass"
+  ];
 
   // Special-question holes (0-based indices).
   //   Hole 5 = throw-in marker     → "did you throw farther than the marker?"
@@ -1024,6 +1171,12 @@
   //   inches:           string             (raw user input — we don't reformat as they type)
   //   dirty:            same semantics as farthestThrow.dirty
   let closestToPin = { closerThanMarker: null, player: null, inches: "", dirty: false };
+  // Captain's "Guess the Grass" answer.
+  //   submitted: the string already in Firebase (null = never submitted)
+  //   pending:   the tile currently highlighted but not yet submitted
+  // When `pending` matches `submitted` the Submit button is disabled — no
+  // point in pushing the same answer twice.
+  let grassGuess = { submitted: null, pending: null };
   // 0-based index of the hole currently displayed on screen-hole.
   let currentHoleIdx = 0;
   // True when we're on the overall scorecard AFTER the captain finished
@@ -1109,6 +1262,22 @@
             renderOverallScreen();
           }
         }
+        // The grass-guess answer is independent of lock state and can
+        // change at any time (e.g. another device, or the admin clearing
+        // it). Always pull the latest from Firebase and refresh the grass
+        // screen + menu pill if either is currently visible.
+        const fbGrass = readGrassGuessFromTeam(updated);
+        if (fbGrass !== grassGuess.submitted) {
+          grassGuess.submitted = fbGrass;
+          // If they hadn't picked anything locally, mirror the submitted
+          // value so the tile shows highlighted. If they had a pending
+          // different choice, leave it alone — they're mid-change.
+          if (grassGuess.pending == null) grassGuess.pending = fbGrass;
+        }
+        updateMenuGrassSubLabel();
+        if (!$("screen-grass").classList.contains("hidden")) {
+          renderGrassScreen();
+        }
       }
     }
   });
@@ -1178,11 +1347,26 @@
     // device); otherwise fall back to whatever's in the localStorage draft.
     farthestThrow = readFarthestThrowFromTeam(team, draftSnapshot.farthestThrow);
     closestToPin  = readClosestToPinFromTeam(team, draftSnapshot.closestToPin);
+    // Grass guess: pulled straight from Firebase. There's no local draft
+    // for this one — it's a single string, not a per-hole working copy.
+    const submittedGrass = readGrassGuessFromTeam(team);
+    grassGuess = { submitted: submittedGrass, pending: submittedGrass };
     populateTeamHeaders(team);
     updateMenuScoringSubLabel();
+    updateMenuGrassSubLabel();
     hide('screen-login');
     show('screen-menu');
     window.scrollTo(0, 0);
+  }
+
+  // Pull the grass guess off the team doc. Returns the guessed string or
+  // null if it's missing / cleared / not one of the known options.
+  function readGrassGuessFromTeam(team) {
+    const g = team && team.grassGuess;
+    if (!g) return null;
+    const val = typeof g === "string" ? g : (typeof g.guess === "string" ? g.guess : null);
+    if (!val) return null;
+    return GRASS_OPTIONS.includes(val) ? val : null;
   }
 
   // Pull the latest throw-in answer from either Firebase or the device draft.
@@ -1237,7 +1421,7 @@
     const flagSrc = team.flagFile
       ? `../Pictures/Team_Logos/2026/${encodeURIComponent(team.flagFile)}`
       : '';
-    ['menu', 'ov', 'he'].forEach(prefix => {
+    ['menu', 'ov', 'he', 'gg'].forEach(prefix => {
       $(`${prefix}-team-name`).textContent    = name;
       $(`${prefix}-team-captain`).textContent = captain;
       const flag = $(`${prefix}-flag`);
@@ -1275,14 +1459,120 @@
     strokes = Array(9).fill(null);
     farthestThrow = { thrownFarther: null, thrower: null, dirty: false };
     closestToPin  = { closerThanMarker: null, player: null, inches: "", dirty: false };
+    grassGuess = { submitted: null, pending: null };
     finalLocked = false;
     inReviewMode = false;
     deactivateLock();
     hide('screen-menu');
     hide('screen-overall');
     hide('screen-hole');
+    hide('screen-grass');
     show('screen-login');
     window.scrollTo(0, 0);
+  });
+
+  // ─── Guess the Grass screen ──────────────────────────────
+  // Menu sub-label flips to "Answer submitted: …" once Firebase has a
+  // saved guess so the captain doesn't wonder whether it went through.
+  function updateMenuGrassSubLabel() {
+    const sub = $('menu-grass-sub');
+    if (!sub) return;
+    if (grassGuess.submitted) {
+      sub.textContent = `Answer submitted: ${grassGuess.submitted}`;
+    } else {
+      sub.textContent = "What kind of grass is in the trophy?";
+    }
+  }
+
+  $('menu-btn-grass').addEventListener('click', () => {
+    if (!selectedTeam) return;
+    goToGrass();
+  });
+
+  function goToGrass() {
+    // Reset any stale feedback from a previous open; the pending tile is
+    // seeded back to whatever's submitted so resubmits feel like an edit.
+    grassGuess.pending = grassGuess.submitted;
+    setGrassFeedback("", null);
+    renderGrassScreen();
+    hide('screen-menu');
+    hide('screen-overall');
+    hide('screen-hole');
+    show('screen-grass');
+    window.scrollTo(0, 0);
+  }
+
+  function renderGrassScreen() {
+    const grid = $('gg-grid');
+    grid.innerHTML = '';
+    GRASS_OPTIONS.forEach(option => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'gg-tile' + (grassGuess.pending === option ? ' selected' : '');
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('aria-checked', grassGuess.pending === option ? 'true' : 'false');
+      btn.textContent = option;
+      btn.addEventListener('click', () => {
+        grassGuess.pending = option;
+        renderGrassScreen();
+      });
+      grid.appendChild(btn);
+    });
+
+    // "Already submitted" pill + submit-button copy. We allow re-submits,
+    // but disable the button if the pending pick matches what's already
+    // saved so the captain doesn't keep tapping with no effect.
+    const pill = $('gg-status-pill');
+    if (grassGuess.submitted) {
+      pill.textContent = `Submitted: ${grassGuess.submitted}`;
+      pill.classList.remove('hidden');
+    } else {
+      pill.classList.add('hidden');
+    }
+
+    const submit = $('gg-btn-submit');
+    if (!grassGuess.pending) {
+      submit.disabled = true;
+      submit.textContent = 'Submit answer';
+    } else if (grassGuess.pending === grassGuess.submitted) {
+      submit.disabled = true;
+      submit.textContent = 'Answer submitted';
+    } else {
+      submit.disabled = false;
+      submit.textContent = grassGuess.submitted ? 'Update answer' : 'Submit answer';
+    }
+  }
+
+  function setGrassFeedback(text, kind) {
+    const el = $('gg-feedback');
+    el.textContent = text;
+    el.className = 'gg-feedback' + (kind ? ' ' + kind : '');
+  }
+
+  $('gg-btn-back').addEventListener('click', () => {
+    hide('screen-grass');
+    show('screen-menu');
+    window.scrollTo(0, 0);
+  });
+
+  $('gg-btn-submit').addEventListener('click', async () => {
+    if (!selectedTeam || !grassGuess.pending) return;
+    if (grassGuess.pending === grassGuess.submitted) return;
+    const submit = $('gg-btn-submit');
+    submit.disabled = true;
+    submit.textContent = 'Submitting…';
+    setGrassFeedback('Sending your answer…', null);
+    try {
+      await setTeamGrassGuess(selectedTeam.id, { guess: grassGuess.pending });
+      grassGuess.submitted = grassGuess.pending;
+      setGrassFeedback('Locked in. Good luck!', 'ok');
+      updateMenuGrassSubLabel();
+      renderGrassScreen();
+    } catch (err) {
+      submit.disabled = false;
+      submit.textContent = grassGuess.submitted ? 'Update answer' : 'Submit answer';
+      setGrassFeedback('Error saving — try again: ' + (err.message || err), 'err');
+    }
   });
 
   // ─── Overall scorecard screen ────────────────────────────

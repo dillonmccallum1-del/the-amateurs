@@ -390,6 +390,65 @@
     font-weight: 700;
     color: var(--green-dark);
   }
+
+  /* ---- Guess the Grass: per-team answer rows ----
+     Each row is a slim card with the team name, their pick, and a
+     right/wrong pill. Left border swaps green/red/grey based on grade. */
+  #grass-list .grass-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: var(--cream);
+    border: 1px solid rgba(15,89,40,0.10);
+    border-left: 4px solid rgba(15,89,40,0.18);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  #grass-list .grass-row.correct   { border-left-color: var(--green); }
+  #grass-list .grass-row.incorrect { border-left-color: var(--red); }
+  #grass-list .grass-row.empty     { border-left-color: rgba(15,89,40,0.18); opacity: 0.85; }
+  #grass-list .grass-row .meta { min-width: 0; }
+  #grass-list .grass-row .team-name {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 15px;
+  }
+  #grass-list .grass-row .guess {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  #grass-list .grass-row .guess strong { color: var(--ink); font-weight: 600; }
+  #grass-list .grass-row .submitted-at {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  #grass-list .grass-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  #grass-list .grass-pill.correct   { background: rgba(42,156,79,0.18); color: var(--green); }
+  #grass-list .grass-pill.incorrect { background: rgba(232,67,36,0.15); color: var(--red); }
+  #grass-list .grass-pill.empty     { background: rgba(15,89,40,0.10); color: var(--ink-soft); }
+  #grass-list .grass-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #grass-list .grass-actions .btn { padding: 6px 12px; font-size: 12px; }
+  #grass-list .grass-empty-state {
+    padding: 14px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -812,6 +871,29 @@
       </div>
     </div>
 
+    <!-- ===== Guess the Grass =====
+         Cross-team read-out of every captain's "Guess the Grass" answer.
+         The correct grass is configurable below so the answer can be
+         changed mid-event without redeploying. Right/wrong is graded
+         live; each row gets a Clear button to wipe a single guess. -->
+    <div class="admin-card">
+      <h2>Guess the Grass</h2>
+      <p class="small-hint">Captains pick from four grass varieties on the captain page. Their answers land here as soon as they submit.</p>
+
+      <label for="grass-correct">Correct answer</label>
+      <select id="grass-correct">
+        <option value="Seashore Paspalum">Seashore Paspalum</option>
+        <option value="Hybrid Bermudagrass">Hybrid Bermudagrass</option>
+        <option value="Kentucky Bluegrass" selected>Kentucky Bluegrass</option>
+        <option value="Dallisgrass">Dallisgrass</option>
+      </select>
+      <p class="small-hint">Used to grade the table below. Defaults to Kentucky Bluegrass.</p>
+
+      <h3 style="margin-top: 18px;">Team answers</h3>
+      <div id="grass-list" class="team-list"></div>
+      <div id="grass-feedback" class="feedback hidden"></div>
+    </div>
+
   </div>
 </div>
 
@@ -834,9 +916,22 @@
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig,
     onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus,
-    setTeamFarthestThrow, setTeamClosestToPin,
+    setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
     pointsForHole
   } from "../js/firebase-init.js";
+
+  // Same option list the captain page uses. Keep these in sync — anything
+  // not in this list shows up on the admin grid as "(unknown answer)".
+  const GRASS_OPTIONS = [
+    "Seashore Paspalum",
+    "Hybrid Bermudagrass",
+    "Kentucky Bluegrass",
+    "Dallisgrass"
+  ];
+  // Default answer used to grade the table. The commissioner can override
+  // it via the dropdown above the list; we re-render whenever it changes.
+  const GRASS_DEFAULT_CORRECT = "Kentucky Bluegrass";
+  let grassCorrect = GRASS_DEFAULT_CORRECT;
 
   // ----- Element refs
   const $ = (id) => document.getElementById(id);
@@ -896,6 +991,10 @@
       currentTeams = teams;
       renderTeamList(teams);
       refreshScoreTeamDropdown(teams);
+      // Grass-guess panel is global (all teams at once) so we always
+      // rerender from the latest snapshot, regardless of which team
+      // is selected for scoring.
+      renderGrassGuesses(teams);
       // Rebuild draft-pick dropdown so "taken by" annotations stay current.
       populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
       // If the score-entry team is loaded, refresh its lock state in case
@@ -1633,6 +1732,101 @@
       ctpBtn.classList.remove("hidden");
     }
   }
+
+  // Read a team's grass guess. Returns the stored string, or null if it's
+  // missing/cleared. We accept either {guess, submittedAt} (the shape the
+  // helper writes) or a raw string, so legacy/manual writes still render.
+  function readGrassGuess(team) {
+    const g = team && team.grassGuess;
+    if (!g) return null;
+    if (typeof g === "string") return g.trim() || null;
+    if (typeof g.guess === "string") return g.guess.trim() || null;
+    return null;
+  }
+
+  function readGrassSubmittedAt(team) {
+    const g = team && team.grassGuess;
+    if (!g || typeof g !== "object") return null;
+    return g.submittedAt || null;
+  }
+
+  // Rebuild the per-team grass-guess rows from the latest team snapshot.
+  // Each row shows: team name, the captain's guess, a right/wrong pill,
+  // the submission time, and a Clear button so the commissioner can wipe
+  // a single entry without touching anything else.
+  function renderGrassGuesses(teams) {
+    const list = $("grass-list");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!teams || !teams.length) {
+      list.innerHTML = `<div class="grass-empty-state">No teams set up yet.</div>`;
+      return;
+    }
+    teams.forEach(team => {
+      const guess = readGrassGuess(team);
+      const submittedAt = readGrassSubmittedAt(team);
+      const row = document.createElement("div");
+
+      let kind, pillKind, pillText, guessHtml;
+      if (!guess) {
+        kind = "empty";
+        pillKind = "empty";
+        pillText = "No answer";
+        guessHtml = `<span class="none">Captain hasn't submitted yet.</span>`;
+      } else if (guess === grassCorrect) {
+        kind = "correct";
+        pillKind = "correct";
+        pillText = "Correct";
+        guessHtml = `Guess: <strong>${escapeHtml(guess)}</strong>`;
+      } else {
+        kind = "incorrect";
+        pillKind = "incorrect";
+        pillText = "Wrong";
+        guessHtml = `Guess: <strong>${escapeHtml(guess)}</strong>`;
+      }
+
+      row.className = "grass-row " + kind;
+      row.innerHTML = `
+        <div class="meta">
+          <div class="team-name">${escapeHtml(team.name || team.id)}</div>
+          <div class="guess">${guessHtml}</div>
+          ${submittedAt ? `<div class="submitted-at">Submitted ${escapeHtml(formatRelativeTime(submittedAt))}</div>` : ""}
+        </div>
+        <div class="grass-actions">
+          <span class="grass-pill ${pillKind}">${pillText}</span>
+          ${guess ? `<button type="button" class="btn btn-secondary grass-clear" data-team="${escapeAttr(team.id)}">Clear</button>` : ""}
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    // Per-row Clear buttons. Wipes only this team's grass entry via the
+    // same null-payload contract the captain helpers use.
+    list.querySelectorAll(".grass-clear").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const teamId = btn.dataset.team;
+        if (!teamId) return;
+        const t = currentTeams.find(x => x.id === teamId);
+        const name = (t && t.name) || teamId;
+        if (!confirm(`Clear ${name}'s grass guess?`)) return;
+        try {
+          await setTeamGrassGuess(teamId, null);
+          flash("grass-feedback", `Cleared ${name}'s grass guess.`, "ok");
+        } catch (err) {
+          flash("grass-feedback", err.message, "err");
+        }
+      });
+    });
+  }
+
+  // Correct-answer dropdown: switching it just re-grades the existing
+  // rows. We don't persist the choice — the commissioner keeps the page
+  // open while everyone submits, so a localStorage round-trip would be
+  // overkill. If they refresh, it resets to "Kentucky Bluegrass".
+  $("grass-correct").addEventListener("change", (e) => {
+    grassCorrect = e.target.value || GRASS_DEFAULT_CORRECT;
+    renderGrassGuesses(currentTeams);
+  });
 
   // Per-entry clears. Both use the same null-payload contract as the
   // captain helpers — sets the field to null on the team doc.

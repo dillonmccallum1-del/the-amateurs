@@ -292,6 +292,43 @@ export async function setTeamClosestToPin(teamId, payload) {
   );
 }
 
+/** Record (or clear) a team's "Guess the Grass" answer. The trophy has a real
+ *  patch of turf in its base — captains pick from four grass varieties. We
+ *  store the choice plus a server timestamp so the admin page can show when
+ *  each team submitted (and so resubmissions overwrite cleanly).
+ *
+ *  payload shape:
+ *    { guess: "Kentucky Bluegrass" }   → records the guess
+ *    null                              → clears the entry entirely
+ *
+ *  The correct answer ("Kentucky Bluegrass") is graded on the admin page,
+ *  not here — keeping the data layer dumb means we can change the answer
+ *  later without rewriting historical guesses.
+ */
+export async function setTeamGrassGuess(teamId, payload) {
+  if (payload === null) {
+    await setDoc(
+      doc(db, "teams", teamId),
+      { grassGuess: null, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+    return;
+  }
+  const guess = payload && typeof payload.guess === "string" ? payload.guess.trim() : "";
+  if (!guess) throw new Error("Grass guess can't be empty.");
+  await setDoc(
+    doc(db, "teams", teamId),
+    {
+      grassGuess: {
+        guess,
+        submittedAt: serverTimestamp()
+      },
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+}
+
 // -------------------------------------------------------------
 // 6. SCORING MATH — modified Stableford, high score wins.
 //    Default points (matches rules.html intent — confirm with
