@@ -107,6 +107,23 @@
     <div id="farthest-rows"></div>
     <div class="leaderboard-footer" id="farthest-footer">No throws past the marker yet.</div>
   </div>
+
+  <!-- ===== CLOSEST TO THE PIN (hole 8) ===== -->
+  <div class="leaderboard ctp-board">
+    <div class="leaderboard-header">
+      <div class="title">Closest to the Pin</div>
+      <div class="live-dot">Live</div>
+    </div>
+    <div class="ctp-cols">
+      <div>#</div>
+      <div>Player</div>
+      <div>Team</div>
+      <div>Inches</div>
+      <div>When</div>
+    </div>
+    <div id="ctp-rows"></div>
+    <div class="leaderboard-footer" id="ctp-footer">No closest-to-the-pin results yet.</div>
+  </div>
 </section>
 
 <!-- ===== FOOTER ===== -->
@@ -184,6 +201,83 @@
     flex-shrink: 0;
   }
   .ft-when {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: right;
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  /* ===== Closest to the Pin leaderboard (hole 8) ===== */
+  /* Same look as the Farthest Throw card with one extra Inches column. */
+  .ctp-board { margin-top: 24px; }
+  .ctp-cols, .ctp-row {
+    display: grid;
+    grid-template-columns: 32px 1.3fr 1fr 64px 64px;
+    gap: 8px;
+    align-items: center;
+    padding: 14px 18px;
+  }
+  .ctp-cols {
+    padding: 10px 18px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--cream-dark);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .ctp-cols > *:nth-child(4),
+  .ctp-cols > *:last-child { text-align: right; }
+  .ctp-row {
+    border-bottom: 1px solid var(--cream-dark);
+    transition: background 0.4s ease;
+  }
+  .ctp-row:last-child { border-bottom: none; }
+  .ctp-row.leader { background: rgba(244, 216, 56, 0.14); }
+  .ctp-row.fresh  { background: rgba(42, 156, 79, 0.12); }
+  .ctp-rank {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--yellow-dark);
+    text-align: center;
+    line-height: 1;
+  }
+  .ctp-row.leader .ctp-rank { color: var(--green); }
+  .ctp-player {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .ctp-team {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctp-inches {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green-dark);
+    text-align: right;
+    line-height: 1;
+  }
+  .ctp-inches .unit {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-left: 3px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ctp-when {
     font-size: 13px;
     color: var(--ink-soft);
     text-align: right;
@@ -392,8 +486,10 @@
     const status = currentConfig.status === "final" ? "Final results" : "Live · refreshing automatically";
     $("live-footer").textContent = status + " · Tap a team to expand its scorecard.";
 
-    // Render the Farthest Throw (hole 5) leaderboard alongside the standings.
+    // Render the Farthest Throw (hole 5) and Closest to the Pin (hole 8)
+    // leaderboards alongside the standings.
     renderFarthestThrow();
+    renderClosestToPin();
   }
 
   // ─── Farthest Throw leaderboard ─────────────────────────────
@@ -477,6 +573,75 @@
     if (hr  < 24)         return `${hr}h ago`;
     const day = Math.floor(hr / 24);
     return `${day}d ago`;
+  }
+
+  // ─── Closest to the Pin leaderboard (hole 8) ────────────────
+  // Same "newest on top bumps everyone down" semantics as Farthest Throw,
+  // but each row also shows the inches measurement the captain typed in.
+  let lastCtpOrder = [];
+  function renderClosestToPin() {
+    const rowsWrap = $("ctp-rows");
+    const footer   = $("ctp-footer");
+
+    const entries = currentTeams
+      .filter(t =>
+        t.closestToPin &&
+        t.closestToPin.closerThanMarker === true &&
+        t.closestToPin.player &&
+        Number.isFinite(t.closestToPin.inches))
+      .map(t => ({
+        team:        t,
+        player:      t.closestToPin.player,
+        inches:      t.closestToPin.inches,
+        submittedMs: toMillis(t.closestToPin.submittedAt)
+      }))
+      .sort((a, b) => b.submittedMs - a.submittedMs);
+
+    rowsWrap.innerHTML = "";
+
+    if (!entries.length) {
+      footer.textContent = "No closest-to-the-pin results yet — captain on hole 8, you're up.";
+      lastCtpOrder = [];
+      return;
+    }
+
+    const previousLeader = lastCtpOrder[0];
+    entries.forEach((e, idx) => {
+      const row = document.createElement("div");
+      const isLeader = idx === 0;
+      const isFresh  = isLeader && previousLeader && previousLeader !== e.team.id;
+      row.className  = "ctp-row" + (isLeader ? " leader" : "") + (isFresh ? " fresh" : "");
+
+      const teamName = e.team.name || "(unnamed team)";
+      const flagSrc  = e.team.flagFile
+        ? `../Pictures/Team_Logos/2026/${encodeURIComponent(e.team.flagFile)}`
+        : "";
+      const flagHtml = flagSrc
+        ? `<img class="ft-flag" src="${escapeHtml(flagSrc)}" alt="${escapeHtml(teamName)} flag" onerror="this.style.display='none'">`
+        : "";
+
+      row.innerHTML = `
+        <div class="ctp-rank">${idx + 1}</div>
+        <div class="ctp-player">${escapeHtml(e.player)}</div>
+        <div class="ctp-team">${flagHtml}<span>${escapeHtml(teamName)}</span></div>
+        <div class="ctp-inches">${formatInches(e.inches)}<span class="unit">in</span></div>
+        <div class="ctp-when">${escapeHtml(timeAgo(e.submittedMs))}</div>
+      `;
+      rowsWrap.appendChild(row);
+    });
+
+    footer.textContent = entries.length === 1
+      ? "Current closest to the pin — beat this distance to take #1."
+      : `${entries.length} closer-than-the-marker submissions · newest on top.`;
+
+    lastCtpOrder = entries.map(e => e.team.id);
+  }
+
+  // Drop trailing ".0" so "24" shows as "24" but "24.5" stays "24.5".
+  function formatInches(n) {
+    if (!Number.isFinite(n)) return "—";
+    const rounded = Math.round(n * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
   }
 
   function toggleRow(row, sc) {

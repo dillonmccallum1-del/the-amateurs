@@ -248,6 +248,50 @@ export async function setTeamFarthestThrow(teamId, payload) {
   );
 }
 
+/** Record (or clear) a team's hole-8 "closest to the pin" answer.
+ *  Same shape as setTeamFarthestThrow but with an `inches` measurement
+ *  the captain types in when they beat the current marker. The Closest
+ *  to the Pin leaderboard sorts by `submittedAt` desc so the newest
+ *  beat-the-marker submission bumps everyone else down.
+ *
+ *  payload shape:
+ *    { closerThanMarker: true,  player: "Dillon McCallum", inches: 24 }
+ *    { closerThanMarker: false }                                          → out of the running
+ *    null                                                                 → clears the entry entirely
+ */
+export async function setTeamClosestToPin(teamId, payload) {
+  if (payload === null) {
+    await setDoc(
+      doc(db, "teams", teamId),
+      { closestToPin: null, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+    return;
+  }
+  const yes = payload.closerThanMarker === true;
+  // Inches: accept either a number-typed value or a string. Round to one
+  // decimal place so the leaderboard doesn't show ugly float noise.
+  let inches = null;
+  if (yes) {
+    const raw = (typeof payload.inches === "string")
+      ? payload.inches.trim()
+      : payload.inches;
+    const n = Number(raw);
+    if (Number.isFinite(n) && n >= 0) inches = Math.round(n * 10) / 10;
+  }
+  const data = {
+    closerThanMarker: yes,
+    player:  yes ? (payload.player || null) : null,
+    inches:  yes ? inches : null,
+    submittedAt: serverTimestamp()
+  };
+  await setDoc(
+    doc(db, "teams", teamId),
+    { closestToPin: data, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
 // -------------------------------------------------------------
 // 6. SCORING MATH — modified Stableford, high score wins.
 //    Default points (matches rules.html intent — confirm with

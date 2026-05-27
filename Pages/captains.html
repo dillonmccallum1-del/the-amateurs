@@ -706,6 +706,42 @@
     display: none;
   }
   .he-throw-warn.show { display: block; }
+  /* Inches input (hole 8 closest-to-pin). Reuses the throw card styling. */
+  .he-throw-input-row {
+    margin-top: 14px;
+  }
+  .he-throw-input-wrap {
+    position: relative;
+  }
+  .he-throw-input {
+    width: 100%;
+    padding: 12px 14px;
+    padding-right: 60px;
+    border-radius: 10px;
+    border: 2px solid var(--cream-dark);
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    appearance: textfield;
+    -webkit-appearance: none;
+  }
+  .he-throw-input::-webkit-outer-spin-button,
+  .he-throw-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .he-throw-input:focus { outline: none; border-color: var(--green); }
+  .he-throw-input-suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    pointer-events: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
   .he-action-row {
     display: flex;
@@ -915,6 +951,39 @@
       </div>
     </div>
 
+    <!-- Hole 8 only: closest-to-the-pin marker question. Hidden on every other hole. -->
+    <div class="he-throw-card hidden" id="he-ctp-card">
+      <div class="he-throw-title">Closest to the Pin Marker</div>
+      <div class="he-throw-sub">If your team's ball came to rest closer to the pin than the marker, you're in the running for the <strong>+1 closest to the pin</strong> bonus. The current leader will be bumped down when you submit.</div>
+      <div class="he-throw-q">Did your team get closer to the pin than the marker?</div>
+      <div class="he-throw-yesno" role="group" aria-label="Closer to the pin than the marker">
+        <button type="button" class="he-throw-btn" id="he-ctp-no"  data-val="no">No</button>
+        <button type="button" class="he-throw-btn" id="he-ctp-yes" data-val="yes">Yes</button>
+      </div>
+      <div class="he-throw-picker" id="he-ctp-picker">
+        <div class="he-throw-picker-label">Who got closest?</div>
+        <select class="he-throw-select" id="he-ctp-select" aria-label="Player closest to the pin">
+          <option value="">— Select a player —</option>
+        </select>
+        <div class="he-throw-input-row">
+          <div class="he-throw-picker-label">How far from the pin?</div>
+          <div class="he-throw-input-wrap">
+            <input
+              id="he-ctp-inches"
+              class="he-throw-input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              step="0.1"
+              placeholder="e.g. 24"
+              aria-label="Distance from the pin in inches">
+            <span class="he-throw-input-suffix">in</span>
+          </div>
+        </div>
+        <div class="he-throw-warn" id="he-ctp-warn">Pick a teammate <strong>and</strong> type the distance in inches before submitting.</div>
+      </div>
+    </div>
+
     <div class="he-action-row">
       <button type="button" class="btn-back hidden" id="he-btn-back">← Back</button>
       <button type="button" class="btn-submit-hole" id="he-btn-submit" disabled>Submit hole</button>
@@ -925,11 +994,14 @@
 <script type="module">
   import {
     onTeams, onEventConfig, saveTeam, setTeamStrokes, pointsForHole,
-    setTeamFarthestThrow
+    setTeamFarthestThrow, setTeamClosestToPin
   } from "../js/firebase-init.js";
 
-  // The throw-in question lives on hole 5 only. 0-based index.
-  const FARTHEST_THROW_HOLE_IDX = 4;
+  // Special-question holes (0-based indices).
+  //   Hole 5 = throw-in marker     → "did you throw farther than the marker?"
+  //   Hole 8 = closest-to-the-pin  → "did you get closer than the marker?" + inches
+  const FARTHEST_THROW_HOLE_IDX  = 4;
+  const CLOSEST_TO_PIN_HOLE_IDX  = 7;
 
   // ─── State ───────────────────────────────────────────────
   let teams        = [];
@@ -946,6 +1018,12 @@
   //                  a Yes→No flip on a hole-5 re-submit writes the cleared state
   //                  to Firestore instead of leaving the old "Yes Dillon" record.
   let farthestThrow = { thrownFarther: null, thrower: null, dirty: false };
+  // Captain's working copy of the hole 8 closest-to-the-pin question.
+  //   closerThanMarker: true | false | null (null = unanswered)
+  //   player:           name string | null  (only meaningful when closerThanMarker === true)
+  //   inches:           string             (raw user input — we don't reformat as they type)
+  //   dirty:            same semantics as farthestThrow.dirty
+  let closestToPin = { closerThanMarker: null, player: null, inches: "", dirty: false };
   // 0-based index of the hole currently displayed on screen-hole.
   let currentHoleIdx = 0;
   // True when we're on the overall scorecard AFTER the captain finished
@@ -1025,6 +1103,7 @@
           // Same idea for the throw-in answer — surface whatever's on the
           // team doc so we don't overwrite it on the next hole-5 edit.
           farthestThrow = readFarthestThrowFromTeam(updated, null);
+          closestToPin  = readClosestToPinFromTeam(updated, null);
           if (!$("screen-overall").classList.contains("hidden")) {
             inReviewMode = strokes.every(s => s != null);
             renderOverallScreen();
@@ -1098,6 +1177,7 @@
     // Seed the throw-in answer. Firebase wins if present (covers another
     // device); otherwise fall back to whatever's in the localStorage draft.
     farthestThrow = readFarthestThrowFromTeam(team, draftSnapshot.farthestThrow);
+    closestToPin  = readClosestToPinFromTeam(team, draftSnapshot.closestToPin);
     populateTeamHeaders(team);
     updateMenuScoringSubLabel();
     hide('screen-login');
@@ -1125,6 +1205,30 @@
       };
     }
     return { thrownFarther: null, thrower: null, dirty: false };
+  }
+
+  // Same idea but for the hole-8 closest-to-the-pin question. The inches
+  // value is kept as a string so the captain's typed input shows back
+  // exactly as they entered it.
+  function readClosestToPinFromTeam(team, draftAnswer) {
+    const fb = team && team.closestToPin;
+    if (fb && (fb.closerThanMarker === true || fb.closerThanMarker === false)) {
+      return {
+        closerThanMarker: fb.closerThanMarker,
+        player:           fb.player || null,
+        inches:           fb.inches == null ? "" : String(fb.inches),
+        dirty:            false
+      };
+    }
+    if (draftAnswer && (draftAnswer.closerThanMarker === true || draftAnswer.closerThanMarker === false)) {
+      return {
+        closerThanMarker: draftAnswer.closerThanMarker,
+        player:           draftAnswer.player || null,
+        inches:           draftAnswer.inches == null ? "" : String(draftAnswer.inches),
+        dirty:            false
+      };
+    }
+    return { closerThanMarker: null, player: null, inches: "", dirty: false };
   }
 
   function populateTeamHeaders(team) {
@@ -1170,6 +1274,7 @@
     selectedTeam = null;
     strokes = Array(9).fill(null);
     farthestThrow = { thrownFarther: null, thrower: null, dirty: false };
+    closestToPin  = { closerThanMarker: null, player: null, inches: "", dirty: false };
     finalLocked = false;
     inReviewMode = false;
     deactivateLock();
@@ -1401,6 +1506,8 @@
 
     // Hole 5 only — render the "did you throw farther than the marker?" card.
     renderThrowCard(i);
+    // Hole 8 only — render the "closest to the pin" card (with inches input).
+    renderCtpCard(i);
 
     // Back hidden on hole 1.
     $('he-btn-back').classList.toggle('hidden', i === 0);
@@ -1450,9 +1557,9 @@
       .filter(Boolean);
   }
 
-  // Submit is allowed when strokes are picked AND (if we're on hole 5) the
-  // throw-in question is answered consistently (No alone is fine; Yes needs
-  // a name from the dropdown).
+  // Submit is allowed when strokes are picked AND (if we're on hole 5 or 8)
+  // the special question is answered consistently. "No" alone is always
+  // fine; "Yes" needs a player from the dropdown, plus (hole 8) inches.
   function canSubmitCurrentHole() {
     const i = currentHoleIdx;
     if (strokes[i] == null) return false;
@@ -1460,7 +1567,23 @@
       if (farthestThrow.thrownFarther === null) return false;
       if (farthestThrow.thrownFarther === true && !farthestThrow.thrower) return false;
     }
+    if (i === CLOSEST_TO_PIN_HOLE_IDX) {
+      if (closestToPin.closerThanMarker === null) return false;
+      if (closestToPin.closerThanMarker === true) {
+        if (!closestToPin.player) return false;
+        if (!isValidInches(closestToPin.inches)) return false;
+      }
+    }
     return true;
+  }
+
+  // Inches input: non-empty, parseable, >= 0. We treat 0 as "right at the
+  // pin" which is fine; only NaN / blank / negative are rejected.
+  function isValidInches(raw) {
+    const s = (raw == null ? "" : String(raw)).trim();
+    if (!s) return false;
+    const n = Number(s);
+    return Number.isFinite(n) && n >= 0;
   }
 
   function refreshSubmitButton() {
@@ -1493,6 +1616,78 @@
       farthestThrow.thrownFarther === true && !farthestThrow.thrower);
   });
 
+  // Show/hide and (re-)populate the hole-8 closest-to-pin card.
+  function renderCtpCard(holeIdx) {
+    const card = $('he-ctp-card');
+    if (holeIdx !== CLOSEST_TO_PIN_HOLE_IDX) {
+      card.classList.add('hidden');
+      return;
+    }
+    card.classList.remove('hidden');
+
+    $('he-ctp-yes').classList.toggle('selected', closestToPin.closerThanMarker === true);
+    $('he-ctp-no').classList.toggle('selected',  closestToPin.closerThanMarker === false);
+
+    const select = $('he-ctp-select');
+    const options = teamPlayerNames();
+    select.innerHTML = '<option value="">— Select a player —</option>' +
+      options.map(name => `<option value="${escHtml(name)}">${escHtml(name)}</option>`).join('');
+    select.value = closestToPin.player && options.includes(closestToPin.player)
+      ? closestToPin.player
+      : '';
+
+    const inchesInput = $('he-ctp-inches');
+    // Only rewrite if the value differs — avoids stealing the caret while
+    // the captain is typing and the form re-renders for another reason.
+    if (inchesInput.value !== (closestToPin.inches || "")) {
+      inchesInput.value = closestToPin.inches || "";
+    }
+
+    const picker = $('he-ctp-picker');
+    picker.classList.toggle('show', closestToPin.closerThanMarker === true);
+
+    $('he-ctp-warn').classList.remove('show');
+  }
+
+  $('he-ctp-yes').addEventListener('click', () => {
+    closestToPin.closerThanMarker = true;
+    closestToPin.dirty = true;
+    saveDraftToStorage();
+    renderCtpCard(currentHoleIdx);
+    refreshSubmitButton();
+  });
+  $('he-ctp-no').addEventListener('click', () => {
+    closestToPin.closerThanMarker = false;
+    closestToPin.player = null;
+    closestToPin.inches = "";
+    closestToPin.dirty = true;
+    saveDraftToStorage();
+    renderCtpCard(currentHoleIdx);
+    refreshSubmitButton();
+  });
+  $('he-ctp-select').addEventListener('change', (e) => {
+    closestToPin.player = e.target.value || null;
+    closestToPin.dirty = true;
+    saveDraftToStorage();
+    refreshSubmitButton();
+    syncCtpWarning();
+  });
+  // `input` (not just `change`) so the submit button enables the instant the
+  // captain finishes typing a valid number.
+  $('he-ctp-inches').addEventListener('input', (e) => {
+    closestToPin.inches = e.target.value;
+    closestToPin.dirty = true;
+    saveDraftToStorage();
+    refreshSubmitButton();
+    syncCtpWarning();
+  });
+
+  function syncCtpWarning() {
+    const showWarn = closestToPin.closerThanMarker === true &&
+      (!closestToPin.player || !isValidInches(closestToPin.inches));
+    $('he-ctp-warn').classList.toggle('show', showWarn);
+  }
+
   $('he-btn-back').addEventListener('click', () => {
     if (currentHoleIdx > 0) {
       currentHoleIdx -= 1;
@@ -1508,6 +1703,11 @@
           farthestThrow.thrownFarther === true &&
           !farthestThrow.thrower) {
         $('he-throw-warn').classList.add('show');
+      }
+      // Same nudge for the closest-to-pin missing-data case.
+      if (i === CLOSEST_TO_PIN_HOLE_IDX &&
+          closestToPin.closerThanMarker === true) {
+        syncCtpWarning();
       }
       return;
     }
@@ -1540,6 +1740,23 @@
         farthestThrow.dirty = false;
       } catch (err) {
         console.warn('Farthest-throw push failed; continuing anyway.', err);
+      }
+    }
+
+    // Hole 8 only: same pattern, for the closest-to-the-pin leaderboard.
+    if (selectedTeam &&
+        i === CLOSEST_TO_PIN_HOLE_IDX &&
+        closestToPin.dirty &&
+        (closestToPin.closerThanMarker === true || closestToPin.closerThanMarker === false)) {
+      try {
+        await setTeamClosestToPin(selectedTeam.id, {
+          closerThanMarker: closestToPin.closerThanMarker,
+          player:           closestToPin.player,
+          inches:           closestToPin.inches
+        });
+        closestToPin.dirty = false;
+      } catch (err) {
+        console.warn('Closest-to-pin push failed; continuing anyway.', err);
       }
     }
 
@@ -1596,7 +1813,7 @@
   function draftKey(teamId) { return `the-amateurs-captain-draft-${teamId}`; }
 
   function loadDraftFromStorage(teamId) {
-    const empty = { strokes: Array(9).fill(null), farthestThrow: null };
+    const empty = { strokes: Array(9).fill(null), farthestThrow: null, closestToPin: null };
     try {
       const raw = localStorage.getItem(draftKey(teamId));
       if (!raw) return empty;
@@ -1618,7 +1835,17 @@
           thrower:       parsed.farthestThrow.thrower || null
         };
       }
-      return { strokes: out, farthestThrow: ft };
+      let ctp = null;
+      if (parsed.closestToPin &&
+          (parsed.closestToPin.closerThanMarker === true ||
+           parsed.closestToPin.closerThanMarker === false)) {
+        ctp = {
+          closerThanMarker: parsed.closestToPin.closerThanMarker,
+          player:           parsed.closestToPin.player || null,
+          inches:           parsed.closestToPin.inches == null ? "" : String(parsed.closestToPin.inches)
+        };
+      }
+      return { strokes: out, farthestThrow: ft, closestToPin: ctp };
     } catch (_) {
       return empty;
     }
@@ -1632,6 +1859,11 @@
         farthestThrow: {
           thrownFarther: farthestThrow.thrownFarther,
           thrower:       farthestThrow.thrower
+        },
+        closestToPin: {
+          closerThanMarker: closestToPin.closerThanMarker,
+          player:           closestToPin.player,
+          inches:           closestToPin.inches
         },
         updatedAt: Date.now()
       }));
