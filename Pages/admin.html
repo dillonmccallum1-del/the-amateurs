@@ -668,14 +668,14 @@
     </div>
 
     <!-- ============================================================
-         SECTION 3 — Scoring
+         SECTION 3 — Scorecard Settings
          Subsection A: Scorecard holes (yardage + par)
          Subsection B: Bonus point opportunities (hole + description)
          The data is saved to the event config so a later wiring pass
          can read it from the captains page.
          ============================================================ -->
     <div class="admin-card">
-      <h2>Scoring</h2>
+      <h2>Scorecard Settings</h2>
 
       <!-- ----- Subsection A: Scorecard holes ----- -->
       <h3>Scorecard holes</h3>
@@ -763,14 +763,16 @@
     </div>
 
     <!-- ============================================================
-         SECTION 4 — Enter scores
+         SECTION 4 — Scoring
+         Subsection A: Team Scoring (Team scorecards updated in real time)
+         Subsection B: Guess the Grass (Answers + Graded)
          Pick a team to inspect / edit their scorecard in real time.
          Lets the commissioner add, edit, or clear any hole, see how
          far along they are, manage the captain lock, and nuke a final
          submission if it was wrong.
          ============================================================ -->
     <div class="admin-card">
-      <h2>Enter scores</h2>
+      <h2>Scoring</h2>
       <p class="small-hint">Pick a team to see their live scorecard. Edit any hole inline — changes save when you hit Save. Use this to monitor progress, fix typos, or wipe a bad submission.</p>
 
       <label for="score-team">Team</label>
@@ -887,14 +889,12 @@
         </div>
         <div id="scores-feedback" class="feedback hidden"></div>
       </div>
-    </div>
 
     <!-- ===== Guess the Grass =====
          Cross-team read-out of every captain's "Guess the Grass" answer.
          The correct grass is configurable below so the answer can be
          changed mid-event without redeploying. Right/wrong is graded
          live; each row gets a Clear button to wipe a single guess. -->
-    <div class="admin-card">
       <h2>Guess the Grass</h2>
       <p class="small-hint">Captains pick from four grass varieties on the captain page. Their answers land here as soon as they submit.</p>
 
