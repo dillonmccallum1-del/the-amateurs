@@ -571,6 +571,24 @@
         </label>
       </div>
 
+      <label style="margin-top: 18px;">Live leaderboard</label>
+
+      <!-- Master switch for the public Live Leaderboard page. When OFF,
+           the Leaderboard page replaces scores / farthest throw / closest
+           to the pin with a "results hidden" message until you flip it
+           back ON. Useful for keeping the room in suspense until the
+           awards ceremony. -->
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">Show live leaderboard</span>
+          <span class="toggle-hint">When off, the Leaderboard page hides scores, farthest throw, and closest to the pin.</span>
+        </div>
+        <label class="toggle-switch" for="evt-leaderboard-visible">
+          <input id="evt-leaderboard-visible" type="checkbox">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
       <div class="btn-row">
         <button id="save-config" class="btn btn-primary">Save event settings</button>
       </div>
@@ -1030,6 +1048,11 @@
       status: "pre-event",
       holeGamesVisible: true,
       bonusVisible: true,
+      // Master switch for the public Live Leaderboard page. Default ON so
+      // a brand-new event isn't accidentally dark; the commissioner can
+      // flip it off in the admin Event Settings card whenever they want
+      // to hide scores (e.g. before final reveal).
+      leaderboardVisible: true,
       numTeams: 0,
       numParticipants: 0,
       // Scoring (Section 3)
@@ -1074,6 +1097,7 @@
     $("evt-status").value = cfg.status ?? "pre-event";
     $("evt-hole-games-visible").checked = cfg.holeGamesVisible !== false; // default ON
     $("evt-bonus-visible").checked      = cfg.bonusVisible      !== false; // default ON
+    $("evt-leaderboard-visible").checked = cfg.leaderboardVisible !== false; // default ON
 
     // Section 2 — Draft setup
     $("evt-num-teams").value        = cfg.numTeams        ?? "";
@@ -1108,11 +1132,12 @@
     hide(fb);
     try {
       await updateEventConfig({
-        year:             Number($("evt-year").value),
-        format:           $("evt-format").value,
-        status:           $("evt-status").value,
-        holeGamesVisible: $("evt-hole-games-visible").checked,
-        bonusVisible:     $("evt-bonus-visible").checked
+        year:               Number($("evt-year").value),
+        format:             $("evt-format").value,
+        status:             $("evt-status").value,
+        holeGamesVisible:   $("evt-hole-games-visible").checked,
+        bonusVisible:       $("evt-bonus-visible").checked,
+        leaderboardVisible: $("evt-leaderboard-visible").checked
       });
       fb.textContent = "Saved.";
       fb.className = "feedback ok";
