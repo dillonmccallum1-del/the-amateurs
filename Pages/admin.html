@@ -449,6 +449,238 @@
     color: var(--ink-soft);
     font-style: italic;
   }
+
+  /* ---- Master Leaderboard ----
+     Tappable team rows + per-team expanded scorecard. The card is dormant
+     until the event status is set to Final, at which point the dormant
+     banner hides and the rows render. */
+  .master-banner {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--cream);
+    border: 1px solid rgba(15,89,40,0.12);
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+  .master-banner.dormant { color: var(--ink-soft); }
+  .master-banner.live    {
+    background: rgba(244, 216, 56, 0.18);
+    border-color: rgba(184, 154, 31, 0.4);
+    color: var(--green-dark);
+    font-weight: 600;
+  }
+  .master-banner.empty {
+    background: var(--cream);
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .master-banner.hidden { display: none; }
+
+  .master-list { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .master-row {
+    background: var(--white);
+    border: 1px solid rgba(15,89,40,0.12);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .master-row.leader { border-color: var(--yellow-dark); box-shadow: 0 2px 14px rgba(244, 216, 56, 0.25); }
+
+  .master-row-head {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    cursor: pointer;
+    background: var(--cream);
+    transition: background 0.12s ease;
+  }
+  .master-row-head:hover { background: var(--cream-dark); }
+  .master-row-head .rank {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green-dark);
+    text-align: center;
+    line-height: 1;
+  }
+  .master-row.leader .master-row-head .rank { color: var(--yellow-dark); }
+  .master-row-head .team-block { min-width: 0; }
+  .master-row-head .team-name {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .master-row-head .team-name .chevron {
+    font-size: 12px;
+    color: var(--ink-soft);
+    transition: transform 0.2s ease;
+    line-height: 1;
+  }
+  .master-row.expanded .master-row-head .team-name .chevron {
+    transform: rotate(180deg);
+  }
+  .master-row-head .team-meta {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .master-row-head .pts {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green-dark);
+    text-align: right;
+    line-height: 1;
+  }
+  .master-row-head .pts .pts-sub {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+
+  .master-row-body {
+    padding: 14px 14px 16px;
+    border-top: 1px solid rgba(15,89,40,0.10);
+    background: var(--white);
+    display: none;
+  }
+  .master-row.expanded .master-row-body { display: block; }
+
+  .master-scorecard-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .master-scorecard {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .master-scorecard th, .master-scorecard td {
+    padding: 8px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .master-scorecard thead th {
+    background: var(--green-dark);
+    color: var(--yellow);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .master-scorecard thead th:first-child,
+  .master-scorecard tbody th[scope="row"] {
+    text-align: left;
+    padding-left: 12px;
+  }
+  .master-scorecard tbody th[scope="row"] {
+    background: var(--cream);
+    font-weight: 700;
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 96px;
+  }
+  .master-scorecard tr.row-par td      { color: var(--ink); font-weight: 600; }
+  .master-scorecard tr.row-strokes td  { font-weight: 600; color: var(--ink); }
+  .master-scorecard tr.row-strokes td .birdie { color: var(--green); font-weight: 700; }
+  .master-scorecard tr.row-strokes td .bogey  { color: var(--red);   font-weight: 700; }
+  .master-scorecard tr.row-points td   { font-weight: 700; color: var(--green-dark); }
+  .master-scorecard tr.row-bonus td    { font-weight: 700; color: var(--yellow-dark); }
+  .master-scorecard tr.row-bonus td.muted, .master-scorecard tr.row-strokes td.muted, .master-scorecard tr.row-points td.muted {
+    color: var(--cream-dark); font-weight: 400;
+  }
+  .master-scorecard td.col-total, .master-scorecard th.col-total {
+    background: rgba(15,89,40,0.06);
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+
+  .master-bonus-detail {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--cream);
+    border-radius: 8px;
+    border: 1px solid rgba(15,89,40,0.10);
+  }
+  .master-bonus-detail h4 {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+  .master-bonus-detail ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .master-bonus-detail li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--ink);
+  }
+  .master-bonus-detail li .bonus-pts {
+    display: inline-block;
+    min-width: 44px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--green-dark);
+    color: var(--yellow);
+    font-weight: 700;
+    font-size: 13px;
+    text-align: center;
+  }
+  .master-bonus-detail li.empty { color: var(--ink-soft); font-style: italic; }
+
+  .master-grass-block {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(15,89,40,0.10);
+    background: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .master-grass-block.correct   { border-left: 4px solid var(--green); }
+  .master-grass-block.incorrect { border-left: 4px solid var(--red); }
+  .master-grass-block.empty     { border-left: 4px solid rgba(15,89,40,0.18); }
+  .master-grass-block h4 {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .master-grass-block .gg-line { font-size: 14px; color: var(--ink); }
+  .master-grass-block .gg-line .none { color: var(--ink-soft); font-style: italic; }
+  .master-grass-block .gg-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .master-grass-block.correct   .gg-pill { background: rgba(42,156,79,0.18); color: var(--green); }
+  .master-grass-block.incorrect .gg-pill { background: rgba(232,67,36,0.15); color: var(--red); }
+  .master-grass-block.empty     .gg-pill { background: rgba(15,89,40,0.10); color: var(--ink-soft); }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -912,6 +1144,20 @@
       <div id="grass-feedback" class="feedback hidden"></div>
     </div>
 
+    <!-- ===== Master Leaderboard =====
+         Final standings — scores + every bonus point. Activates when
+         the event status flips to "Final" in Event settings. Each team
+         row is tappable: it expands a full scorecard (par / strokes /
+         hole points), a Bonus Points block, and the team's Guess the
+         Grass result graded right or wrong. -->
+    <div class="admin-card">
+      <h2>Master Leaderboard</h2>
+      <p class="small-hint">Final standings: Stableford hole points + every bonus point on the team. The list activates once Event status is set to <strong>Final</strong> in Event settings above.</p>
+
+      <div id="master-status-banner" class="master-banner"></div>
+      <div id="master-list" class="master-list"></div>
+    </div>
+
   </div>
 </div>
 
@@ -935,7 +1181,7 @@
     onEventConfig, updateEventConfig,
     onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus,
     setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
-    pointsForHole
+    pointsForHole, computeTeamTotals
   } from "../js/firebase-init.js";
 
   // Same option list the captain page uses. Keep these in sync — anything
@@ -1003,6 +1249,10 @@
     onEventConfig((cfg) => {
       currentConfig = cfg || defaultConfig();
       fillConfigForm(currentConfig);
+      // Master Leaderboard depends on both the event status (final vs
+      // not) and coursePar (for hole-point math), so re-render whenever
+      // the event config changes.
+      renderMasterLeaderboard(currentTeams);
     });
 
     onTeams((teams) => {
@@ -1013,6 +1263,10 @@
       // rerender from the latest snapshot, regardless of which team
       // is selected for scoring.
       renderGrassGuesses(teams);
+      // Master Leaderboard pulls everything off the team docs (strokes,
+      // bonusPoints, grassGuess) so it needs to refresh on every team
+      // update too.
+      renderMasterLeaderboard(teams);
       // Rebuild draft-pick dropdown so "taken by" annotations stay current.
       populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
       // If the score-entry team is loaded, refresh its lock state in case
@@ -1844,6 +2098,220 @@
     });
   }
 
+  // ----- Master Leaderboard -----
+  // Persisted across re-renders so re-clicking a team that auto-collapsed
+  // (e.g. after a Firestore snapshot) restores its expanded state. Keyed
+  // by team id since draft order can shift.
+  const masterExpanded = new Set();
+
+  function renderMasterLeaderboard(teams) {
+    const banner = $("master-status-banner");
+    const list   = $("master-list");
+    if (!banner || !list) return;
+
+    const status = (currentConfig && currentConfig.status) || "pre-event";
+    const par    = (currentConfig && Array.isArray(currentConfig.coursePar) && currentConfig.coursePar.length === 9)
+      ? currentConfig.coursePar
+      : [3,3,3,3,3,3,3,3,3];
+
+    // Pre-final: keep the card dormant so we don't surprise anyone with
+    // half-baked numbers. The card stays mounted (so the admin can see
+    // the placeholder), but no team rows render.
+    if (status !== "final") {
+      banner.className = "master-banner dormant";
+      banner.textContent = `Event status is "${status}". Flip it to "Final" in Event settings to lock in standings and reveal the Master Leaderboard.`;
+      list.innerHTML = "";
+      return;
+    }
+
+    if (!teams || !teams.length) {
+      banner.className = "master-banner empty";
+      banner.textContent = "Status is Final, but no teams exist yet.";
+      list.innerHTML = "";
+      return;
+    }
+
+    banner.className = "master-banner live";
+    banner.textContent = "Status: FINAL · standings below combine Stableford hole points with every bonus on the team.";
+
+    // Rank by total points (hole + bonus) high-to-low. Tie-breakers match
+    // the live leaderboard: more holes done first, then earlier draft pick.
+    const ranked = teams.map(t => {
+      const totals = computeTeamTotals(t, par);
+      return { team: t, ...totals };
+    }).sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      if (b.holesCompleted !== a.holesCompleted) return b.holesCompleted - a.holesCompleted;
+      return (a.team.draftPick ?? 99) - (b.team.draftPick ?? 99);
+    });
+
+    list.innerHTML = "";
+    ranked.forEach((r, idx) => {
+      const rank      = idx + 1;
+      const team      = r.team;
+      const teamName  = team.name || team.id || "(unnamed team)";
+      const captain   = team.captain || "—";
+      const partner   = team.partner || "";
+      const meta      = partner ? `${captain} & ${partner}` : captain;
+      const expanded  = masterExpanded.has(team.id);
+      const isLeader  = rank === 1 && r.holesCompleted > 0;
+
+      const row = document.createElement("div");
+      row.className = "master-row" + (isLeader ? " leader" : "") + (expanded ? " expanded" : "");
+      row.innerHTML = `
+        <div class="master-row-head" role="button" tabindex="0" aria-expanded="${expanded ? "true" : "false"}">
+          <div class="rank">${rank}</div>
+          <div class="team-block">
+            <div class="team-name">${escapeHtml(teamName)} <span class="chevron">▾</span></div>
+            <div class="team-meta">${escapeHtml(meta)}</div>
+          </div>
+          <div class="pts">
+            +${r.totalPoints}
+            <span class="pts-sub">Total</span>
+          </div>
+        </div>
+        <div class="master-row-body">
+          ${renderMasterScorecardHtml(r, par)}
+          ${renderMasterBonusDetailHtml(team, r)}
+          ${renderMasterGrassBlockHtml(team)}
+        </div>
+      `;
+
+      // Click / keyboard toggles expansion. We track expand state in a
+      // Set so a re-render (Firestore snapshot, grass-answer change, etc.)
+      // doesn't snap open rows shut.
+      const head = row.querySelector(".master-row-head");
+      const toggle = () => {
+        if (masterExpanded.has(team.id)) {
+          masterExpanded.delete(team.id);
+          row.classList.remove("expanded");
+          head.setAttribute("aria-expanded", "false");
+        } else {
+          masterExpanded.add(team.id);
+          row.classList.add("expanded");
+          head.setAttribute("aria-expanded", "true");
+        }
+      };
+      head.addEventListener("click", toggle);
+      head.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggle();
+        }
+      });
+
+      list.appendChild(row);
+    });
+  }
+
+  // Builds the per-team scorecard table HTML — par / strokes / hole
+  // points / bonus row, plus a "Total" column on the right.
+  function renderMasterScorecardHtml(r, par) {
+    const team = r.team;
+    const strokesArr = Array.isArray(team.strokes) ? team.strokes : [];
+
+    const holeCols  = par.map((_, i) => `<th>${i+1}</th>`).join("");
+    const parCells  = par.map(p => `<td>${p == null ? "—" : p}</td>`).join("");
+    const parTotal  = par.reduce((a,b) => a + (b || 0), 0);
+
+    let strokesTotal = 0;
+    const strokesCells = par.map((p, i) => {
+      const s = strokesArr[i];
+      if (s == null) return `<td class="muted">—</td>`;
+      strokesTotal += s;
+      const diff = (p == null) ? 0 : (s - p);
+      let cls = "";
+      if (diff <= -1) cls = "birdie";
+      else if (diff === 1) cls = "bogey";
+      return `<td>${cls ? `<span class="${cls}">${s}</span>` : s}</td>`;
+    }).join("");
+
+    const pointsCells = par.map((p, i) => {
+      const s = strokesArr[i];
+      if (s == null || p == null) return `<td class="muted">—</td>`;
+      return `<td>+${pointsForHole(s, p)}</td>`;
+    }).join("");
+
+    // Bonus row: shown as a single "row total" cell spanning hole columns
+    // so the scorecard stays readable on a phone. The per-bonus breakdown
+    // is rendered as a list below the table.
+    const bonusCells = par.map(() => `<td class="muted">—</td>`).join("");
+
+    return `
+      <div class="master-scorecard-wrap">
+        <table class="master-scorecard">
+          <thead>
+            <tr><th>Hole</th>${holeCols}<th class="col-total">Tot</th></tr>
+          </thead>
+          <tbody>
+            <tr class="row-par"><th scope="row">Par</th>${parCells}<td class="col-total">${parTotal}</td></tr>
+            <tr class="row-strokes"><th scope="row">Strokes</th>${strokesCells}<td class="col-total">${strokesTotal || "—"}</td></tr>
+            <tr class="row-points"><th scope="row">Hole Pts</th>${pointsCells}<td class="col-total">+${r.holePointsTotal}</td></tr>
+            <tr class="row-bonus"><th scope="row">Bonus</th>${bonusCells}<td class="col-total">+${r.bonusTotal}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Breakdown of the team's bonusPoints array — labels + per-entry points
+  // — so the commissioner can verify the bonus totals at a glance.
+  function renderMasterBonusDetailHtml(team, r) {
+    const bonuses = (team.bonusPoints || []).filter(b => b && (b.label || b.points));
+    const items = bonuses.length
+      ? bonuses.map(b => `
+          <li>
+            <span class="bonus-pts">+${b.points || 0}</span>
+            <span>${escapeHtml(b.label || "(unlabeled bonus)")}</span>
+          </li>
+        `).join("")
+      : `<li class="empty">No bonus points recorded.</li>`;
+
+    return `
+      <div class="master-bonus-detail">
+        <h4>Bonus points · total +${r.bonusTotal}</h4>
+        <ul>${items}</ul>
+      </div>
+    `;
+  }
+
+  // Grass-guess result block: graded against the same correct answer the
+  // top-of-card dropdown sets. Three states: correct, wrong, no answer.
+  function renderMasterGrassBlockHtml(team) {
+    const guess = readGrassGuess(team);
+    if (!guess) {
+      return `
+        <div class="master-grass-block empty">
+          <div>
+            <h4>Guess the Grass</h4>
+            <div class="gg-line"><span class="none">Captain didn't submit a guess.</span></div>
+          </div>
+          <span class="gg-pill empty">No answer</span>
+        </div>
+      `;
+    }
+    if (guess === grassCorrect) {
+      return `
+        <div class="master-grass-block correct">
+          <div>
+            <h4>Guess the Grass</h4>
+            <div class="gg-line">Guess: <strong>${escapeHtml(guess)}</strong></div>
+          </div>
+          <span class="gg-pill">Correct</span>
+        </div>
+      `;
+    }
+    return `
+      <div class="master-grass-block incorrect">
+        <div>
+          <h4>Guess the Grass</h4>
+          <div class="gg-line">Guess: <strong>${escapeHtml(guess)}</strong> · Correct: <strong>${escapeHtml(grassCorrect)}</strong></div>
+        </div>
+        <span class="gg-pill">Wrong</span>
+      </div>
+    `;
+  }
+
   // Correct-answer dropdown: switching it just re-grades the existing
   // rows. We don't persist the choice — the commissioner keeps the page
   // open while everyone submits, so a localStorage round-trip would be
@@ -1851,6 +2319,10 @@
   $("grass-correct").addEventListener("change", (e) => {
     grassCorrect = e.target.value || GRASS_DEFAULT_CORRECT;
     renderGrassGuesses(currentTeams);
+    // Master Leaderboard grades the grass guess against the same answer,
+    // so it has to re-render too. Any open expanded rows stay open via
+    // the persisted expand state below.
+    renderMasterLeaderboard(currentTeams);
   });
 
   // Per-entry clears. Both use the same null-payload contract as the
