@@ -1077,15 +1077,12 @@
         </div>
 
         <p class="small-hint" style="margin-top: 8px;">
-          Type strokes into the Kicks row — Points and totals update live. Leave a cell blank to mark a hole as not played. Hit <strong>Save scores &amp; bonuses</strong> below to push your changes to the leaderboard.
+          Type strokes into the Kicks row — Points and totals update live. Leave a cell blank to mark a hole as not played. Hit <strong>Save scores</strong> below to push your changes to the leaderboard.
         </p>
 
-        <h3 style="margin-top: 20px;">Bonus points</h3>
-        <p class="small-hint">Manual bonuses for things like Closest-to-Pin or Guess the Grass. Captains don't enter these — only the commissioner does.</p>
-        <div id="bonus-list"></div>
-        <div class="btn-row">
-          <button id="add-bonus" class="btn btn-secondary" type="button">+ Add bonus row</button>
-        </div>
+        <p class="small-hint" style="margin-top: 12px;">
+          <strong>Bonus points are automatic.</strong> Guess the Grass, the hole 6 &amp; 8 birdie bonuses, and the Closest-to-Pin / Longest-Throw winners are computed from the data and added to each team's total on the leaderboards — no manual entry needed.
+        </p>
 
         <!-- Live read-out of what captains submitted on the special-question
              holes. Updates automatically as soon as a captain hits submit.
@@ -1116,7 +1113,7 @@
         </div>
 
         <div class="btn-row" style="margin-top: 18px;">
-          <button id="save-scores" class="btn btn-primary">Save scores &amp; bonuses</button>
+          <button id="save-scores" class="btn btn-primary">Save scores</button>
           <button id="delete-all-scores" class="btn btn-danger" type="button">Delete all scores</button>
         </div>
         <div id="scores-feedback" class="feedback hidden"></div>
@@ -1183,7 +1180,7 @@
   import {
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig,
-    onTeams, saveTeam, deleteTeam, setTeamStrokes, setTeamBonus,
+    onTeams, saveTeam, deleteTeam, setTeamStrokes,
     setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
     pointsForHole, computeTeamTotals
   } from "../js/firebase-init.js";
@@ -1876,7 +1873,6 @@
       const v = strokes[i];
       $("s-" + (i+1)).value = (Number.isFinite(v) ? v : "");
     }
-    renderBonusRows((t && t.bonusPoints) || []);
     renderScoreStatusFromTeam(t);
     renderSpecialEntries(t);
     // Par row + points row + OUT totals are derived from current inputs
@@ -2159,7 +2155,7 @@
     // Rank by total points (hole + bonus) high-to-low. Tie-breakers match
     // the live leaderboard: more holes done first, then earlier draft pick.
     const ranked = teams.map(t => {
-      const totals = computeTeamTotals(t, par);
+      const totals = computeTeamTotals(t, par, teams, currentConfig);
       return { team: t, ...totals };
     }).sort((a, b) => {
       if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
@@ -2279,7 +2275,7 @@
   // Breakdown of the team's bonusPoints array — labels + per-entry points
   // — so the commissioner can verify the bonus totals at a glance.
   function renderMasterBonusDetailHtml(team, r) {
-    const bonuses = (team.bonusPoints || []).filter(b => b && (b.label || b.points));
+    const bonuses = (r.bonuses || []).filter(b => b && (b.label || b.points));
     const items = bonuses.length
       ? bonuses.map(b => `
           <li>
@@ -2409,30 +2405,6 @@
     }
   });
 
-  function renderBonusRows(bonuses) {
-    const wrap = $("bonus-list");
-    wrap.innerHTML = "";
-    if (!bonuses.length) {
-      addBonusRow("", 0);
-    } else {
-      bonuses.forEach(b => addBonusRow(b.label || "", b.points || 0));
-    }
-  }
-
-  function addBonusRow(label, points) {
-    const row = document.createElement("div");
-    row.className = "bonus-row";
-    row.innerHTML = `
-      <input type="text" placeholder="e.g. Correct Guess the Grass" value="${escapeAttr(label)}">
-      <input type="number" placeholder="pts" value="${points}">
-      <button type="button" class="btn btn-secondary" style="padding: 8px 14px;">×</button>
-    `;
-    row.querySelector("button").addEventListener("click", () => row.remove());
-    $("bonus-list").appendChild(row);
-  }
-
-  $("add-bonus").addEventListener("click", () => addBonusRow("", 0));
-
   $("save-scores").addEventListener("click", async () => {
     if (!selectedTeamId) return;
     try {
@@ -2441,13 +2413,7 @@
         const v = $("s-" + (i+1)).value;
         strokes.push(v === "" ? null : Number(v));
       }
-      const bonusRows = Array.from(document.querySelectorAll("#bonus-list .bonus-row"));
-      const bonuses = bonusRows.map(r => {
-        const inputs = r.querySelectorAll("input");
-        return { label: inputs[0].value.trim(), points: Number(inputs[1].value) || 0 };
-      }).filter(b => b.label || b.points);
       await setTeamStrokes(selectedTeamId, strokes);
-      await setTeamBonus(selectedTeamId, bonuses);
       flash("scores-feedback", "Scores saved. Viewers updating now.", "ok");
     } catch (err) {
       flash("scores-feedback", err.message, "err");
@@ -2475,7 +2441,6 @@
       });
       // Clear the on-screen inputs immediately so the UI matches.
       for (let i = 1; i <= 9; i++) $("s-" + i).value = "";
-      renderBonusRows([]);
       // Re-render the special panel from the wiped data shape so the
       // commissioner sees the cleared state without waiting for the
       // round-trip onTeams snapshot.

@@ -359,7 +359,7 @@
     // Bonus points always count toward the score; bonusVisible only controls
     // whether the bonus breakdown section is shown in the expanded scorecard.
     const rows = currentTeams.map(t => {
-      const totals = computeTeamTotals(t, par);
+      const totals = computeTeamTotals(t, par, currentTeams, currentConfig);
       return {
         team: t,
         ...totals,
@@ -444,7 +444,7 @@
         return `<td${isCur ? ' class="current"' : ''}>+${pts}</td>`;
       }).join("");
 
-      const bonusList = (r.team.bonusPoints || [])
+      const bonusList = (r.bonuses || [])
         .filter(b => b.label || b.points)
         .map(b => `<li><span class="bonus-pts">+${b.points || 0}</span> ${escapeHtml(b.label || "")}</li>`)
         .join("");

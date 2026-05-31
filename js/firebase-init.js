@@ -331,36 +331,147 @@ export async function setTeamGrassGuess(teamId, payload) {
 
 // -------------------------------------------------------------
 // 6. SCORING MATH — modified Stableford, high score wins.
-//    Default points (matches rules.html intent — confirm with
-//    Dillon if values need tweaking):
-//      eagle or better : +8
-//      birdie          : +5
-//      par             : +2
-//      bogey           : +1
-//      double+         :  0
+//    Point values mirror the Rules & Scoring page exactly:
+//      hole-in-one / albatross : +20
+//      eagle                   : +10
+//      birdie                  : +5
+//      par                     : +2
+//      bogey                   : +1
+//      double bogey or worse   :  0
+//    A hole-in-one (1 stroke) always scores +20, even on a par 3
+//    where by stroke-count it would only be an eagle.
 // -------------------------------------------------------------
 export const STABLEFORD_POINTS = {
-  eaglePlus: 8,
-  birdie:    5,
-  par:       2,
-  bogey:     1,
+  holeInOneOrAlbatross: 20,
+  eagle:      10,
+  birdie:     5,
+  par:        2,
+  bogey:      1,
   doublePlus: 0
 };
 
 export function pointsForHole(strokes, par) {
   if (strokes == null || par == null) return null;
+  if (strokes === 1) return STABLEFORD_POINTS.holeInOneOrAlbatross; // ace always +20
   const diff = strokes - par;
-  if (diff <= -2) return STABLEFORD_POINTS.eaglePlus;
+  if (diff <= -3) return STABLEFORD_POINTS.holeInOneOrAlbatross;    // albatross or better
+  if (diff === -2) return STABLEFORD_POINTS.eagle;
   if (diff === -1) return STABLEFORD_POINTS.birdie;
   if (diff === 0)  return STABLEFORD_POINTS.par;
   if (diff === 1)  return STABLEFORD_POINTS.bogey;
   return STABLEFORD_POINTS.doublePlus;
 }
 
-/** Compute team totals from raw strokes + course par + bonuses. */
-export function computeTeamTotals(team, coursePar) {
+// -------------------------------------------------------------
+// 6b. AUTOMATIC BONUS POINTS — computed from the data, never typed
+//     in by hand. Mirrors the Bonus Points block on the Rules page:
+//       Closest to the Pin (#8) winner ... +1
+//       Longest Throw-In   (#5) winner ... +1
+//       Birdie on hole 8 (Opposite Leg Day) ... +2
+//       Birdie on hole 6 (aGitATING) ... +3 (eagle or better doubles → +6)
+//       Guess the Grass correct ... +3
+//     Holes are 1-indexed in the rules, 0-indexed in the strokes array.
+// -------------------------------------------------------------
+export const BONUS_RULES = {
+  hole6Idx: 5,           // The aGitATING Hole (#6)
+  hole6Birdie: 3,        // eagle or better counts double
+  hole8Idx: 7,           // Opposite Leg Day (#8)
+  hole8Birdie: 2,
+  closestToPin: 1,       // hole 8 winner
+  longestThrow: 1,       // hole 5 winner
+  grass: 3
+};
+
+/** Firestore Timestamp (or local placeholder) → millis. Mirrors the
+ *  leaderboard's toMillis so the bonus winner matches the displayed #1. */
+function bonusTsToMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === "function") return ts.toMillis();
+  if (typeof ts.seconds === "number")    return ts.seconds * 1000;
+  if (typeof ts === "number")            return ts;
+  return 0;
+}
+
+/** Team id holding the current Longest Throw-In (#5) — the newest valid
+ *  "thrown farther" submission, matching the live leaderboard's ordering. */
+export function farthestThrowWinnerId(allTeams) {
+  let bestId = null, bestMs = -Infinity;
+  (allTeams || []).forEach(t => {
+    const ft = t.farthestThrow;
+    if (ft && ft.thrownFarther === true && ft.thrower) {
+      const ms = bonusTsToMillis(ft.submittedAt);
+      if (ms > bestMs) { bestMs = ms; bestId = t.id; }
+    }
+  });
+  return bestId;
+}
+
+/** Team id holding the current Closest to the Pin (#8) — newest valid
+ *  beat-the-marker submission, matching the live leaderboard's ordering. */
+export function closestToPinWinnerId(allTeams) {
+  let bestId = null, bestMs = -Infinity;
+  (allTeams || []).forEach(t => {
+    const cp = t.closestToPin;
+    if (cp && cp.closerThanMarker === true && cp.player && Number.isFinite(cp.inches)) {
+      const ms = bonusTsToMillis(cp.submittedAt);
+      if (ms > bestMs) { bestMs = ms; bestId = t.id; }
+    }
+  });
+  return bestId;
+}
+
+/** Build a team's automatic bonus breakdown as [{ label, points }].
+ *  Needs the full team list (to pick the single CTP / throw winner) and
+ *  the event config (for the correct grass answer). */
+export function computeAutoBonuses(team, coursePar, allTeams, config) {
+  const out = [];
   const strokes = team.strokes || [];
-  const bonuses = team.bonusPoints || [];
+  const par = coursePar || [];
+  const cfg = config || {};
+
+  // Birdie on hole 6 — eagle or better counts double.
+  const s6 = strokes[BONUS_RULES.hole6Idx];
+  const p6 = par[BONUS_RULES.hole6Idx];
+  if (s6 != null && p6 != null) {
+    const diff6 = (s6 === 1) ? -99 : s6 - p6; // ace counts as eagle-or-better
+    if (diff6 <= -2)       out.push({ label: "Hole 6 eagle or better (counts double)", points: BONUS_RULES.hole6Birdie * 2 });
+    else if (diff6 === -1) out.push({ label: "Birdie on Hole 6", points: BONUS_RULES.hole6Birdie });
+  }
+
+  // Birdie (or better) on hole 8.
+  const s8 = strokes[BONUS_RULES.hole8Idx];
+  const p8 = par[BONUS_RULES.hole8Idx];
+  if (s8 != null && p8 != null) {
+    const diff8 = (s8 === 1) ? -99 : s8 - p8;
+    if (diff8 <= -2)       out.push({ label: "Eagle on Hole 8", points: BONUS_RULES.hole8Birdie });
+    else if (diff8 === -1) out.push({ label: "Birdie on Hole 8", points: BONUS_RULES.hole8Birdie });
+  }
+
+  // Longest Throw-In (#5) — single overall winner.
+  if (team.id && farthestThrowWinnerId(allTeams) === team.id) {
+    out.push({ label: "Longest Throw-In (Hole 5)", points: BONUS_RULES.longestThrow });
+  }
+
+  // Closest to the Pin (#8) — single overall winner.
+  if (team.id && closestToPinWinnerId(allTeams) === team.id) {
+    out.push({ label: "Closest to the Pin (Hole 8)", points: BONUS_RULES.closestToPin });
+  }
+
+  // Guess the Grass — correct answer matches the commissioner's pick.
+  const guess = team.grassGuess && team.grassGuess.guess;
+  if (guess && cfg.grassCorrect && guess === cfg.grassCorrect) {
+    out.push({ label: "Guess the Grass", points: BONUS_RULES.grass });
+  }
+
+  return out;
+}
+
+/** Compute team totals from raw strokes + course par + automatic bonuses.
+ *  `allTeams` and `config` let the bonus math pick the single CTP / throw
+ *  winner and grade the grass guess; both are optional so older callers
+ *  that only pass (team, coursePar) still get hole points back. */
+export function computeTeamTotals(team, coursePar, allTeams, config) {
+  const strokes = team.strokes || [];
   let totalPoints = 0;
   let holesCompleted = 0;
   const perHolePoints = strokes.map((s, i) => {
@@ -371,10 +482,12 @@ export function computeTeamTotals(team, coursePar) {
     }
     return pts;
   });
+  const bonuses = computeAutoBonuses(team, coursePar, allTeams || [], config || {});
   const bonusTotal = bonuses.reduce((sum, b) => sum + (b.points || 0), 0);
   return {
     perHolePoints,
     holePointsTotal: totalPoints,
+    bonuses,
     bonusTotal,
     totalPoints: totalPoints + bonusTotal,
     holesCompleted
