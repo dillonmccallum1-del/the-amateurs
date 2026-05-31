@@ -1132,12 +1132,16 @@
 
       <label for="grass-correct">Correct answer</label>
       <select id="grass-correct">
+        <option value="" selected>— Select to change —</option>
         <option value="Seashore Paspalum">Seashore Paspalum</option>
         <option value="Hybrid Bermudagrass">Hybrid Bermudagrass</option>
-        <option value="Kentucky Bluegrass" selected>Kentucky Bluegrass</option>
+        <option value="Kentucky Bluegrass">Kentucky Bluegrass</option>
         <option value="Dallisgrass">Dallisgrass</option>
       </select>
-      <p class="small-hint">Used to grade the table below. Defaults to Kentucky Bluegrass.</p>
+      <div class="btn-row" style="margin-top: 10px;">
+        <button id="grass-save" type="button" class="btn btn-primary">Save correct answer</button>
+      </div>
+      <p class="small-hint">The saved answer is hidden on purpose — the box always opens blank. Only pick + Save if you want to change it. Grades stay masked until Event status is set to Final.</p>
 
       <h3 style="margin-top: 18px;">Team answers</h3>
       <div id="grass-list" class="team-list"></div>
@@ -1192,10 +1196,11 @@
     "Kentucky Bluegrass",
     "Dallisgrass"
   ];
-  // Default answer used to grade the table. The commissioner can override
-  // it via the dropdown above the list; we re-render whenever it changes.
-  const GRASS_DEFAULT_CORRECT = "Kentucky Bluegrass";
-  let grassCorrect = GRASS_DEFAULT_CORRECT;
+  // Correct answer used to grade the table. It's persisted in the event
+  // config (cfg.grassCorrect) so it survives refresh and is shared with the
+  // co-commissioner — but it's deliberately NOT shown in the dropdown, which
+  // always opens blank so the answer stays hidden. Empty = not set yet.
+  let grassCorrect = "";
 
   // ----- Element refs
   const $ = (id) => document.getElementById(id);
@@ -1249,6 +1254,12 @@
     onEventConfig((cfg) => {
       currentConfig = cfg || defaultConfig();
       fillConfigForm(currentConfig);
+      // Pull the saved grass answer in for grading, but never push it into
+      // the dropdown — the box stays blank so the answer isn't revealed.
+      grassCorrect = (currentConfig && currentConfig.grassCorrect) || "";
+      // Status (final vs not) controls whether grass grades are unmasked,
+      // so re-render the grass list whenever the config changes too.
+      renderGrassGuesses(currentTeams);
       // Master Leaderboard depends on both the event status (final vs
       // not) and coursePar (for hole-point math), so re-render whenever
       // the event config changes.
@@ -2041,6 +2052,11 @@
       list.innerHTML = `<div class="grass-empty-state">No teams set up yet.</div>`;
       return;
     }
+    // Grades (correct/wrong) stay masked until the event is Final, mirroring
+    // the Master Leaderboard. Before then we show each captain's guess with a
+    // neutral pill so nothing reveals the correct answer.
+    const gradesVisible = !!(currentConfig && currentConfig.status === "final");
+
     teams.forEach(team => {
       const guess = readGrassGuess(team);
       const submittedAt = readGrassSubmittedAt(team);
@@ -2052,6 +2068,12 @@
         pillKind = "empty";
         pillText = "No answer";
         guessHtml = `<span class="none">Captain hasn't submitted yet.</span>`;
+      } else if (!gradesVisible) {
+        // Has a guess, but grading is masked until Final.
+        kind = "";
+        pillKind = "empty";
+        pillText = "Submitted";
+        guessHtml = `Guess: <strong>${escapeHtml(guess)}</strong>`;
       } else if (guess === grassCorrect) {
         kind = "correct";
         pillKind = "correct";
@@ -2312,17 +2334,27 @@
     `;
   }
 
-  // Correct-answer dropdown: switching it just re-grades the existing
-  // rows. We don't persist the choice — the commissioner keeps the page
-  // open while everyone submits, so a localStorage round-trip would be
-  // overkill. If they refresh, it resets to "Kentucky Bluegrass".
-  $("grass-correct").addEventListener("change", (e) => {
-    grassCorrect = e.target.value || GRASS_DEFAULT_CORRECT;
-    renderGrassGuesses(currentTeams);
-    // Master Leaderboard grades the grass guess against the same answer,
-    // so it has to re-render too. Any open expanded rows stay open via
-    // the persisted expand state below.
-    renderMasterLeaderboard(currentTeams);
+  // Save the correct answer to the event config. The dropdown opens blank
+  // and we keep it that way — picking a value + Save is the only way to
+  // change the stored answer, and nothing on the page reveals what it is.
+  $("grass-save").addEventListener("click", async () => {
+    const sel = $("grass-correct");
+    const value = sel.value;
+    if (!value) {
+      flash("grass-feedback", "Pick a grass variety first, then Save.", "err");
+      return;
+    }
+    try {
+      await updateEventConfig({ grassCorrect: value });
+      grassCorrect = value;
+      // Reset the dropdown back to blank so the saved answer stays hidden.
+      sel.value = "";
+      flash("grass-feedback", "Correct answer saved. It's hidden, and grading stays masked until Final.", "ok");
+      renderGrassGuesses(currentTeams);
+      renderMasterLeaderboard(currentTeams);
+    } catch (err) {
+      flash("grass-feedback", err.message, "err");
+    }
   });
 
   // Per-entry clears. Both use the same null-payload contract as the
