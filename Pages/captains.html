@@ -1683,6 +1683,9 @@
     hide('ov-btn-back-menu'); hide('ov-btn-home');
 
     if (finalLocked) {
+      // Scorecard is submitted & locked. Offer a way back to the team menu
+      // (the screen they land on right after signing in) as well as home.
+      btnBackMenu.classList.remove('hidden');
       btnHome.classList.remove('hidden');
       hint.textContent = '';
       hint.className   = 'ov-action-hint';

@@ -353,17 +353,17 @@
     const par = currentConfig.coursePar || [3,3,3,3,3,3,3,3,3];
     const numHoles = par.length;
 
-    const bonusVisible = currentConfig.bonusVisible === true;
-
-    // Compute totals + sort high-to-low (Stableford: high wins)
-    // Bonus points always count toward the score; bonusVisible only controls
-    // whether the bonus breakdown section is shown in the expanded scorecard.
+    // Compute totals + sort high-to-low (Stableford: high wins).
+    // The PUBLIC live leaderboard intentionally shows ONLY the 9-hole
+    // Stableford score — bonus points are withheld here to keep the
+    // suspense until the winners are announced. The full total (holes +
+    // bonuses) lives on the admin Master Leaderboard.
     const rows = currentTeams.map(t => {
       const totals = computeTeamTotals(t, par, currentTeams, currentConfig);
       return {
         team: t,
         ...totals,
-        displayPoints: totals.totalPoints
+        displayPoints: totals.holePointsTotal
       };
     }).sort((a, b) => {
       if (b.displayPoints !== a.displayPoints) return b.displayPoints - a.displayPoints;
@@ -444,11 +444,6 @@
         return `<td${isCur ? ' class="current"' : ''}>+${pts}</td>`;
       }).join("");
 
-      const bonusList = (r.bonuses || [])
-        .filter(b => b.label || b.points)
-        .map(b => `<li><span class="bonus-pts">+${b.points || 0}</span> ${escapeHtml(b.label || "")}</li>`)
-        .join("");
-
       sc.innerHTML = `
         <table class="scorecard-table">
           <thead>
@@ -460,15 +455,6 @@
             <tr class="row-points"><th>Pts</th>${pointsRow}<td>+${r.holePointsTotal}</td></tr>
           </tbody>
         </table>
-        ${bonusVisible ? `
-          <div class="scorecard-bonus">
-            <h4>Bonus Points</h4>
-            <ul class="bonus-list">${bonusList || '<li class="small-hint">None yet.</li>'}</ul>
-            <div class="scorecard-total">
-              <span>Final Total</span>
-              <span class="final-pts">+${r.totalPoints}</span>
-            </div>
-          </div>` : ""}
       `;
       rowsWrap.appendChild(sc);
 
