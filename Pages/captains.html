@@ -1779,7 +1779,8 @@
       if (par != null) {
         const diff = n - par;
         if (n === 1 && par > 1) subLabel = 'Hole-in-one';
-        else if (diff <= -2) subLabel = 'Eagle';
+        else if (diff <= -3) subLabel = 'Albatross';
+        else if (diff === -2) subLabel = 'Eagle';
         else if (diff === -1) subLabel = 'Birdie';
         else if (diff === 0)  subLabel = 'Par';
         else if (diff === 1)  subLabel = 'Bogey';

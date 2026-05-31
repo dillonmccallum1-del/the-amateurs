@@ -429,13 +429,14 @@ export function computeAutoBonuses(team, coursePar, allTeams, config) {
   const par = coursePar || [];
   const cfg = config || {};
 
-  // Birdie on hole 6 — eagle or better counts double.
+  // Birdie on hole 6 — eagle or better counts double. Tagged hole: 6 so
+  // the scorecard can drop it in the Bonus row under that hole's column.
   const s6 = strokes[BONUS_RULES.hole6Idx];
   const p6 = par[BONUS_RULES.hole6Idx];
   if (s6 != null && p6 != null) {
     const diff6 = (s6 === 1) ? -99 : s6 - p6; // ace counts as eagle-or-better
-    if (diff6 <= -2)       out.push({ label: "Hole 6 eagle or better (counts double)", points: BONUS_RULES.hole6Birdie * 2 });
-    else if (diff6 === -1) out.push({ label: "Birdie on Hole 6", points: BONUS_RULES.hole6Birdie });
+    if (diff6 <= -2)       out.push({ label: "Hole 6 eagle or better (counts double)", points: BONUS_RULES.hole6Birdie * 2, hole: 6 });
+    else if (diff6 === -1) out.push({ label: "Birdie on Hole 6", points: BONUS_RULES.hole6Birdie, hole: 6 });
   }
 
   // Birdie (or better) on hole 8.
@@ -443,24 +444,25 @@ export function computeAutoBonuses(team, coursePar, allTeams, config) {
   const p8 = par[BONUS_RULES.hole8Idx];
   if (s8 != null && p8 != null) {
     const diff8 = (s8 === 1) ? -99 : s8 - p8;
-    if (diff8 <= -2)       out.push({ label: "Eagle on Hole 8", points: BONUS_RULES.hole8Birdie });
-    else if (diff8 === -1) out.push({ label: "Birdie on Hole 8", points: BONUS_RULES.hole8Birdie });
+    if (diff8 <= -2)       out.push({ label: "Eagle on Hole 8", points: BONUS_RULES.hole8Birdie, hole: 8 });
+    else if (diff8 === -1) out.push({ label: "Birdie on Hole 8", points: BONUS_RULES.hole8Birdie, hole: 8 });
   }
 
   // Longest Throw-In (#5) — single overall winner.
   if (team.id && farthestThrowWinnerId(allTeams) === team.id) {
-    out.push({ label: "Longest Throw-In (Hole 5)", points: BONUS_RULES.longestThrow });
+    out.push({ label: "Longest Throw-In (Hole 5)", points: BONUS_RULES.longestThrow, hole: 5 });
   }
 
   // Closest to the Pin (#8) — single overall winner.
   if (team.id && closestToPinWinnerId(allTeams) === team.id) {
-    out.push({ label: "Closest to the Pin (Hole 8)", points: BONUS_RULES.closestToPin });
+    out.push({ label: "Closest to the Pin (Hole 8)", points: BONUS_RULES.closestToPin, hole: 8 });
   }
 
-  // Guess the Grass — correct answer matches the commissioner's pick.
+  // Guess the Grass — correct answer matches the commissioner's pick. Not
+  // tied to a hole (hole: null), so it shows in the bonus box, not the row.
   const guess = team.grassGuess && team.grassGuess.guess;
   if (guess && cfg.grassCorrect && guess === cfg.grassCorrect) {
-    out.push({ label: "Guess the Grass", points: BONUS_RULES.grass });
+    out.push({ label: "Guess the Grass", points: BONUS_RULES.grass, hole: null });
   }
 
   return out;

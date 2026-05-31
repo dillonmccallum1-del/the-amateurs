@@ -1138,10 +1138,7 @@
       <div class="btn-row" style="margin-top: 10px;">
         <button id="grass-save" type="button" class="btn btn-primary">Save correct answer</button>
       </div>
-      <p class="small-hint">The saved answer is hidden on purpose — the box always opens blank. Only pick + Save if you want to change it. Grades stay masked until Event status is set to Final.</p>
-
-      <h3 style="margin-top: 18px;">Team answers</h3>
-      <div id="grass-list" class="team-list"></div>
+      <p class="small-hint">The saved answer is hidden on purpose — the box always opens blank. Only pick + Save if you want to change it. Each team's guess and its grade now appear on the Master Leaderboard below.</p>
       <div id="grass-feedback" class="feedback hidden"></div>
     </div>
 
@@ -1254,9 +1251,6 @@
       // Pull the saved grass answer in for grading, but never push it into
       // the dropdown — the box stays blank so the answer isn't revealed.
       grassCorrect = (currentConfig && currentConfig.grassCorrect) || "";
-      // Status (final vs not) controls whether grass grades are unmasked,
-      // so re-render the grass list whenever the config changes too.
-      renderGrassGuesses(currentTeams);
       // Master Leaderboard depends on both the event status (final vs
       // not) and coursePar (for hole-point math), so re-render whenever
       // the event config changes.
@@ -1267,10 +1261,6 @@
       currentTeams = teams;
       renderTeamList(teams);
       refreshScoreTeamDropdown(teams);
-      // Grass-guess panel is global (all teams at once) so we always
-      // rerender from the latest snapshot, regardless of which team
-      // is selected for scoring.
-      renderGrassGuesses(teams);
       // Master Leaderboard pulls everything off the team docs (strokes,
       // bonusPoints, grassGuess) so it needs to refresh on every team
       // update too.
@@ -2040,82 +2030,6 @@
   // Each row shows: team name, the captain's guess, a right/wrong pill,
   // the submission time, and a Clear button so the commissioner can wipe
   // a single entry without touching anything else.
-  function renderGrassGuesses(teams) {
-    const list = $("grass-list");
-    if (!list) return;
-    list.innerHTML = "";
-    if (!teams || !teams.length) {
-      list.innerHTML = `<div class="grass-empty-state">No teams set up yet.</div>`;
-      return;
-    }
-    // Grades (correct/wrong) stay masked until the event is Final, mirroring
-    // the Master Leaderboard. Before then we show each captain's guess with a
-    // neutral pill so nothing reveals the correct answer.
-    const gradesVisible = !!(currentConfig && currentConfig.status === "final");
-
-    teams.forEach(team => {
-      const guess = readGrassGuess(team);
-      const submittedAt = readGrassSubmittedAt(team);
-      const row = document.createElement("div");
-
-      let kind, pillKind, pillText, guessHtml;
-      if (!guess) {
-        kind = "empty";
-        pillKind = "empty";
-        pillText = "No answer";
-        guessHtml = `<span class="none">Captain hasn't submitted yet.</span>`;
-      } else if (!gradesVisible) {
-        // Has a guess, but grading is masked until Final.
-        kind = "";
-        pillKind = "empty";
-        pillText = "Submitted";
-        guessHtml = `Guess: <strong>${escapeHtml(guess)}</strong>`;
-      } else if (guess === grassCorrect) {
-        kind = "correct";
-        pillKind = "correct";
-        pillText = "Correct";
-        guessHtml = `Guess: <strong>${escapeHtml(guess)}</strong>`;
-      } else {
-        kind = "incorrect";
-        pillKind = "incorrect";
-        pillText = "Wrong";
-        guessHtml = `Guess: <strong>${escapeHtml(guess)}</strong>`;
-      }
-
-      row.className = "grass-row " + kind;
-      row.innerHTML = `
-        <div class="meta">
-          <div class="team-name">${escapeHtml(team.name || team.id)}</div>
-          <div class="guess">${guessHtml}</div>
-          ${submittedAt ? `<div class="submitted-at">Submitted ${escapeHtml(formatRelativeTime(submittedAt))}</div>` : ""}
-        </div>
-        <div class="grass-actions">
-          <span class="grass-pill ${pillKind}">${pillText}</span>
-          ${guess ? `<button type="button" class="btn btn-secondary grass-clear" data-team="${escapeAttr(team.id)}">Clear</button>` : ""}
-        </div>
-      `;
-      list.appendChild(row);
-    });
-
-    // Per-row Clear buttons. Wipes only this team's grass entry via the
-    // same null-payload contract the captain helpers use.
-    list.querySelectorAll(".grass-clear").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const teamId = btn.dataset.team;
-        if (!teamId) return;
-        const t = currentTeams.find(x => x.id === teamId);
-        const name = (t && t.name) || teamId;
-        if (!confirm(`Clear ${name}'s grass guess?`)) return;
-        try {
-          await setTeamGrassGuess(teamId, null);
-          flash("grass-feedback", `Cleared ${name}'s grass guess.`, "ok");
-        } catch (err) {
-          flash("grass-feedback", err.message, "err");
-        }
-      });
-    });
-  }
-
   // ----- Master Leaderboard -----
   // Persisted across re-renders so re-clicking a team that auto-collapsed
   // (e.g. after a Firestore snapshot) restores its expanded state. Keyed
@@ -2250,10 +2164,19 @@
       return `<td>+${pointsForHole(s, p)}</td>`;
     }).join("");
 
-    // Bonus row: shown as a single "row total" cell spanning hole columns
-    // so the scorecard stays readable on a phone. The per-bonus breakdown
-    // is rendered as a list below the table.
-    const bonusCells = par.map(() => `<td class="muted">—</td>`).join("");
+    // Bonus row: hole-specific bonuses (throw, birdie, closest-to-pin) sit
+    // under their own hole column. Non-hole bonuses (Guess the Grass) are
+    // left out here and shown in the breakdown box below instead.
+    const bonusByHole = {};
+    (r.bonuses || []).forEach(b => {
+      if (b && b.hole != null) {
+        bonusByHole[b.hole] = (bonusByHole[b.hole] || 0) + (b.points || 0);
+      }
+    });
+    const bonusCells = par.map((_, i) => {
+      const pts = bonusByHole[i + 1];
+      return pts ? `<td>+${pts}</td>` : `<td class="muted">—</td>`;
+    }).join("");
 
     return `
       <div class="master-scorecard-wrap">
@@ -2275,7 +2198,11 @@
   // Breakdown of the team's bonusPoints array — labels + per-entry points
   // — so the commissioner can verify the bonus totals at a glance.
   function renderMasterBonusDetailHtml(team, r) {
-    const bonuses = (r.bonuses || []).filter(b => b && (b.label || b.points));
+    // Hole-specific bonuses live in the scorecard's Bonus row above. This
+    // box only carries off-course bonuses not tied to a hole (Guess the
+    // Grass), so the two displays don't repeat the same points.
+    const bonuses = (r.bonuses || []).filter(b => b && b.hole == null && (b.label || b.points));
+    const subtotal = bonuses.reduce((sum, b) => sum + (b.points || 0), 0);
     const items = bonuses.length
       ? bonuses.map(b => `
           <li>
@@ -2283,11 +2210,11 @@
             <span>${escapeHtml(b.label || "(unlabeled bonus)")}</span>
           </li>
         `).join("")
-      : `<li class="empty">No bonus points recorded.</li>`;
+      : `<li class="empty">No off-course bonus points.</li>`;
 
     return `
       <div class="master-bonus-detail">
-        <h4>Bonus points · total +${r.bonusTotal}</h4>
+        <h4>Other bonus points · total +${subtotal}</h4>
         <ul>${items}</ul>
       </div>
     `;
@@ -2346,7 +2273,6 @@
       // Reset the dropdown back to blank so the saved answer stays hidden.
       sel.value = "";
       flash("grass-feedback", "Correct answer saved. It's hidden, and grading stays masked until Final.", "ok");
-      renderGrassGuesses(currentTeams);
       renderMasterLeaderboard(currentTeams);
     } catch (err) {
       flash("grass-feedback", err.message, "err");
