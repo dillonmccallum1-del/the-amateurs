@@ -1137,6 +1137,7 @@
       </select>
       <div class="btn-row" style="margin-top: 10px;">
         <button id="grass-save" type="button" class="btn btn-primary">Save correct answer</button>
+        <button id="grass-delete-all" type="button" class="btn btn-danger">Delete all guesses</button>
       </div>
       <p class="small-hint">The saved answer is hidden on purpose — the box always opens blank. Only pick + Save if you want to change it. Each team's guess and its grade now appear on the Master Leaderboard below.</p>
       <div id="grass-feedback" class="feedback hidden"></div>
@@ -2274,6 +2275,26 @@
       sel.value = "";
       flash("grass-feedback", "Correct answer saved. It's hidden, and grading stays masked until Final.", "ok");
       renderMasterLeaderboard(currentTeams);
+    } catch (err) {
+      flash("grass-feedback", err.message, "err");
+    }
+  });
+
+  // Wipe every team's Guess the Grass answer in one shot. Uses the same
+  // null-payload contract as the captain helper, looped across all teams.
+  // The saved correct answer is left untouched.
+  $("grass-delete-all").addEventListener("click", async () => {
+    const withGuesses = currentTeams.filter(t => readGrassGuess(t));
+    if (!withGuesses.length) {
+      flash("grass-feedback", "No grass guesses to delete.", "err");
+      return;
+    }
+    if (!confirm(`Delete ALL ${withGuesses.length} Guess the Grass answer(s)?\n\nThis clears every team's guess so captains can re-submit. The correct answer is kept. Can't be undone.`)) {
+      return;
+    }
+    try {
+      await Promise.all(withGuesses.map(t => setTeamGrassGuess(t.id, null)));
+      flash("grass-feedback", `Cleared ${withGuesses.length} grass guess(es). Captains can re-submit.`, "ok");
     } catch (err) {
       flash("grass-feedback", err.message, "err");
     }
