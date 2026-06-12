@@ -29,7 +29,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ⬇️ PASTE YOUR VAPID KEY HERE (long string starting with "B...")
-const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE";
+const VAPID_KEY = "BERU2Ea5R-f-0P2QaXZacOGrCefLNOML2MSBIXmfPwUeiwV-t6bdeuqChyBeOPEGQz_DqHUKXWigZxxSKLW8hTw";
 
 /** What can this device do right now?
  *  Returns one of:
