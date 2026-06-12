@@ -233,19 +233,23 @@
   const btn  = document.getElementById("notify-btn");
 
   const status = await pushStatus();
-  if (status !== "unsupported") card.style.display = "block";
 
-  if (status === "needs-install") {
+  if (status === "granted") {
+    // Already subscribed — keep the card hidden entirely, just quietly
+    // refresh this device's token in the background.
+    refreshPushToken();
+  } else if (status === "unsupported") {
+    // Browser can't do push — leave the card hidden.
+  } else if (status === "needs-install") {
+    card.style.display = "block";
     msg.innerHTML = "To get tournament alerts on iPhone: tap <strong>Share</strong> &rarr; <strong>Add to Home Screen</strong>, then open the app and come back here.";
     btn.style.display = "none";
   } else if (status === "denied") {
+    card.style.display = "block";
     msg.textContent = "Notifications are blocked for this app. Enable them in your phone's Settings to get tournament alerts.";
     btn.style.display = "none";
-  } else if (status === "granted") {
-    msg.textContent = "You're all set — tournament alerts are on for this device. ⛳";
-    btn.style.display = "none";
-    refreshPushToken(); // keep the token fresh in the background
   } else {
+    card.style.display = "block";
     btn.addEventListener("click", async () => {
       btn.disabled = true;
       btn.textContent = "Setting up…";
@@ -253,6 +257,8 @@
         await enablePush();
         msg.textContent = "You're all set — tournament alerts are on for this device. ⛳";
         btn.style.display = "none";
+        // Tuck the card away after a moment — it stays hidden on future visits.
+        setTimeout(() => { card.style.display = "none"; }, 4000);
       } catch (err) {
         msg.textContent = err.message || "Something went wrong — try again.";
         btn.disabled = false;
