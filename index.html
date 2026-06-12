@@ -93,6 +93,33 @@
   </div>
 </section>
 
+<!-- ===== PUSH NOTIFICATIONS OPT-IN ===== -->
+<section class="content">
+  <div class="notify-card" id="notify-card" style="display:none;">
+    <div class="notify-card-title">&#128276; Tournament Alerts</div>
+    <p class="notify-card-body" id="notify-msg">Get notified about tee times, score updates, and announcements.</p>
+    <button class="notify-btn" id="notify-btn" type="button">Enable notifications</button>
+  </div>
+</section>
+<style>
+  .notify-card {
+    background: var(--white, #fff); border-radius: 12px; padding: 20px 22px;
+    border: 1px solid rgba(15,89,40,0.12); box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  .notify-card-title {
+    font-weight: 700; font-size: 18px; color: var(--green-dark, #0f5928);
+    margin-bottom: 6px;
+  }
+  .notify-card-body { font-size: 15px; color: #555; margin-bottom: 14px; }
+  .notify-btn {
+    background: var(--green-dark, #0f5928); color: var(--yellow, #ffd700);
+    border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .notify-btn:disabled { opacity: 0.6; cursor: default; }
+</style>
+
 <!-- ===== DEFENDING CHAMPIONS ===== -->
 <section class="content">
   <h2 class="section-title">Defending Champions</h2>
@@ -193,6 +220,44 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+
+<script type="module">
+  // ----- Push notification opt-in card
+  import { pushStatus, enablePush, refreshPushToken } from "./js/push.js";
+
+  const card = document.getElementById("notify-card");
+  const msg  = document.getElementById("notify-msg");
+  const btn  = document.getElementById("notify-btn");
+
+  const status = await pushStatus();
+  if (status !== "unsupported") card.style.display = "block";
+
+  if (status === "needs-install") {
+    msg.innerHTML = "To get tournament alerts on iPhone: tap <strong>Share</strong> &rarr; <strong>Add to Home Screen</strong>, then open the app and come back here.";
+    btn.style.display = "none";
+  } else if (status === "denied") {
+    msg.textContent = "Notifications are blocked for this app. Enable them in your phone's Settings to get tournament alerts.";
+    btn.style.display = "none";
+  } else if (status === "granted") {
+    msg.textContent = "You're all set — tournament alerts are on for this device. ⛳";
+    btn.style.display = "none";
+    refreshPushToken(); // keep the token fresh in the background
+  } else {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Setting up…";
+      try {
+        await enablePush();
+        msg.textContent = "You're all set — tournament alerts are on for this device. ⛳";
+        btn.style.display = "none";
+      } catch (err) {
+        msg.textContent = err.message || "Something went wrong — try again.";
+        btn.disabled = false;
+        btn.textContent = "Enable notifications";
+      }
     });
   }
 </script>

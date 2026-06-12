@@ -1,0 +1,9 @@
+{
+  "name": "amateurs-push-sender",
+  "private": true,
+  "type": "module",
+  "description": "Sends queued push notifications via Firebase Cloud Messaging. Run by .github/workflows/send-push.yml.",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

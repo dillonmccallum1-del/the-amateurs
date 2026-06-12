@@ -11,7 +11,7 @@
 //     cache automatically. Users don't have to do anything.
 // =============================================================
 
-const CACHE_VERSION = "amateurs-v8.3.4";  // ← bump on every meaningful release
+const CACHE_VERSION = "amateurs-v8.4.0";  // ← bump on every meaningful release
 const SHELL_FILES = [
   "./",
   "./index.html",
@@ -23,6 +23,7 @@ const SHELL_FILES = [
   "./Pages/admin.html",
   "./Pages/styles.css",
   "./js/firebase-init.js",
+  "./js/push.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -90,6 +91,52 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_VERSION).then(c => c.put(req, copy));
         return res;
       }).catch(() => cached);
+    })
+  );
+});
+
+// =============================================================
+// PUSH NOTIFICATIONS
+// -------------------------------------------------------------
+// A push message arrives here even when the app is closed.
+// The GitHub Action sends it through Firebase Cloud Messaging;
+// the payload looks like { notification: {title, body}, data: {...} }.
+// We MUST show a notification for every push (browsers require it).
+// =============================================================
+self.addEventListener("push", (event) => {
+  let title = "The Amateurs";
+  let body  = "";
+  let url   = "./index.html";
+  try {
+    const payload = event.data ? event.data.json() : {};
+    const n = payload.notification || {};
+    const d = payload.data || {};
+    title = n.title || d.title || title;
+    body  = n.body  || d.body  || "";
+    url   = (payload.fcmOptions && payload.fcmOptions.link) || d.url || url;
+  } catch (_) {
+    body = event.data ? event.data.text() : "";
+  }
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon:  "./icons/icon-192.png",
+      badge: "./icons/icon-192.png",
+      data:  { url }
+    })
+  );
+});
+
+// Tapping the notification opens (or focuses) the app.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "./index.html";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if ("focus" in w) return w.focus();
+      }
+      return clients.openWindow(url);
     })
   );
 });

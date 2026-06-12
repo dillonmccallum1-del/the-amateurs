@@ -1,0 +1,54 @@
+# =============================================================
+# The Amateurs — Push notification sender
+# -------------------------------------------------------------
+# Two ways this runs:
+#   1. On a timer (every 5 minutes) — delivers any scheduled
+#      notification whose send time has arrived.
+#   2. On demand (workflow_dispatch) — the admin page pokes this
+#      via the GitHub API so "Send now" lands in seconds.
+#
+# Needs one repository secret:
+#   FIREBASE_SERVICE_ACCOUNT — the full JSON of a Firebase service
+#   account key (see PUSH_SETUP.md, step 2).
+#
+# NOTE: GitHub pauses scheduled workflows after ~60 days with no
+# commits to the repo. Any push to the repo re-enables it, or hit
+# "Enable" on the Actions tab.
+# =============================================================
+name: Send push notifications
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes (GitHub may add a few minutes of lag)
+  workflow_dispatch: {}      # lets the admin page trigger an instant send
+
+permissions:
+  contents: read
+
+# Never let two runs send at the same time (prevents double sends).
+concurrency:
+  group: send-push
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install firebase-admin
+        run: npm install
+        working-directory: .github/scripts
+
+      - name: Send due notifications
+        run: node send-push.mjs
+        working-directory: .github/scripts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

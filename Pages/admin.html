@@ -1157,6 +1157,44 @@
       <div id="master-list" class="master-list"></div>
     </div>
 
+    <!-- ===== Push Notifications =====
+         Composes an alert for every phone that tapped "Enable
+         notifications" on the Home page. The message is queued in
+         Firestore; a free GitHub Action does the actual sending.
+         "Send now" pokes the Action immediately (needs the GitHub
+         token below); scheduled sends go out when the Action's
+         5-minute timer next fires after the chosen time. -->
+    <div class="admin-card">
+      <h2>Push Notifications</h2>
+      <p class="small-hint">Goes to every phone that enabled notifications on the Home page. <span id="push-subs">Checking subscriber count…</span></p>
+
+      <label for="push-title">Title</label>
+      <input id="push-title" maxlength="60" placeholder="Tee times are up!">
+
+      <label for="push-body">Message</label>
+      <textarea id="push-body" rows="3" maxlength="240" placeholder="First group kicks off at 2:00 PM. Get to the course!"></textarea>
+
+      <label for="push-when">Schedule for later (leave blank to send now)</label>
+      <input id="push-when" type="datetime-local">
+
+      <div class="btn-row">
+        <button id="push-send-now" type="button" class="btn btn-primary">Send now</button>
+        <button id="push-schedule" type="button" class="btn btn-secondary">Schedule send</button>
+      </div>
+      <div id="push-feedback" class="feedback hidden"></div>
+
+      <h3>Queue &amp; history</h3>
+      <div id="push-list"><p class="small-hint">Nothing queued yet.</p></div>
+
+      <h3>One-time setting: GitHub token</h3>
+      <p class="small-hint">Makes "Send now" instant. Without it, sends still work but take up to ~10 minutes (the GitHub robot checks on a timer). Setup steps are in <strong>PUSH_SETUP.md</strong>.</p>
+      <input id="push-pat" type="password" placeholder="github_pat_…" autocomplete="off">
+      <div class="btn-row">
+        <button id="push-pat-save" type="button" class="btn btn-secondary">Save token</button>
+      </div>
+      <div id="push-pat-feedback" class="feedback hidden"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1180,8 +1218,15 @@
     onEventConfig, updateEventConfig,
     onTeams, saveTeam, deleteTeam, setTeamStrokes,
     setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
-    pointsForHole, computeTeamTotals
+    pointsForHole, computeTeamTotals,
+    db
   } from "../js/firebase-init.js";
+  // Extra Firestore pieces used by the Push Notifications card.
+  import {
+    collection, addDoc, deleteDoc as fsDeleteDoc, doc as fsDoc,
+    getDoc as fsGetDoc, setDoc as fsSetDoc, getDocs, onSnapshot,
+    query, orderBy, serverTimestamp, Timestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   // Same option list the captain page uses. Keep these in sync — anything
   // not in this list shows up on the admin grid as "(unknown answer)".
@@ -1245,6 +1290,8 @@
   function startListeners() {
     if (listenersStarted) return;
     listenersStarted = true;
+
+    startPushListeners();
 
     onEventConfig((cfg) => {
       currentConfig = cfg || defaultConfig();
@@ -2396,6 +2443,164 @@
       flash("scores-feedback", `Wiped all scores for "${name}". The captain can now re-enter.`, "ok");
     } catch (err) {
       flash("scores-feedback", err.message, "err");
+    }
+  });
+
+  // ============================================================
+  // PUSH NOTIFICATIONS
+  // ------------------------------------------------------------
+  // Writing a doc to the `notifications` collection queues a send.
+  // A GitHub Action (.github/workflows/send-push.yml) checks the
+  // queue every 5 minutes and delivers anything that's due. For
+  // "Send now" we also poke the Action directly via the GitHub API
+  // using a token saved in Firestore (config/github) — that makes
+  // delivery near-instant instead of waiting for the timer.
+  // ============================================================
+  const GITHUB_REPO     = "dillonmccallum1-del/the-amateurs";
+  const GITHUB_WORKFLOW = "send-push.yml";
+  let githubPat = "";
+
+  function startPushListeners() {
+    // Live queue/history list (newest first).
+    onSnapshot(
+      query(collection(db, "notifications"), orderBy("sendAt", "desc")),
+      (snap) => renderPushList(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    );
+    // Subscriber count (one-shot — close enough).
+    getDocs(collection(db, "pushTokens"))
+      .then(s => { $("push-subs").textContent = `${s.size} device${s.size === 1 ? "" : "s"} subscribed so far.`; })
+      .catch(() => { $("push-subs").textContent = ""; });
+    // Saved GitHub token (kept in Firestore so it works from any of
+    // the commissioners' devices; readable only by admins per rules).
+    fsGetDoc(fsDoc(db, "config", "github")).then(s => {
+      if (s.exists() && s.data().pat) {
+        githubPat = s.data().pat;
+        $("push-pat").placeholder = "Token saved ✓ (paste a new one to replace)";
+      }
+    }).catch(() => {});
+  }
+
+  function fmtWhen(ts) {
+    if (!ts) return "—";
+    const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+    return d.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  function renderPushList(items) {
+    const el = $("push-list");
+    if (!items.length) {
+      el.innerHTML = `<p class="small-hint">Nothing queued yet.</p>`;
+      return;
+    }
+    el.innerHTML = items.slice(0, 12).map(n => {
+      const badge =
+        n.status === "sent"      ? `<span style="color: var(--green); font-weight:600;">Sent</span>` :
+        n.status === "sending"   ? `<span style="color: #b8860b; font-weight:600;">Sending…</span>` :
+                                   `<span style="color: #b8860b; font-weight:600;">Scheduled</span>`;
+      const cancel = (n.status === "scheduled")
+        ? `<button type="button" class="btn btn-danger" style="padding:4px 12px; font-size:13px;" data-cancel="${escapeAttr(n.id)}">Cancel</button>`
+        : "";
+      const stats = (n.status === "sent" && n.successCount != null)
+        ? ` · delivered to ${n.successCount} device${n.successCount === 1 ? "" : "s"}` : "";
+      return `
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(15,89,40,0.08);">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600;">${escapeHtml(n.title || "(no title)")}</div>
+            <div style="font-size:14px; color:#555;">${escapeHtml(n.body || "")}</div>
+            <div style="font-size:13px; color:#777;">${badge} · ${fmtWhen(n.sendAt)}${stats}</div>
+          </div>
+          ${cancel}
+        </div>`;
+    }).join("");
+    el.querySelectorAll("[data-cancel]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        try { await fsDeleteDoc(fsDoc(db, "notifications", btn.dataset.cancel)); }
+        catch (err) { flash("push-feedback", err.message, "err"); }
+      });
+    });
+  }
+
+  async function queuePush(sendAtDate) {
+    const title = $("push-title").value.trim();
+    const body  = $("push-body").value.trim();
+    if (!title || !body) {
+      flash("push-feedback", "Please fill in both a title and a message.", "err");
+      return null;
+    }
+    await addDoc(collection(db, "notifications"), {
+      title, body,
+      sendAt: Timestamp.fromDate(sendAtDate),
+      status: "scheduled",
+      createdAt: serverTimestamp()
+    });
+    $("push-title").value = "";
+    $("push-body").value  = "";
+    $("push-when").value  = "";
+    return true;
+  }
+
+  // Poke the GitHub Action so "Send now" goes out in seconds.
+  async function triggerWorkflow() {
+    if (!githubPat) throw new Error("no token");
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${GITHUB_WORKFLOW}/dispatches`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + githubPat,
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ ref: "main" })
+    });
+    if (res.status !== 204) throw new Error("GitHub dispatch failed (" + res.status + ")");
+  }
+
+  $("push-send-now").addEventListener("click", async () => {
+    try {
+      if (!(await queuePush(new Date()))) return;
+      try {
+        await triggerWorkflow();
+        flash("push-feedback", "On its way! Phones should buzz within a minute or so.", "ok");
+      } catch (_) {
+        flash("push-feedback", "Queued. No GitHub token saved (or it failed), so it will send within ~10 minutes on the timer.", "ok");
+      }
+    } catch (err) {
+      flash("push-feedback", err.message, "err");
+    }
+  });
+
+  $("push-schedule").addEventListener("click", async () => {
+    const raw = $("push-when").value;
+    if (!raw) {
+      flash("push-feedback", "Pick a date & time first (or use Send now).", "err");
+      return;
+    }
+    const when = new Date(raw);
+    if (isNaN(when.getTime()) || when.getTime() < Date.now() - 60000) {
+      flash("push-feedback", "That time is in the past — pick a future time.", "err");
+      return;
+    }
+    try {
+      if (!(await queuePush(when))) return;
+      flash("push-feedback", `Scheduled for ${when.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}. It will go out within a few minutes of that time.`, "ok");
+    } catch (err) {
+      flash("push-feedback", err.message, "err");
+    }
+  });
+
+  $("push-pat-save").addEventListener("click", async () => {
+    const pat = $("push-pat").value.trim();
+    if (!pat) {
+      flash("push-pat-feedback", "Paste the token first.", "err");
+      return;
+    }
+    try {
+      await fsSetDoc(fsDoc(db, "config", "github"), { pat, updatedAt: serverTimestamp() });
+      githubPat = pat;
+      $("push-pat").value = "";
+      $("push-pat").placeholder = "Token saved ✓ (paste a new one to replace)";
+      flash("push-pat-feedback", "Token saved — Send now is instant from any commissioner device.", "ok");
+    } catch (err) {
+      flash("push-pat-feedback", err.message, "err");
     }
   });
 
