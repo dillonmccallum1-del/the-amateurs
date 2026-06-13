@@ -225,6 +225,7 @@
     padding: 2px 8px; border-radius: 4px;
   }
   .scorecard-preview .row-clear:hover { color: var(--red); background: rgba(232,67,36,0.08); }
+  .scorecard-preview .hole-row-editable:hover td { background: rgba(15,89,40,0.05); }
 
   /* ---- Bonus opportunities list (Scoring, Subsection B) ---- */
   .bonus-opp-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
@@ -1660,7 +1661,7 @@
       const unset = (h.yardage == null && h.par == null && !h.gameName && !h.gameDescription)
         ? " unset" : "";
       html += `
-        <tr class="hole-row${unset}">
+        <tr class="hole-row hole-row-editable${unset}" data-hole="${i + 1}" title="Click to edit hole ${i + 1}" style="cursor:pointer;">
           <td class="hole-cell">#${i + 1}</td>
           <td>${yard}</td>
           <td>${par}</td>
@@ -1673,6 +1674,15 @@
     }
     html += `</tbody></table>`;
     wrap.innerHTML = html;
+
+    // Clicking a row loads that hole into the edit form above.
+    wrap.querySelectorAll(".hole-row-editable").forEach(row => {
+      row.addEventListener("click", (e) => {
+        if (e.target.closest(".row-clear")) return; // let clear button handle itself
+        const holeNum = Number(row.dataset.hole);
+        loadHoleIntoForm(holeNum);
+      });
+    });
 
     // Wire the per-row clear buttons.
     wrap.querySelectorAll(".row-clear").forEach(btn => {
@@ -1691,6 +1701,18 @@
         }
       });
     });
+  }
+
+  function loadHoleIntoForm(holeNum) {
+    const h = (normalizeHoles(currentConfig?.holes))[holeNum - 1];
+    $("hole-num").value             = String(holeNum);
+    $("hole-yardage").value         = h.yardage != null ? h.yardage : "";
+    $("hole-par").value             = h.par != null ? String(h.par) : "";
+    $("hole-game-name").value       = h.gameName || "";
+    $("hole-game-description").value = h.gameDescription || "";
+    // Scroll the form into view and briefly highlight the hole selector.
+    $("hole-num").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("hole-num").focus();
   }
 
   // ---- Subsection B: bonus opportunities ----
