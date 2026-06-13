@@ -2431,7 +2431,8 @@
         bonusPoints: [],
         farthestThrow: null,
         closestToPin:  null,
-        scoresLocked: false
+        scoresLocked: false,
+        scoresWipedAt: serverTimestamp()
       });
       // Clear the on-screen inputs immediately so the UI matches.
       for (let i = 1; i <= 9; i++) $("s-" + i).value = "";

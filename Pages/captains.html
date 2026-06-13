@@ -1284,6 +1284,7 @@
             }
           }
           if (changed) {
+            // Persist cleared state so a refresh doesn't reload stale scores.
             saveDraftToStorage();
             // Re-render whichever scoring screen is currently showing.
             if (!$("screen-overall").classList.contains("hidden")) {
@@ -1371,7 +1372,19 @@
     finalLocked  = !!team.scoresLocked;
     // If the scorecard is locked, source of truth is Firebase. Otherwise
     // prefer the device's draft (covers refresh / network blip mid-round).
-    const draftSnapshot = loadDraftFromStorage(team.id);
+    let draftSnapshot = loadDraftFromStorage(team.id);
+    // If the commissioner wiped scores after this draft was saved, the draft
+    // is stale — discard it so deleted scores don't reappear on login.
+    const wipeTs = team.scoresWipedAt;
+    const wipedMs = wipeTs
+      ? (typeof wipeTs.toMillis === "function" ? wipeTs.toMillis() : wipeTs.seconds * 1000)
+      : 0;
+    const draftMs = draftSnapshot._savedAt || 0;
+    if (wipedMs > 0 && wipedMs > draftMs) {
+      // Draft predates the wipe — throw it away and start clean.
+      clearDraftFromStorage();
+      draftSnapshot = { strokes: Array(9).fill(null), farthestThrow: null, closestToPin: null };
+    }
     if (finalLocked) {
       strokes = (team.strokes || []).slice(0, 9);
       while (strokes.length < 9) strokes.push(null);
@@ -2154,7 +2167,7 @@
   function draftKey(teamId) { return `the-amateurs-captain-draft-${teamId}`; }
 
   function loadDraftFromStorage(teamId) {
-    const empty = { strokes: Array(9).fill(null), farthestThrow: null, closestToPin: null };
+    const empty = { strokes: Array(9).fill(null), farthestThrow: null, closestToPin: null, _savedAt: 0 };
     try {
       const raw = localStorage.getItem(draftKey(teamId));
       if (!raw) return empty;
@@ -2186,7 +2199,7 @@
           inches:           parsed.closestToPin.inches == null ? "" : String(parsed.closestToPin.inches)
         };
       }
-      return { strokes: out, farthestThrow: ft, closestToPin: ctp };
+      return { strokes: out, farthestThrow: ft, closestToPin: ctp, _savedAt: parsed.updatedAt || 0 };
     } catch (_) {
       return empty;
     }
