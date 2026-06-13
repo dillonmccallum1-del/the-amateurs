@@ -1262,6 +1262,53 @@
             renderOverallScreen();
           }
         }
+        // Lock state unchanged and still unlocked — check whether the
+        // commissioner edited or wiped scores without touching the lock.
+        // We sync from Firestore whenever Firebase shows all-null strokes
+        // (a wipe) OR when any Firestore stroke differs from the local copy
+        // on a hole the captain isn't actively editing right now.
+        if (!wasLocked && !finalLocked) {
+          const fbStrokes = (updated.strokes || []).slice(0, 9);
+          while (fbStrokes.length < 9) fbStrokes.push(null);
+          const onHoleScreen = !$("screen-hole").classList.contains("hidden");
+          // Determine which holes changed in Firestore vs our local copy,
+          // skipping the hole currently open for entry so we don't clobber
+          // a score the captain is in the middle of picking.
+          let changed = false;
+          for (let i = 0; i < 9; i++) {
+            if (onHoleScreen && i === currentHoleIdx) continue;
+            const fbVal = Number.isFinite(fbStrokes[i]) ? fbStrokes[i] : null;
+            if (fbVal !== strokes[i]) {
+              strokes[i] = fbVal;
+              changed = true;
+            }
+          }
+          if (changed) {
+            saveDraftToStorage();
+            // Re-render whichever scoring screen is currently showing.
+            if (!$("screen-overall").classList.contains("hidden")) {
+              inReviewMode = strokes.every(s => s != null);
+              renderOverallScreen();
+            } else if (onHoleScreen) {
+              renderHoleScreen();
+            }
+          }
+          // Also sync throw-in / CTP if Firebase cleared them (wipe).
+          const fbFt = updated.farthestThrow;
+          if (!fbFt || fbFt === null) {
+            if (farthestThrow.thrownFarther !== null) {
+              farthestThrow = { thrownFarther: null, thrower: null, dirty: false };
+              if (onHoleScreen && currentHoleIdx === FARTHEST_THROW_HOLE_IDX) renderHoleScreen();
+            }
+          }
+          const fbCtp = updated.closestToPin;
+          if (!fbCtp || fbCtp === null) {
+            if (closestToPin.closerThanMarker !== null) {
+              closestToPin = { closerThanMarker: null, player: null, inches: "", dirty: false };
+              if (onHoleScreen && currentHoleIdx === CLOSEST_TO_PIN_HOLE_IDX) renderHoleScreen();
+            }
+          }
+        }
         // The grass-guess answer is independent of lock state and can
         // change at any time (e.g. another device, or the admin clearing
         // it). Always pull the latest from Firebase and refresh the grass
