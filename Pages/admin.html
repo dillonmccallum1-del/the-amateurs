@@ -93,6 +93,36 @@
   }
   .feedback.ok { background: rgba(42,156,79,0.12); color: var(--green); }
   .feedback.err { background: rgba(232,67,36,0.12); color: var(--red); }
+  .feedback.busy { background: rgba(15,89,40,0.08); color: var(--ink); }
+
+  /* ---- Admin hub (home screen) + category panels ---- */
+  .hub-heading {
+    font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-soft); margin: 22px 0 12px;
+  }
+  .hub-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 480px) { .hub-grid { grid-template-columns: 1fr; } }
+  .hub-btn {
+    display: flex; flex-direction: column; gap: 4px; text-align: left;
+    padding: 20px 18px; border: 1px solid rgba(15,89,40,0.12);
+    border-radius: 12px; background: var(--white); cursor: pointer;
+    box-shadow: var(--shadow-sm); transition: transform 0.1s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .hub-btn:hover { border-color: var(--green); box-shadow: 0 4px 14px rgba(15,89,40,0.14); }
+  .hub-btn:active { transform: translateY(1px); }
+  .hub-btn-title {
+    font-family: var(--font-serif); font-size: 22px; font-weight: 700;
+    color: var(--green-dark);
+  }
+  .hub-btn-sub { font-size: 14px; color: var(--ink-soft); }
+  .cat-back { padding: 8px 16px; font-size: 14px; margin-bottom: 6px; }
+  .cat-title {
+    font-family: var(--font-serif); font-size: 30px; color: var(--green-dark);
+    margin: 6px 0 16px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--yellow);
+  }
   .signed-in-bar {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; background: var(--green-dark); color: var(--cream);
@@ -753,12 +783,82 @@
     </div>
 
     <!-- ============================================================
+         ADMIN HOME (hub) — status, notifications, category buttons.
+         The four category panels below are populated at runtime by
+         moving each tagged .admin-card into the matching slot, so the
+         long form is split into Pre-Event / Draft / During / Post.
+         ============================================================ -->
+    <div id="admin-home">
+
+      <!-- Event status: the one control you touch most on event day, so it
+           sits up top and saves the instant you change it. -->
+      <div class="admin-card">
+        <h2>Event status</h2>
+        <label for="evt-status">Current status</label>
+        <select id="evt-status">
+          <option value="pre-draft">Pre-Draft</option>
+          <option value="draft">Draft in progress</option>
+          <option value="pre-event">Pre-Event</option>
+          <option value="live">Live</option>
+          <option value="final">Final</option>
+        </select>
+        <div id="status-feedback" class="feedback hidden"></div>
+      </div>
+
+      <!-- Notifications card gets moved in here at runtime. -->
+      <div id="home-notif-slot"></div>
+
+      <!-- Category navigation -->
+      <h2 class="hub-heading">Manage the event</h2>
+      <div class="hub-grid">
+        <button type="button" class="hub-btn" data-go="pre-event">
+          <span class="hub-btn-title">Pre-Event</span>
+          <span class="hub-btn-sub">Event settings &amp; scorecard setup</span>
+        </button>
+        <button type="button" class="hub-btn" data-go="draft">
+          <span class="hub-btn-title">Draft</span>
+          <span class="hub-btn-sub">Draft setup &amp; teams</span>
+        </button>
+        <button type="button" class="hub-btn" data-go="during">
+          <span class="hub-btn-title">During Event</span>
+          <span class="hub-btn-sub">Scoring, reveal toggle &amp; Guess the Grass</span>
+        </button>
+        <button type="button" class="hub-btn" data-go="post">
+          <span class="hub-btn-title">Post-Event</span>
+          <span class="hub-btn-sub">Master leaderboard &amp; archive</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Category panels (filled by JS) -->
+    <div id="cat-pre-event" class="admin-view hidden">
+      <button type="button" class="btn btn-secondary cat-back" data-back>&larr; All sections</button>
+      <h1 class="cat-title">Pre-Event</h1>
+      <div class="cat-slot"></div>
+    </div>
+    <div id="cat-draft" class="admin-view hidden">
+      <button type="button" class="btn btn-secondary cat-back" data-back>&larr; All sections</button>
+      <h1 class="cat-title">Draft</h1>
+      <div class="cat-slot"></div>
+    </div>
+    <div id="cat-during" class="admin-view hidden">
+      <button type="button" class="btn btn-secondary cat-back" data-back>&larr; All sections</button>
+      <h1 class="cat-title">During Event</h1>
+      <div class="cat-slot"></div>
+    </div>
+    <div id="cat-post" class="admin-view hidden">
+      <button type="button" class="btn btn-secondary cat-back" data-back>&larr; All sections</button>
+      <h1 class="cat-title">Post-Event</h1>
+      <div class="cat-slot"></div>
+    </div>
+
+    <!-- ============================================================
          SECTION 1 — Event settings
          Controls the year, tournament format, current status, and
          whether the Hole Games / Bonus Points sections appear on
          the Rules page.
          ============================================================ -->
-    <div class="admin-card">
+    <div class="admin-card" id="card-event-settings" data-cat="pre-event">
       <h2>Event settings</h2>
 
       <label for="evt-year">Year</label>
@@ -771,14 +871,7 @@
         <option value="2-person-alternate-kick">2-person alternate kick</option>
       </select>
 
-      <label for="evt-status">Status</label>
-      <select id="evt-status">
-        <option value="pre-draft">Pre-Draft</option>
-        <option value="draft">Draft in progress</option>
-        <option value="pre-event">Pre-Event</option>
-        <option value="live">Live</option>
-        <option value="final">Final</option>
-      </select>
+      <p class="small-hint" style="margin-top:4px;">Event <strong>status</strong> now lives on the admin home screen so you can change it fast on event day.</p>
 
       <label style="margin-top: 18px;">Rules page sections</label>
 
@@ -804,24 +897,6 @@
         </label>
       </div>
 
-      <label style="margin-top: 18px;">Live leaderboard</label>
-
-      <!-- Master switch for the public Live Leaderboard page. When OFF,
-           the Leaderboard page replaces scores / farthest throw / closest
-           to the pin with a "results hidden" message until you flip it
-           back ON. Useful for keeping the room in suspense until the
-           awards ceremony. -->
-      <div class="toggle-row">
-        <div>
-          <span class="toggle-label">Show live leaderboard</span>
-          <span class="toggle-hint">When off, the Leaderboard page hides scores, farthest throw, and closest to the pin.</span>
-        </div>
-        <label class="toggle-switch" for="evt-leaderboard-visible">
-          <input id="evt-leaderboard-visible" type="checkbox">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-
       <div class="btn-row">
         <button id="save-config" class="btn btn-primary">Save event settings</button>
       </div>
@@ -834,7 +909,7 @@
          Subsection B: Add / edit a team
          Subsection C: Current teams list
          ============================================================ -->
-    <div class="admin-card">
+    <div class="admin-card" id="card-teams-draft" data-cat="draft">
       <h2>Teams &amp; draft</h2>
 
       <!-- ----- Subsection A: Draft setup ----- -->
@@ -907,7 +982,7 @@
          The data is saved to the event config so a later wiring pass
          can read it from the captains page.
          ============================================================ -->
-    <div class="admin-card">
+    <div class="admin-card" id="card-scorecard" data-cat="pre-event">
       <h2>Scorecard Settings</h2>
 
       <!-- ----- Subsection A: Scorecard holes ----- -->
@@ -1004,8 +1079,28 @@
          far along they are, manage the captain lock, and nuke a final
          submission if it was wrong.
          ============================================================ -->
-    <div class="admin-card">
+    <div class="admin-card" id="card-scoring" data-cat="during">
       <h2>Scoring</h2>
+
+      <!-- Master switch for the public Live Leaderboard page. When OFF, the
+           Leaderboard page replaces scores / farthest throw / closest to the
+           pin with a "results hidden" message until you flip it back ON.
+           Saves instantly — useful for keeping the room in suspense until
+           the awards ceremony. -->
+      <label style="margin-top: 4px;">Live leaderboard</label>
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">Show live leaderboard</span>
+          <span class="toggle-hint">When off, the public Leaderboard page hides scores, farthest throw, and closest to the pin. Saves instantly.</span>
+        </div>
+        <label class="toggle-switch" for="evt-leaderboard-visible">
+          <input id="evt-leaderboard-visible" type="checkbox">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div id="reveal-feedback" class="feedback hidden"></div>
+
+      <h3 style="margin-top: 24px;">Team scoring</h3>
       <p class="small-hint">Pick a team to see their live scorecard. Edit any hole inline — changes save when you hit Save. Use this to monitor progress, fix typos, or wipe a bad submission.</p>
 
       <label for="score-team">Team</label>
@@ -1150,12 +1245,20 @@
          row is tappable: it expands a full scorecard (par / strokes /
          hole points), a Bonus Points block, and the team's Guess the
          Grass result graded right or wrong. -->
-    <div class="admin-card">
+    <div class="admin-card" id="card-master" data-cat="post">
       <h2>Master Leaderboard</h2>
       <p class="small-hint">Final standings: Stableford hole points + every bonus point on the team. The list activates once Event status is set to <strong>Final</strong> in Event settings above.</p>
 
       <div id="master-status-banner" class="master-banner"></div>
       <div id="master-list" class="master-list"></div>
+
+      <!-- Archive these final standings into the permanent History record.
+           Opens the dedicated archive page where you add the story,
+           superlatives, and photos. Enabled once the event is Final. -->
+      <div class="btn-row">
+        <a id="archive-season-btn" href="archive.html" class="btn btn-primary">Archive this season → History</a>
+      </div>
+      <p class="small-hint" id="archive-season-hint">Set the event status to <strong>Final</strong> above to lock the standings before archiving.</p>
     </div>
 
     <!-- ===== Push Notifications =====
@@ -1165,7 +1268,7 @@
          "Send now" pokes the Action immediately (needs the GitHub
          token below); scheduled sends go out when the Action's
          5-minute timer next fires after the chosen time. -->
-    <div class="admin-card">
+    <div class="admin-card" id="card-push" data-cat="home">
       <h2>Push Notifications</h2>
       <p class="small-hint">Goes to every phone that enabled notifications on the Home page. <span id="push-subs">Checking subscriber count…</span></p>
 
@@ -1211,6 +1314,67 @@
     document.querySelector('nav.drawer').classList.toggle('open');
     document.querySelector('.nav-overlay').classList.toggle('open');
   }
+</script>
+
+<script>
+  // ===== ADMIN HUB NAVIGATION =====
+  // Splits the long admin form into a home hub + four category panels by
+  // physically moving each tagged .admin-card into its panel slot at load.
+  // Moving the whole element preserves every event handler the module script
+  // binds by inner element id, so none of the existing logic needs to change.
+  (function () {
+    const CAT_PANEL = {
+      "pre-event": "cat-pre-event",
+      "draft":     "cat-draft",
+      "during":    "cat-during",
+      "post":      "cat-post"
+    };
+
+    function relocate() {
+      document.querySelectorAll(".admin-card[data-cat]").forEach((card) => {
+        const cat = card.getAttribute("data-cat");
+        if (cat === "home") {
+          const slot = document.getElementById("home-notif-slot");
+          if (slot) slot.appendChild(card);
+          return;
+        }
+        const panel = document.getElementById(CAT_PANEL[cat]);
+        if (panel) panel.querySelector(".cat-slot").appendChild(card);
+      });
+    }
+
+    function showView(key) {
+      const home  = document.getElementById("admin-home");
+      const views = document.querySelectorAll(".admin-view");
+      if (!key || key === "home") {
+        home.classList.remove("hidden");
+        views.forEach((v) => v.classList.add("hidden"));
+      } else {
+        home.classList.add("hidden");
+        views.forEach((v) => v.classList.toggle("hidden", v.id !== "cat-" + key));
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function syncFromHash() {
+      const h = (location.hash || "").replace("#", "");
+      showView(CAT_PANEL[h] ? h : "home");
+    }
+
+    document.addEventListener("click", (e) => {
+      const go = e.target.closest("[data-go]");
+      if (go) { location.hash = go.getAttribute("data-go"); return; }
+      const back = e.target.closest("[data-back]");
+      if (back) {
+        if (location.hash) location.hash = "";
+        else showView("home");
+      }
+    });
+    window.addEventListener("hashchange", syncFromHash);
+
+    relocate();
+    syncFromHash();
+  })();
 </script>
 
 <script type="module">
@@ -1435,16 +1599,44 @@
       await updateEventConfig({
         year:               Number($("evt-year").value),
         format:             $("evt-format").value,
-        status:             $("evt-status").value,
         holeGamesVisible:   $("evt-hole-games-visible").checked,
-        bonusVisible:       $("evt-bonus-visible").checked,
-        leaderboardVisible: $("evt-leaderboard-visible").checked
+        bonusVisible:       $("evt-bonus-visible").checked
+        // NOTE: status (home screen) and leaderboardVisible (During Event)
+        // each auto-save on change, so they're intentionally not in this form.
       });
       fb.textContent = "Saved.";
       fb.className = "feedback ok";
     } catch (err) {
       fb.textContent = err.message;
       fb.className = "feedback err";
+    }
+  });
+
+  // ----- Event status: auto-saves instantly on change (home screen) --------
+  $("evt-status").addEventListener("change", async () => {
+    const fb = $("status-feedback");
+    fb.className = "feedback busy"; fb.textContent = "Saving…"; show(fb);
+    try {
+      await updateEventConfig({ status: $("evt-status").value });
+      fb.className = "feedback ok";
+      fb.textContent = "Status saved — now “" + $("evt-status").options[$("evt-status").selectedIndex].text + "”.";
+    } catch (err) {
+      fb.className = "feedback err"; fb.textContent = err.message;
+    }
+  });
+
+  // ----- Live leaderboard reveal: auto-saves instantly (During Event) ------
+  $("evt-leaderboard-visible").addEventListener("change", async () => {
+    const fb = $("reveal-feedback");
+    fb.className = "feedback busy"; fb.textContent = "Saving…"; show(fb);
+    try {
+      await updateEventConfig({ leaderboardVisible: $("evt-leaderboard-visible").checked });
+      fb.className = "feedback ok";
+      fb.textContent = $("evt-leaderboard-visible").checked
+        ? "Live leaderboard is now visible to everyone."
+        : "Live leaderboard is now hidden from players.";
+    } catch (err) {
+      fb.className = "feedback err"; fb.textContent = err.message;
     }
   });
 
@@ -2115,6 +2307,19 @@
     const par    = (currentConfig && Array.isArray(currentConfig.coursePar) && currentConfig.coursePar.length === 9)
       ? currentConfig.coursePar
       : [3,3,3,3,3,3,3,3,3];
+
+    // The "Archive this season" button only makes sense once standings are
+    // locked, so it's live only when the event status is Final.
+    const archiveBtn  = $("archive-season-btn");
+    const archiveHint = $("archive-season-hint");
+    if (archiveBtn) {
+      const ready = status === "final";
+      archiveBtn.classList.toggle("disabled", !ready);
+      archiveBtn.style.pointerEvents = ready ? "" : "none";
+      archiveBtn.style.opacity = ready ? "" : "0.5";
+      archiveBtn.setAttribute("aria-disabled", ready ? "false" : "true");
+      if (archiveHint) archiveHint.style.display = ready ? "none" : "";
+    }
 
     // Pre-final: keep the card dormant so we don't surprise anyone with
     // half-baked numbers. The card stays mounted (so the admin can see

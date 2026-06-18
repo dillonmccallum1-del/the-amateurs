@@ -11,7 +11,7 @@
 //     cache automatically. Users don't have to do anything.
 // =============================================================
 
-const CACHE_VERSION = "amateurs-v8.4.3";  // ← bump on every meaningful release
+const CACHE_VERSION = "amateurs-v8.5.3";  // ← bump on every meaningful release
 const SHELL_FILES = [
   "./",
   "./index.html",
@@ -21,6 +21,7 @@ const SHELL_FILES = [
   "./Pages/draft.html",
   "./Pages/history.html",
   "./Pages/admin.html",
+  "./Pages/archive.html",
   "./Pages/styles.css",
   "./js/firebase-init.js",
   "./js/push.js",

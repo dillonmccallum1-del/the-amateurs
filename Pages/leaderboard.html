@@ -79,7 +79,7 @@
   <div class="leaderboard">
     <div class="leaderboard-header">
       <div class="title" id="live-title">Live Standings</div>
-      <div class="live-dot">Live</div>
+      <div class="live-dot" data-live-badge>Live</div>
     </div>
     <div class="leaderboard-cols">
       <div></div>
@@ -96,7 +96,7 @@
   <div class="leaderboard farthest-board">
     <div class="leaderboard-header">
       <div class="title">Farthest Throw</div>
-      <div class="live-dot">Live</div>
+      <div class="live-dot" data-live-badge>Live</div>
     </div>
     <div class="ft-cols">
       <div>#</div>
@@ -112,7 +112,7 @@
   <div class="leaderboard ctp-board">
     <div class="leaderboard-header">
       <div class="title">Closest to the Pin</div>
-      <div class="live-dot">Live</div>
+      <div class="live-dot" data-live-badge>Live</div>
     </div>
     <div class="ctp-cols">
       <div>#</div>
@@ -139,6 +139,14 @@
      touching the shared stylesheet. */
   .hidden-by-default { display: none !important; }
   .show { display: block !important; }
+
+  /* When the event is Final, the pulsing green "Live" badge becomes a calm
+     gold "Final" badge so nothing on the page still implies play is ongoing. */
+  .live-dot.final {
+    background: var(--yellow, #f4d838);
+    color: var(--green-dark, #0b3d1c);
+  }
+  .live-dot.final::before { display: none; }
 
   /* ===== Farthest Throw leaderboard (hole 5) ===== */
   .farthest-board { margin-top: 24px; }
@@ -469,8 +477,18 @@
     });
 
     // Footer note
-    const status = currentConfig.status === "final" ? "Final results" : "Live · refreshing automatically";
+    const isFinal = currentConfig.status === "final";
+    const status = isFinal ? "Final results" : "Live · refreshing automatically";
     $("live-footer").textContent = status + " · Tap a team to expand its scorecard.";
+
+    // Flip every "Live" badge + the standings title over to "Final" once the
+    // commissioner sets the event status to Final, so the page stops claiming
+    // to be live after play has ended.
+    document.querySelectorAll("[data-live-badge]").forEach(el => {
+      el.textContent = isFinal ? "Final" : "Live";
+      el.classList.toggle("final", isFinal);
+    });
+    $("live-title").textContent = isFinal ? "Final Standings" : "Live Standings";
 
     // Render the Farthest Throw (hole 5) and Closest to the Pin (hole 8)
     // leaderboards alongside the standings.

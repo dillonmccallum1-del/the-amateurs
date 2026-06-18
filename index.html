@@ -124,12 +124,15 @@
 <section class="content">
   <h2 class="section-title">Defending Champions</h2>
   <div class="section-rule"></div>
-  <a class="defending-champ" href="Pages/history.html#year-2025">
-    <img src="Pictures/History/Winners/Team/2025.JPG" alt="2025 Champions – Fairway to Heaven" class="defending-champ-photo">
-    <div class="defending-champ-label">MacCallum Cup &middot; 2025</div>
-    <div class="defending-champ-team">Fairway to Heaven</div>
-    <div class="defending-champ-year">The Little Myth &middot; 28 points</div>
-    <div class="defending-champ-roster">
+  <!-- Static content below is the fallback; once a season is archived in
+       Firebase, the script at the bottom of this page swaps in the newest
+       champion automatically. -->
+  <a class="defending-champ" id="defending-champ-link" href="Pages/history.html#year-2025">
+    <img src="Pictures/History/Winners/Team/2025.JPG" alt="2025 Champions – Fairway to Heaven" class="defending-champ-photo" id="dc-photo">
+    <div class="defending-champ-label" id="dc-label">MacCallum Cup &middot; 2025</div>
+    <div class="defending-champ-team" id="dc-team">Fairway to Heaven</div>
+    <div class="defending-champ-year" id="dc-year">The Little Myth &middot; 28 points</div>
+    <div class="defending-champ-roster" id="dc-roster">
       Geoffrey McVey (Captain) &middot; Dillon McCallum &middot; Jo&atilde;o Paulo Gurgel &middot; Jack Omilian
     </div>
     <span class="defending-champ-arrow">View their year &rarr;</span>
@@ -266,6 +269,41 @@
       }
     });
   }
+</script>
+
+<script type="module">
+  // ----- Defending Champions: swap in the newest archived season.
+  // Falls back to the static 2025 markup above if nothing is saved yet
+  // (or Firebase is unreachable), so the page is never blank.
+  import { onSeasons } from "./js/firebase-init.js";
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  onSeasons((seasons) => {
+    if (!seasons || !seasons.length) return;
+    const s = seasons[0]; // helper orders by year desc → newest first
+    const champ = (s.standings || []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99))[0];
+    if (!champ) return;
+
+    document.getElementById("defending-champ-link").href = "Pages/history.html#year-" + s.year;
+
+    if (s.championPhotoUrl) {
+      const photo = document.getElementById("dc-photo");
+      photo.src = s.championPhotoUrl;
+      photo.alt = s.year + " Champions – " + champ.name;
+    }
+    document.getElementById("dc-label").innerHTML = "MacCallum Cup &middot; " + esc(s.year);
+    document.getElementById("dc-team").textContent = champ.name;
+
+    const pts = (champ.points != null) ? " &middot; " + esc(champ.points) + " points" : "";
+    document.getElementById("dc-year").innerHTML = esc(s.host || "") + pts;
+
+    const roster = champ.roster || [];
+    if (roster.length) {
+      document.getElementById("dc-roster").innerHTML =
+        roster.map((p, i) => i === 0 ? esc(p) + " (Captain)" : esc(p)).join(" &middot; ");
+    }
+  });
 </script>
 </body>
 </html>

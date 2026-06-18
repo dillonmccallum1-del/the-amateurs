@@ -241,6 +241,12 @@
   </div>
 </section>
 
+<!-- ===== ARCHIVED SEASONS (from Firebase) =====
+     Any season saved from the Archive page renders here, newest first.
+     A saved season automatically supersedes its hand-coded section below
+     (e.g. a saved 2026 hides the static "2026" placeholder). -->
+<div id="dynamic-seasons"></div>
+
 <!-- ===== 2026 ===== -->
 <section class="content gallery-year" id="year-2026">
   <div class="gallery-year-header">
@@ -698,17 +704,25 @@
       if (e.key === 'ArrowLeft') prevSlide();
     });
 
-    document.querySelectorAll('.gallery-year').forEach(function(yearSection) {
-      const thumbs = yearSection.querySelectorAll('.gallery-thumb:not(.placeholder)');
-      const slides = Array.from(thumbs).map(function(t) {
-        return t.querySelector('img').src;
-      });
-      thumbs.forEach(function(thumb, idx) {
-        thumb.addEventListener('click', function() {
-          openLightbox(slides, idx);
+    // Wire every gallery's thumbnails to the lightbox. Exposed globally so
+    // dynamically-injected (Firebase) seasons can re-run it after they mount.
+    function wireGalleries() {
+      document.querySelectorAll('.gallery-year').forEach(function(yearSection) {
+        const thumbs = yearSection.querySelectorAll('.gallery-thumb:not(.placeholder)');
+        const slides = Array.from(thumbs).map(function(t) {
+          return t.querySelector('img').src;
+        });
+        thumbs.forEach(function(thumb, idx) {
+          if (thumb.dataset.lbWired) return;   // don't double-bind
+          thumb.dataset.lbWired = '1';
+          thumb.addEventListener('click', function() {
+            openLightbox(slides, idx);
+          });
         });
       });
-    });
+    }
+    wireGalleries();
+    window.AmateursWireGalleries = wireGalleries;
 
     let touchStartX = 0;
     lightbox.addEventListener('touchstart', function(e) {
@@ -720,6 +734,122 @@
       if (dx < 0) nextSlide(); else prevSlide();
     });
   })();
+</script>
+
+<script type="module">
+  // ===== ARCHIVED SEASONS FROM FIREBASE =====
+  // Reads the `seasons` collection and renders a year card for each, matching
+  // the hand-coded sections' markup. A saved season hides its static twin so
+  // we never show a year twice.
+  import { onSeasons } from "../js/firebase-init.js";
+
+  const mount = document.getElementById("dynamic-seasons");
+
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  }
+
+  function logoImg(url, name, cls) {
+    if (!url) return "";
+    return `<img src="${esc(url)}" alt="${esc(name)} logo" class="${cls}" onerror="this.style.display='none'">`;
+  }
+
+  function championBlock(champ) {
+    if (!champ) return "";
+    const roster = (champ.roster && champ.roster.length ? champ.roster : [champ.captain, champ.partner].filter(Boolean));
+    const rosterLis = roster.map((p, i) =>
+      `<li${i === 0 ? ' class="yc-captain"' : ''}>${esc(p)}</li>`).join("");
+    return `
+      <div class="yc-standings champion">
+        <div class="yc-champ-header">
+          <span class="yc-champ-eyebrow">&#127942;</span>
+          ${logoImg(champ.logoUrl, champ.name, "yc-team-logo")}
+          <span class="yc-team-name">${esc(champ.name)}</span>
+          <span class="yc-pts">${esc(champ.points)} pts</span>
+        </div>
+        <ul class="yc-roster">${rosterLis}</ul>
+      </div>`;
+  }
+
+  function runnersBlock(rest) {
+    if (!rest.length) return "";
+    const rows = rest.map(r => {
+      const medal = r.rank === 2 ? "silver" : "bronze";
+      return `
+        <div class="yc-row ${medal}">
+          <span class="yc-rank">${esc(r.rank)}</span>
+          ${logoImg(r.logoUrl, r.name, "yc-team-logo")}
+          <span class="yc-sname">${esc(r.name)}</span>
+          <span class="yc-pts">${esc(r.points)}</span>
+        </div>`;
+    }).join("");
+    return `<div class="yc-standings champion">${rows}</div>`;
+  }
+
+  function superlativesBlock(sups) {
+    if (!sups || !sups.length) return "";
+    const rows = sups.filter(s => s.award || s.winner).map(s => `
+      <div class="yc-sup-row">
+        <span class="yc-sup-award">${esc(s.award)}</span>
+        <span class="yc-sup-winner">${esc(s.winner)}</span>
+      </div>`).join("");
+    if (!rows) return "";
+    return `<div class="yc-superlatives"><div class="yc-sup-label">Superlatives</div>${rows}</div>`;
+  }
+
+  function photosBlock(season) {
+    const photos = season.photos || [];
+    if (!photos.length && !season.driveUrl) return "";
+    const thumbs = photos.map(url =>
+      `<button type="button" class="gallery-thumb"><img src="${esc(url)}" alt="${esc(season.year)} Amateurs photo" loading="lazy"></button>`).join("");
+    const grid = thumbs ? `<div class="gallery-grid">${thumbs}</div>` : "";
+    const drive = season.driveUrl
+      ? `<div class="yc-drive-link"><a class="album-link" href="${esc(season.driveUrl)}" target="_blank" rel="noopener">View full ${esc(season.year)} album in Drive</a></div>`
+      : "";
+    return `<div class="yc-photos"><div class="yc-photos-label">Photos</div>${grid}${drive}</div>`;
+  }
+
+  function seasonSection(season) {
+    const standings = (season.standings || []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
+    const champ = standings[0];
+    const rest  = standings.slice(1);
+    const hasCard = champ || (season.photos && season.photos.length) || season.championPhotoUrl;
+
+    const winnerPhoto = season.championPhotoUrl
+      ? `<img src="${esc(season.championPhotoUrl)}" alt="${esc(season.year)} Champions" class="yc-winner-photo">`
+      : "";
+    const narrative = season.narrative
+      ? `<p class="yc-narrative">${esc(season.narrative)}</p>` : "";
+
+    const cardInner = hasCard
+      ? `${winnerPhoto}${championBlock(champ)}${runnersBlock(rest)}${superlativesBlock(season.superlatives)}${photosBlock(season)}`
+      : `<div class="note" style="margin:16px 18px;">Standings to be confirmed.</div>`;
+
+    const sec = document.createElement("section");
+    sec.className = "content gallery-year";
+    sec.id = "year-" + season.year;
+    sec.innerHTML = `
+      <div class="gallery-year-header">
+        <h2 class="gallery-year-number">${esc(season.year)}</h2>
+        ${season.host ? `<span class="gallery-year-host">${esc(season.host)}</span>` : ""}
+      </div>
+      ${narrative}
+      <div class="year-card">${cardInner}</div>`;
+    return sec;
+  }
+
+  onSeasons((seasons) => {
+    mount.innerHTML = "";
+    // Newest first (helper already orders by year desc, but be safe).
+    seasons.slice().sort((a, b) => (b.year || 0) - (a.year || 0)).forEach(season => {
+      // Hide the hand-coded section for this year, if one exists.
+      const staticSec = document.getElementById("year-" + season.year);
+      if (staticSec && staticSec.parentElement !== mount) staticSec.style.display = "none";
+      mount.appendChild(seasonSection(season));
+    });
+    // Re-bind the lightbox to the freshly injected thumbnails.
+    if (window.AmateursWireGalleries) window.AmateursWireGalleries();
+  });
 </script>
 
 <script>

@@ -24,6 +24,7 @@ import {
   getFirestore,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -327,6 +328,84 @@ export async function setTeamGrassGuess(teamId, payload) {
     },
     { merge: true }
   );
+}
+
+// -------------------------------------------------------------
+// 5c. SEASONS — collection `seasons`, one doc per year (id = "2026").
+//     This is the permanent History archive. The commissioner fills it
+//     in from the archive.html page once an event is Final, so nobody has
+//     to hand-edit history.html ever again. Doc shape:
+//     {
+//       year:        2026,
+//       host:        "Footgolf Edition",     // sub-line under the year
+//       narrative:   "In honor of the World Cup…",
+//       championPhotoUrl: "<storage url>",   // big winner photo
+//       standings:   [ { rank, name, captain, partner, roster:[…],
+//                        points, logoUrl } ],
+//       superlatives:[ { award, winner } ],
+//       photos:      [ "<url>", … ],         // highlight thumbnails
+//       driveUrl:    "https://drive.google.com/…",  // optional album link
+//       createdAt:   <serverTimestamp>
+//     }
+// -------------------------------------------------------------
+
+/** Listen for live changes to all archived seasons (newest year first). */
+export function onSeasons(callback) {
+  const q = query(collection(db, "seasons"), orderBy("year", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+}
+
+/** One-shot read of all archived seasons (newest year first). */
+export async function getSeasons() {
+  const q = query(collection(db, "seasons"), orderBy("year", "desc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** One-shot read of a single season by year. Returns null if not saved yet. */
+export async function getSeason(year) {
+  const snap = await getDoc(doc(db, "seasons", String(year)));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+/** Admin: create or update a season doc. Doc id is the year as a string. */
+export async function saveSeason(year, data) {
+  if (!year) throw new Error("A year is required to save a season.");
+  await setDoc(
+    doc(db, "seasons", String(year)),
+    { ...data, year: Number(year), createdAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
+/** Admin: delete an archived season entirely. */
+export async function deleteSeason(year) {
+  await deleteDoc(doc(db, "seasons", String(year)));
+}
+
+/** Admin: upload a photo for a season and return its public download URL.
+ *  `kind` is "champion" for the big winner photo or "highlight" for gallery
+ *  thumbnails. Stored under  seasons/<year>/<kind>-<unique>.<ext>  so each
+ *  upload is uniquely named and re-saving a season never clobbers old files.
+ *  Returns { url, path } so the caller can store both. */
+export async function uploadSeasonPhoto(year, kind, file) {
+  if (!file) throw new Error("No file provided");
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("File must be an image (PNG, JPG, etc).");
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error("Image too large — keep it under 10 MB.");
+  }
+  const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+  const ext = extMatch ? extMatch[1].toLowerCase() : "jpg";
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const path = `seasons/${year}/${kind}-${unique}.${ext}`;
+  const ref = storageRef(storage, path);
+  await uploadBytes(ref, file, { contentType: file.type });
+  const url = await getDownloadURL(ref);
+  return { url, path };
 }
 
 // -------------------------------------------------------------
