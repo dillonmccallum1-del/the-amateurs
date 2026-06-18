@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Amateurs">
-<title>Live Leaderboard · The Amateurs</title>
+<title>Leaderboard · The Amateurs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
   <a href="../index.html">Home</a>
   <a href="about.html">About</a>
   <a href="rules.html">Rules &amp; Scoring</a>
-  <a href="leaderboard.html" class="active">Live Leaderboard</a>
+  <a href="leaderboard.html" class="active">Leaderboard</a>
   <a href="draft.html">Draft</a>
   <a href="history.html">History</a>
   <a href="captains.html">Captains</a>
@@ -43,7 +43,7 @@
 
 <!-- ===== PAGE HEADER ===== -->
 <section class="page-header">
-  <h1>Live Leaderboard</h1>
+  <h1>Leaderboard</h1>
   <div class="header-divider"></div>
 </section>
 
@@ -78,7 +78,7 @@
 <section class="content hidden-by-default" id="state-live">
   <div class="leaderboard">
     <div class="leaderboard-header">
-      <div class="title" id="live-title">Live Standings</div>
+      <div class="title" id="live-title">Leaderboard</div>
       <div class="live-dot" data-live-badge>Live</div>
     </div>
     <div class="leaderboard-cols">
@@ -140,11 +140,13 @@
   .hidden-by-default { display: none !important; }
   .show { display: block !important; }
 
-  /* When the event is Final, the pulsing green "Live" badge becomes a calm
-     gold "Final" badge so nothing on the page still implies play is ongoing. */
+  /* When the event is Final, the pulsing red "Live" badge in the top-right
+     corner becomes plain yellow "FINAL" text — no dot, no pill — so nothing
+     on the page still implies play is ongoing. */
   .live-dot.final {
-    background: var(--yellow, #f4d838);
-    color: var(--green-dark, #0b3d1c);
+    background: transparent;
+    color: var(--yellow);
+    font-weight: 700;
   }
   .live-dot.final::before { display: none; }
 
@@ -481,14 +483,14 @@
     const status = isFinal ? "Final results" : "Live · refreshing automatically";
     $("live-footer").textContent = status + " · Tap a team to expand its scorecard.";
 
-    // Flip every "Live" badge + the standings title over to "Final" once the
-    // commissioner sets the event status to Final, so the page stops claiming
-    // to be live after play has ended.
+    // Once the commissioner sets the event status to Final, swap the pulsing
+    // red "Live" badge in the top-right corner for a yellow "FINAL". The
+    // title itself stays "Leaderboard" — we don't want it to read "Final
+    // Standings".
     document.querySelectorAll("[data-live-badge]").forEach(el => {
-      el.textContent = isFinal ? "Final" : "Live";
+      el.textContent = isFinal ? "FINAL" : "Live";
       el.classList.toggle("final", isFinal);
     });
-    $("live-title").textContent = isFinal ? "Final Standings" : "Live Standings";
 
     // Render the Farthest Throw (hole 5) and Closest to the Pin (hole 8)
     // leaderboards alongside the standings.
