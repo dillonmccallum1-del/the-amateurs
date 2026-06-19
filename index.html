@@ -291,6 +291,7 @@
       const photo = document.getElementById("dc-photo");
       photo.src = s.championPhotoUrl;
       photo.alt = s.year + " Champions – " + champ.name;
+      if (s.championPhotoPos) photo.style.objectPosition = s.championPhotoPos;
     }
     document.getElementById("dc-label").innerHTML = "MacCallum Cup &middot; " + esc(s.year);
     document.getElementById("dc-team").textContent = champ.name;

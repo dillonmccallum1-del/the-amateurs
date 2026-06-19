@@ -800,6 +800,7 @@
           <option value="draft">Draft in progress</option>
           <option value="pre-event">Pre-Event</option>
           <option value="live">Live</option>
+          <option value="post-round">Post-Round</option>
           <option value="final">Final</option>
         </select>
         <div id="status-feedback" class="feedback hidden"></div>
@@ -1261,6 +1262,18 @@
       <p class="small-hint" id="archive-season-hint">Set the event status to <strong>Final</strong> above to lock the standings before archiving.</p>
     </div>
 
+    <!-- ===== Results spreadsheet (Post-Event) =====
+         Separate from archiving — rebuilds the full The_Amateurs_Results.xlsx
+         (every year, past + archived) for the commissioner's own records. -->
+    <div class="admin-card" id="card-results-xlsx" data-cat="post">
+      <h2>Results spreadsheet</h2>
+      <p class="small-hint">Download an up-to-date <code>The_Amateurs_Results.xlsx</code> with every year — past plus everything archived — in a Tournament Results + Superlatives layout. Save it over your old copy to keep your records current. The app itself no longer needs this file.</p>
+      <div class="btn-row">
+        <button id="download-xlsx" type="button" class="btn btn-secondary">Download results spreadsheet</button>
+      </div>
+      <div id="xlsx-feedback" class="feedback hidden"></div>
+    </div>
+
     <!-- ===== Push Notifications =====
          Composes an alert for every phone that tapped "Enable
          notifications" on the Home page. The message is queued in
@@ -1377,10 +1390,13 @@
   })();
 </script>
 
+<!-- SheetJS for the Post-Event results-spreadsheet export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script type="module">
   import {
     onAuth, signIn, signOutNow, isAdmin,
-    onEventConfig, updateEventConfig,
+    onEventConfig, updateEventConfig, getSeasons,
     onTeams, saveTeam, deleteTeam, setTeamStrokes,
     setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
     pointsForHole, computeTeamTotals,
@@ -2313,7 +2329,7 @@
     const archiveBtn  = $("archive-season-btn");
     const archiveHint = $("archive-season-hint");
     if (archiveBtn) {
-      const ready = status === "final";
+      const ready = status === "post-round" || status === "final";
       archiveBtn.classList.toggle("disabled", !ready);
       archiveBtn.style.pointerEvents = ready ? "" : "none";
       archiveBtn.style.opacity = ready ? "" : "0.5";
@@ -2324,22 +2340,24 @@
     // Pre-final: keep the card dormant so we don't surprise anyone with
     // half-baked numbers. The card stays mounted (so the admin can see
     // the placeholder), but no team rows render.
-    if (status !== "final") {
+    if (status !== "post-round" && status !== "final") {
       banner.className = "master-banner dormant";
-      banner.textContent = `Event status is "${status}". Flip it to "Final" in Event settings to lock in standings and reveal the Master Leaderboard.`;
+      banner.textContent = `Event status is "${status}". Set it to "Post-Round" to lock in standings and reveal the Master Leaderboard, then "Final" to publish it to everyone.`;
       list.innerHTML = "";
       return;
     }
 
     if (!teams || !teams.length) {
       banner.className = "master-banner empty";
-      banner.textContent = "Status is Final, but no teams exist yet.";
+      banner.textContent = `Status is ${status === "final" ? "Final" : "Post-Round"}, but no teams exist yet.`;
       list.innerHTML = "";
       return;
     }
 
     banner.className = "master-banner live";
-    banner.textContent = "Status: FINAL · standings below combine Stableford hole points with every bonus on the team.";
+    banner.textContent = status === "final"
+      ? "Status: FINAL · this exact leaderboard is now live on the public Leaderboard page for everyone."
+      : "Status: POST-ROUND · standings below combine Stableford hole points with every bonus. Still private — flip to FINAL to publish to everyone.";
 
     // Rank by total points (hole + bonus) high-to-low. Tie-breakers match
     // the live leaderboard: more holes done first, then earlier draft pick.
@@ -2547,7 +2565,7 @@
       grassCorrect = value;
       // Reset the dropdown back to blank so the saved answer stays hidden.
       sel.value = "";
-      flash("grass-feedback", "Correct answer saved. It's hidden, and grading stays masked until Final.", "ok");
+      flash("grass-feedback", "Correct answer saved. It's hidden, and grading stays masked until Post-Round.", "ok");
       renderMasterLeaderboard(currentTeams);
     } catch (err) {
       flash("grass-feedback", err.message, "err");
@@ -2845,6 +2863,87 @@
     return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   }
   function escapeAttr(s) { return escapeHtml(s); }
+
+  // ─── Results spreadsheet export (Post-Event) ────────────────
+  // Past years (2022–2025) baked in; new years come from Firebase. Rebuilds
+  // the whole workbook each time so it's always complete and current.
+  const PAST_SHEET = [
+    { year: 2025, host: "The Little Myth Golf Course", teams: [
+      { team: "Fairway to Heaven", score: 28, captain: "Geoffrey McVey", players: ["Geoffrey McVey","Dillon McCallum","João Paulo Gurgel","Jack Omilian"] },
+      { team: "Live Laugh FORE!!!", score: 21, captain: "Brian McCallum", players: ["Brian McCallum","Karen McCallum","Cheri McCallum"] },
+      { team: "Diamonds in the Rough", score: 18, captain: "Andrew Carson", players: ["Andrew Carson","Erin McCallum","David McCallum","Alex McCallum"] },
+      { team: "Hall of Famers", score: 18, captain: "Suzanne Muneio", players: ["Suzanne Muneio","Annmarie Omilian","Diane McCallum"] },
+      { team: "Beyer's Boneheads", score: 17, captain: "Emily Beyer", players: ["Emily Beyer","Joseph McCallum","Drew McCallum","Louann Muneio"] },
+      { team: "Great Balls of Fire", score: 15, captain: "Karen Odelson", players: ["Karen Odelson","Abby Odelson","Brian Odelson"] },
+      { team: "Kiss My Putt", score: 9, captain: "Andrea McCallum", players: ["Andrea McCallum","Charlotte Fody","Reid Omilian","Mitch Fody"] } ],
+      superlatives: [{award:"Best Dressed/Team Merch",winner:"Brian McCallum"},{award:"Best Dressed/Team Merch",winner:"Karen McCallum"},{award:"Best Dressed/Team Merch",winner:"Cheri McCallum"},{award:"Best Stevie Wonder Impression",winner:"Jack Omilian"},{award:"Best Stevie Wonder Impression",winner:"Cheri McCallum"},{award:"Best Assassination Attempt",winner:"Andrew Carson"}] },
+    { year: 2024, host: "Fox Hills (Strategic)", teams: [
+      { team: "Life of the Par-Tee", score: 26, captain: "Andrea McCallum", players: ["Geoffrey McVey","Andrea McCallum","Brian McCallum"] },
+      { team: "What Club Should I Use?", score: 25, captain: "Erin McCallum", players: ["Erin McCallum","Karen McCallum","Andrew Carson","Alex McCallum"] },
+      { team: "You Play Golf?", score: 20, captain: "David McCallum", players: ["David McCallum","Diane McCallum","Cheri McCallum","Joseph McCallum"] },
+      { team: "Significant Turf Dependence", score: 20, captain: "Dillon McCallum", players: ["Dillon McCallum","Louann Muneio","Emily Beyer","Drew McCallum"] } ],
+      superlatives: [{award:"Best Right Handed Attempt",winner:"Andrew Carson"},{award:"Best Stevie Wonder Impression",winner:"Brian McCallum"},{award:"Best Ninja Moves",winner:"Drew McCallum"}] },
+    { year: 2023, host: "Himalayas Putting Course", teams: [
+      { team: "Almost In", score: 85, captain: "Dillon McCallum", players: ["Dillon McCallum","Erin McCallum","Andrea McCallum"] },
+      { team: "Hagus Horde", score: 82, captain: "Joseph McCallum", players: ["Alex McCallum","Joseph McCallum","Karen McCallum"] },
+      { team: "Cold Wett in puttin", score: 78, captain: "Cheri McCallum", players: ["Brian McCallum","Cheri McCallum","David McCallum"] } ],
+      superlatives: [{award:"Hardest Hit Putt",winner:"Andrea McCallum"}] },
+    { year: 2022, host: "Fox Hills (Strategic)", teams: [
+      { team: "The Elders", score: 27, captain: "Joseph McCallum", players: ["Joseph McCallum","Brian Odelson","David McCallum","Karen McCallum"] },
+      { team: "Harry Putter", score: 22, captain: "Barrett Dunn", players: ["Hannah Fody","Barrett Dunn","Charlotte Fody","Reid Omilian"] },
+      { team: "Weapons of Grass Destruction", score: 20, captain: "Dillon McCallum", players: ["Dillon McCallum","Alex McCallum","Lucy Odelson","Abby Odelson"] },
+      { team: "The Fore Horseman", score: 16, captain: "Andrea McCallum", players: ["Andrea McCallum","Erin McCallum","John Brumback","Brian McCallum"] },
+      { team: "Cumulonimbus", score: 11, captain: "Jack Omilian", players: ["Jack Omilian","Anmmarie Muneio","Mitch Fody","Madison McGeddy"] },
+      { team: "No Balls", score: 11, captain: "Cheri McCallum", players: ["Cheri McCallum","Louann Muneio","Suzanne Fody","Karen Odelson"] } ],
+      superlatives: [{award:"Looks most like a golf ball",winner:"David McCallum"},{award:"Best Stevie Wonder Impression",winner:"Barrett Dunn"},{award:"Best Fall",winner:"Alex McCallum"},{award:"Closest to the pin",winner:"Dillon McCallum"}] }
+  ];
+
+  function seasonToSheet(s) {
+    const teams = (s.standings || []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99)).map(r => ({
+      team: r.name,
+      score: r.points,
+      captain: r.captain || (r.roster && r.roster[0]) || "",
+      players: (r.roster && r.roster.length) ? r.roster : [r.captain, r.partner].filter(Boolean)
+    }));
+    return { year: s.year, host: s.host || "", teams, superlatives: s.superlatives || [] };
+  }
+
+  const xlsxBtn = $("download-xlsx");
+  if (xlsxBtn) xlsxBtn.addEventListener("click", async () => {
+    const fbEl = $("xlsx-feedback");
+    if (!window.XLSX) { flash("xlsx-feedback", "Spreadsheet library still loading — try again in a moment.", "err"); return; }
+    fbEl.textContent = "Building spreadsheet…"; fbEl.className = "feedback"; fbEl.classList.remove("hidden");
+    try {
+      let seasons = [];
+      try { seasons = await getSeasons(); } catch (_) {}
+      const byYear = new Map();
+      PAST_SHEET.forEach(y => byYear.set(y.year, y));
+      seasons.forEach(s => { if (s && s.year) byYear.set(s.year, seasonToSheet(s)); });
+      const years = Array.from(byYear.values()).sort((a, b) => b.year - a.year);
+
+      const resultRows = [["Year", "Host", "Team", "Score", "Captain", "Players"]];
+      const supRows = [["Year", "Superlative", "Winner"]];
+      years.forEach(y => {
+        (y.teams || []).slice().sort((a, b) => (b.score || 0) - (a.score || 0)).forEach(t => {
+          resultRows.push([y.year, y.host || "", t.team || "", t.score ?? "", t.captain || "", (t.players || []).join(", ")]);
+        });
+        (y.superlatives || []).forEach(sp => supRows.push([y.year, sp.award || "", sp.winner || ""]));
+      });
+
+      const wb = window.XLSX.utils.book_new();
+      const ws1 = window.XLSX.utils.aoa_to_sheet(resultRows);
+      ws1["!cols"] = [{ wch: 6 }, { wch: 24 }, { wch: 26 }, { wch: 7 }, { wch: 18 }, { wch: 48 }];
+      window.XLSX.utils.book_append_sheet(wb, ws1, "Tournament Results");
+      const ws2 = window.XLSX.utils.aoa_to_sheet(supRows);
+      ws2["!cols"] = [{ wch: 6 }, { wch: 32 }, { wch: 22 }];
+      window.XLSX.utils.book_append_sheet(wb, ws2, "Superlatives");
+      window.XLSX.writeFile(wb, "The_Amateurs_Results.xlsx");
+
+      flash("xlsx-feedback", "Downloaded — save it over your old The_Amateurs_Results.xlsx.", "ok");
+    } catch (err) {
+      flash("xlsx-feedback", "Export failed: " + (err.message || err), "err");
+    }
+  });
 </script>
 
 <script>

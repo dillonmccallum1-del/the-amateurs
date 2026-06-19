@@ -749,6 +749,12 @@
     return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   }
 
+  // Escape HTML, then turn **bold** into <strong>. Lets the commissioner
+  // bold words in the season summary without allowing arbitrary HTML.
+  function richText(s) {
+    return esc(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  }
+
   function logoImg(url, name, cls) {
     if (!url) return "";
     return `<img src="${esc(url)}" alt="${esc(name)} logo" class="${cls}" onerror="this.style.display='none'">`;
@@ -777,7 +783,7 @@
       const medal = r.rank === 2 ? "silver" : "bronze";
       return `
         <div class="yc-row ${medal}">
-          <span class="yc-rank">${esc(r.rank)}</span>
+          <span class="yc-rank">${esc(r.rankLabel || r.rank)}</span>
           ${logoImg(r.logoUrl, r.name, "yc-team-logo")}
           <span class="yc-sname">${esc(r.name)}</span>
           <span class="yc-pts">${esc(r.points)}</span>
@@ -810,16 +816,20 @@
   }
 
   function seasonSection(season) {
-    const standings = (season.standings || []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
+    const all = (season.standings || []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
+    // Only the top 3 places appear on the card (ties at 3rd are kept), to
+    // match the older year cards. The full list still lives in the data.
+    const standings = all.filter(r => (r.rank || 99) <= 3);
     const champ = standings[0];
     const rest  = standings.slice(1);
     const hasCard = champ || (season.photos && season.photos.length) || season.championPhotoUrl;
 
+    const pos = season.championPhotoPos ? ` style="object-position:${esc(season.championPhotoPos)}"` : "";
     const winnerPhoto = season.championPhotoUrl
-      ? `<img src="${esc(season.championPhotoUrl)}" alt="${esc(season.year)} Champions" class="yc-winner-photo">`
+      ? `<img src="${esc(season.championPhotoUrl)}" alt="${esc(season.year)} Champions" class="yc-winner-photo"${pos}>`
       : "";
     const narrative = season.narrative
-      ? `<p class="yc-narrative">${esc(season.narrative)}</p>` : "";
+      ? `<p class="yc-narrative">${richText(season.narrative)}</p>` : "";
 
     const cardInner = hasCard
       ? `${winnerPhoto}${championBlock(champ)}${runnersBlock(rest)}${superlativesBlock(season.superlatives)}${photosBlock(season)}`
@@ -849,7 +859,117 @@
     });
     // Re-bind the lightbox to the freshly injected thumbnails.
     if (window.AmateursWireGalleries) window.AmateursWireGalleries();
+    // Recompute the Cup + Superlatives stats tables (baseline + new years).
+    renderStatsTables(seasons);
   });
+
+  // ===== STATS TABLES (Cup + Superlatives + Win %) =====
+  // The 2022–2025 results are baked in below (computed from the official
+  // results spreadsheet, highest-score-wins, 2021 excluded — it reproduces
+  // the original hand-made tables exactly). Every season archived from 2026
+  // on flows in live from Firebase and extends all three tables automatically.
+  // Name spellings are merged so the same person never splits across rows.
+  const NAME_FIX = {
+    "Jackson Omilian": "Jack Omilian",
+    "Geoff McVey": "Geoffrey McVey", "Geoffrey Mcvey": "Geoffrey McVey",
+    "Joe McCallum": "Joseph McCallum", "Joey McCallum": "Joseph McCallum"
+  };
+  function normName(n) { const t = String(n || "").trim(); return NAME_FIX[t] || t; }
+
+  const PAST_RESULTS = [
+    { year: 2022, championRoster: ["Joseph McCallum","Brian Odelson","David McCallum","Karen McCallum"],
+      participants: ["Joseph McCallum","Brian Odelson","David McCallum","Karen McCallum","Hannah Fody","Barrett Dunn","Charlotte Fody","Reid Omilian","Jack Omilian","Anmmarie Muneio","Mitch Fody","Madison McGeddy","Dillon McCallum","Alex McCallum","Lucy Odelson","Abby Odelson","Cheri McCallum","Louann Muneio","Suzanne Fody","Karen Odelson","Andrea McCallum","Erin McCallum","John Brumback","Brian McCallum"],
+      superlatives: [{award:"Looks most like a golf ball",winner:"David McCallum"},{award:"Best Stevie Wonder Impression",winner:"Barrett Dunn"},{award:"Best Fall",winner:"Alex McCallum"},{award:"Closest to the pin",winner:"Dillon McCallum"}] },
+    { year: 2023, championRoster: ["Dillon McCallum","Erin McCallum","Andrea McCallum"],
+      participants: ["Alex McCallum","Joseph McCallum","Karen McCallum","Brian McCallum","Cheri McCallum","David McCallum","Dillon McCallum","Erin McCallum","Andrea McCallum"],
+      superlatives: [{award:"Hardest Hit Putt",winner:"Andrea McCallum"}] },
+    { year: 2024, championRoster: ["Geoffrey McVey","Andrea McCallum","Brian McCallum"],
+      participants: ["Erin McCallum","Karen McCallum","Andrew Carson","Alex McCallum","David McCallum","Diane McCallum","Cheri McCallum","Joseph McCallum","Geoffrey McVey","Andrea McCallum","Brian McCallum","Dillon McCallum","Louann Muneio","Emily Beyer","Drew McCallum"],
+      superlatives: [{award:"Best Right Handed Attempt",winner:"Andrew Carson"},{award:"Best Stevie Wonder Impression",winner:"Brian McCallum"},{award:"Best Ninja Moves",winner:"Drew McCallum"}] },
+    { year: 2025, championRoster: ["Geoffrey McVey","Dillon McCallum","João Paulo Gurgel","Jack Omilian"],
+      participants: ["Andrew Carson","Erin McCallum","David McCallum","Alex McCallum","Andrea McCallum","Charlotte Fody","Reid Omilian","Mitch Fody","Brian McCallum","Karen McCallum","Cheri McCallum","Emily Beyer","Joseph McCallum","Drew McCallum","Louann Muneio","Karen Odelson","Abby Odelson","Brian Odelson","Suzanne Muneio","Annmarie Omilian","Diane McCallum","Geoffrey McVey","Dillon McCallum","João Paulo Gurgel","Jack Omilian"],
+      superlatives: [{award:"Best Dressed/Team Merch",winner:"Brian McCallum"},{award:"Best Dressed/Team Merch",winner:"Karen McCallum"},{award:"Best Dressed/Team Merch",winner:"Cheri McCallum"},{award:"Best Stevie Wonder Impression",winner:"Jack Omilian"},{award:"Best Stevie Wonder Impression",winner:"Cheri McCallum"},{award:"Best Assassination Attempt",winner:"Andrew Carson"}] }
+  ];
+
+  // Turn an archived Firebase season into the same {championRoster, participants,
+  // superlatives} shape used for past years.
+  function seasonToResult(s) {
+    const champ = (s.standings || []).find(r => (r.rank || 99) === 1);
+    const rosterOf = r => (r && r.roster && r.roster.length) ? r.roster : [r && r.captain, r && r.partner].filter(Boolean);
+    return {
+      year: s.year,
+      championRoster: champ ? rosterOf(champ) : [],
+      participants: [].concat(...(s.standings || []).map(rosterOf)),
+      superlatives: s.superlatives || []
+    };
+  }
+
+  function renderStatsTables(seasons) {
+    // Combine past (baked) + archived (Firebase); a Firebase season overrides
+    // a same-year baked entry, so re-archiving a year stays consistent.
+    const byYear = new Map();
+    PAST_RESULTS.forEach(r => byYear.set(r.year, r));
+    (seasons || []).forEach(s => { if (s && s.year) byYear.set(s.year, seasonToResult(s)); });
+
+    const cup = {}, sup = {}, app = {}, win = {};
+    for (const r of byYear.values()) {
+      (r.championRoster || []).forEach(p => { const n = normName(p); if (n) { cup[n] = (cup[n]||0)+1; win[n] = (win[n]||0)+1; } });
+      (r.participants  || []).forEach(p => { const n = normName(p); if (n) app[n] = (app[n]||0)+1; });
+      (r.superlatives  || []).forEach(s => { const n = normName(s.winner); if (n) sup[n] = (sup[n]||0)+1; });
+    }
+    paintCounts("lb-cup", "MacCallum Cups", cup, "cup-lb-wins");
+    paintCounts("lb-superlatives", "Superlatives", sup, "cup-lb-wins");
+    paintWinPct("lb-winpct", win, app);
+  }
+
+  // Tie-aware "T-" ranked count table (Cup / Superlatives).
+  function paintCounts(id, headerLabel, counts, valClass) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const rows = Object.entries(counts).map(([name, v]) => ({ name, v }))
+      .sort((a, b) => b.v - a.v || a.name.localeCompare(b.name));
+    const body = rows.map(r => {
+      const place = 1 + rows.filter(o => o.v > r.v).length;
+      const tied  = rows.filter(o => o.v === r.v).length > 1;
+      return `<div class="cup-lb-row${place === 1 ? " top" : ""}">
+        <div class="cup-lb-rank">${(tied ? "T-" : "") + place}</div>
+        <div class="cup-lb-name">${esc(r.name)}</div>
+        <div><div class="${valClass}">${esc(r.v)}</div></div>
+      </div>`;
+    }).join("");
+    el.innerHTML = `<div class="cup-lb-header">${esc(headerLabel)}</div>${body}`;
+  }
+
+  // Win % = titles / appearances, minimum 2 appearances. The 0% players are
+  // collapsed into one row (as in the original hand-made table).
+  function paintWinPct(id, win, app) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const rows = Object.keys(app).filter(n => app[n] >= 2)
+      .map(n => ({ name: n, pct: (win[n] || 0) / app[n] }));
+    const nonzero = rows.filter(r => r.pct > 0).sort((a, b) => b.pct - a.pct || a.name.localeCompare(b.name));
+    const zeros = rows.filter(r => r.pct === 0);
+    const fmt = p => Math.round(p * 100) + "%";
+    let body = nonzero.map(r => {
+      const place = 1 + nonzero.filter(o => o.pct > r.pct).length;
+      const tied  = nonzero.filter(o => o.pct === r.pct).length > 1;
+      return `<div class="cup-lb-row${place === 1 ? " top" : ""}">
+        <div class="cup-lb-rank">${(tied ? "T-" : "") + place}</div>
+        <div class="cup-lb-name">${esc(r.name)}</div>
+        <div><div class="cup-lb-pct">${fmt(r.pct)}</div></div>
+      </div>`;
+    }).join("");
+    if (zeros.length) {
+      const place = 1 + nonzero.length;
+      const who = zeros.length === 1 ? esc(zeros[0].name) : `${zeros.length} players tied`;
+      body += `<div class="cup-lb-row">
+        <div class="cup-lb-rank">T-${place}</div>
+        <div class="cup-lb-name">${who}</div>
+        <div><div class="cup-lb-pct">0%</div></div>
+      </div>`;
+    }
+    el.innerHTML = `<div class="cup-lb-header">Win Percentage <span class="cup-lb-subnote">(min. 2 cups)</span></div>${body}`;
+  }
 </script>
 
 <script>

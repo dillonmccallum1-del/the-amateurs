@@ -97,7 +97,22 @@
     font-size: 15px; line-height: 1; cursor: pointer; padding: 0;
   }
   .champ-preview { margin-top: 10px; }
-  .champ-preview img { max-width: 100%; border-radius: 10px; display: block; }
+
+  /* Champion crop picker — a 9:5 frame (matching History + Home) with a
+     draggable focal point that maps to CSS object-position. */
+  .crop-frame {
+    position: relative; width: 100%; aspect-ratio: 9 / 5;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid rgba(15,89,40,0.18);
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .crop-frame:active { cursor: grabbing; }
+  .crop-frame img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .crop-marker {
+    position: absolute; width: 26px; height: 26px;
+    margin: -13px 0 0 -13px; border: 2px solid #fff; border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.45); pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -181,18 +196,20 @@
 
       <label for="f-narrative">The story (one short paragraph)</label>
       <textarea id="f-narrative" placeholder="What happened this year? Who ran away with it, who came up short…"></textarea>
+      <p class="small-hint">Tip: wrap words in <strong>**double asterisks**</strong> to make them bold — e.g. <code>**Fairway to Heaven**</code> runs away with it.</p>
     </div>
 
     <div class="admin-card">
       <h2>Final standings</h2>
-      <p class="small-hint" id="stand-note">Pulled live from the leaderboard. Top team is crowned champion.</p>
+      <p class="small-hint" id="stand-note">Pulled live from the leaderboard. The History card shows the <strong>top 3 places</strong> (champion + runners-up); the full list is saved for the stats tables. Ties share a place (e.g. “T-3”).</p>
       <div id="stand-preview" class="stand-preview"></div>
     </div>
 
     <div class="admin-card">
       <h2>Champion photo</h2>
-      <p class="small-hint">The big winners' photo shown at the top of the year card.</p>
+      <p class="small-hint">The big winners' photo shown at the top of the year card and on the Home page. Uploads as soon as you pick it.</p>
       <input id="f-champ-photo" type="file" accept="image/*">
+      <div id="champ-feedback" class="feedback hidden"></div>
       <div id="champ-preview" class="champ-preview"></div>
     </div>
 
@@ -208,10 +225,10 @@
 
     <div class="admin-card">
       <h2>Highlight photos</h2>
-      <p class="small-hint">Thumbnails for the year's gallery. Pick several at once; they're added below.</p>
+      <p class="small-hint">Thumbnails for the year's gallery. Pick several at once, or add a few at a time — each uploads immediately and stacks up below, so you can keep adding.</p>
       <input id="f-photos" type="file" accept="image/*" multiple>
+      <div id="photo-feedback" class="feedback hidden"></div>
       <div id="photo-strip" class="photo-strip"></div>
-
     </div>
 
     <div class="admin-card">
@@ -261,15 +278,35 @@
     return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   }
 
-  // In-memory working state.
+  // In-memory working state. Photos upload the moment they're picked (so an
+  // iOS PWA reload can't lose them), so we only ever hold uploaded URLs here.
   let currentConfig = null;
   let currentTeams  = [];
   let standings     = [];          // computed, ranked
-  let champFile     = null;        // pending champion File (not yet uploaded)
-  let champExisting = null;        // existing champion url (when editing)
-  let newPhotoFiles = [];          // pending highlight Files
-  let existingPhotos = [];         // existing highlight urls (when editing)
+  let champExisting = null;        // uploaded champion photo url
+  let champPos      = "50% 50%";   // champion photo crop focal point (object-position)
+  let existingPhotos = [];         // uploaded highlight urls
   let prefilledYear = false;
+
+  // Year helper — uploads need a valid year for the storage path.
+  function currentYear() {
+    const y = parseInt($("f-year").value, 10);
+    return (y && y >= 2021) ? y : null;
+  }
+
+  // Persist just the media fields to the season doc immediately, so a page
+  // reload (common on iOS after the photo picker) recovers them on reload.
+  async function persistMedia() {
+    const year = currentYear();
+    if (!year) return;
+    try {
+      await saveSeason(year, {
+        championPhotoUrl: champExisting || null,
+        championPhotoPos: champPos,
+        photos: existingPhotos.slice()
+      });
+    } catch (_) { /* best-effort; full Save will write again */ }
+  }
 
   // ─── Auth gate ──────────────────────────────────────────────
   onAuth(async (user) => {
@@ -323,6 +360,7 @@
     if (s.host) $("f-host").value = s.host;
     if (s.narrative) $("f-narrative").value = s.narrative;
     if (s.driveUrl) $("f-drive").value = s.driveUrl;
+    if (s.championPhotoPos) champPos = s.championPhotoPos;
     if (s.championPhotoUrl) { champExisting = s.championPhotoUrl; renderChampPreview(); }
     if (Array.isArray(s.photos)) { existingPhotos = s.photos.slice(); renderPhotoStrip(); }
     if (Array.isArray(s.superlatives) && s.superlatives.length) {
@@ -367,7 +405,15 @@
       if (b.points !== a.points) return b.points - a.points;
       if (b.holesCompleted !== a.holesCompleted) return b.holesCompleted - a.holesCompleted;
       return a.draftPick - b.draftPick;
-    }).map((r, i) => ({ ...r, rank: i + 1 }));
+    });
+    // Tie-aware places: teams with equal points share a place ("T-3"), and
+    // the next place skips accordingly — matching how the older year cards
+    // (e.g. 2025's two T-3 teams) read.
+    standings = standings.map((r, i, arr) => {
+      const place = 1 + arr.filter(o => o.points > r.points).length;
+      const tied  = arr.filter(o => o.points === r.points).length > 1;
+      return { ...r, rank: place, rankLabel: (tied ? "T-" : "") + place };
+    });
     populatePlayerList();
     renderStandings();
   }
@@ -431,48 +477,117 @@
     })).filter(s => s.award || s.winner);
   }
 
-  // ─── Champion photo ─────────────────────────────────────────
-  $("f-champ-photo").addEventListener("change", (e) => {
-    champFile = e.target.files[0] || null;
-    renderChampPreview();
+  function setFeedback(id, text, kind) {
+    const el = $(id);
+    if (!text) { el.classList.add("hidden"); return; }
+    el.className = "feedback " + (kind || "busy"); el.textContent = text;
+    el.classList.remove("hidden");
+  }
+
+  // ─── Champion photo (uploads on select; drag to set the crop) ───────
+  $("f-champ-photo").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    $("f-champ-photo").value = "";
+    if (!file) return;
+    const year = currentYear();
+    if (!year) { setFeedback("champ-feedback", "Set the year first, then add the photo.", "err"); return; }
+    setFeedback("champ-feedback", "Uploading champion photo…");
+    try {
+      const up = await uploadSeasonPhoto(year, "champion", file);
+      champExisting = up.url;
+      await persistMedia();
+      renderChampPreview();
+      setFeedback("champ-feedback", "");
+    } catch (err) {
+      setFeedback("champ-feedback", "Upload failed: " + (err.code || err.message), "err");
+    }
   });
+
   function renderChampPreview() {
     const box = $("champ-preview");
-    const src = champFile ? URL.createObjectURL(champFile) : champExisting;
-    if (!src) { box.innerHTML = ""; return; }
-    box.innerHTML = `<img src="${src}" alt="Champion preview">
-      <div class="btn-row"><button type="button" id="champ-clear" class="btn btn-secondary">Remove photo</button></div>`;
-    $("champ-clear").addEventListener("click", () => {
-      champFile = null; champExisting = null; $("f-champ-photo").value = ""; renderChampPreview();
+    if (!champExisting) { box.innerHTML = ""; return; }
+    box.innerHTML = `
+      <p class="small-hint">Drag the photo to choose what stays in frame — this exact crop is used on both the History card and the Home page (both show a wide 9:5 banner).</p>
+      <div class="crop-frame" id="crop-frame">
+        <img src="${champExisting}" alt="Champion" id="crop-img" style="object-position:${champPos}">
+        <div class="crop-marker" id="crop-marker"></div>
+      </div>
+      <div class="btn-row">
+        <button type="button" id="champ-clear" class="btn btn-secondary">Remove photo</button>
+      </div>`;
+    wireCropper();
+    $("champ-clear").addEventListener("click", async () => {
+      champExisting = null; champPos = "50% 50%";
+      await persistMedia(); renderChampPreview();
     });
   }
 
-  // ─── Highlight photos ───────────────────────────────────────
-  $("f-photos").addEventListener("change", (e) => {
-    for (const f of e.target.files) newPhotoFiles.push(f);
+  // Drag/click within the 9:5 frame sets the focal point (object-position).
+  function wireCropper() {
+    const frame  = $("crop-frame");
+    const img    = $("crop-img");
+    const marker = $("crop-marker");
+    if (!frame) return;
+    const place = (clientX, clientY) => {
+      const r = frame.getBoundingClientRect();
+      const px = Math.max(0, Math.min(100, Math.round((clientX - r.left) / r.width  * 100)));
+      const py = Math.max(0, Math.min(100, Math.round((clientY - r.top)  / r.height * 100)));
+      champPos = `${px}% ${py}%`;
+      img.style.objectPosition = champPos;
+      marker.style.left = px + "%";
+      marker.style.top  = py + "%";
+    };
+    // Set marker to the current position on render.
+    const [sx, sy] = champPos.replace(/%/g, "").split(" ");
+    marker.style.left = (sx || 50) + "%";
+    marker.style.top  = (sy || 50) + "%";
+    let dragging = false;
+    const down = (e) => { dragging = true; const t = e.touches ? e.touches[0] : e; place(t.clientX, t.clientY); };
+    const move = (e) => { if (!dragging) return; const t = e.touches ? e.touches[0] : e; place(t.clientX, t.clientY); e.preventDefault(); };
+    const up   = async () => { if (!dragging) return; dragging = false; await persistMedia(); };
+    frame.addEventListener("pointerdown", down);
+    frame.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  // ─── Highlight photos (each uploads immediately on select) ──────────
+  $("f-photos").addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files);
     $("f-photos").value = "";
-    renderPhotoStrip();
+    if (!files.length) return;
+    const year = currentYear();
+    if (!year) { setFeedback("photo-feedback", "Set the year first, then add photos.", "err"); return; }
+    for (let i = 0; i < files.length; i++) {
+      setFeedback("photo-feedback", `Uploading photo ${i + 1} of ${files.length}…`);
+      try {
+        const up = await uploadSeasonPhoto(year, "highlight", files[i]);
+        existingPhotos.push(up.url);
+        renderPhotoStrip();
+      } catch (err) {
+        setFeedback("photo-feedback", "Upload failed: " + (err.code || err.message), "err");
+        return;
+      }
+    }
+    await persistMedia();
+    setFeedback("photo-feedback", `Added — ${existingPhotos.length} photo${existingPhotos.length === 1 ? "" : "s"} so far.`, "ok");
   });
+
   function renderPhotoStrip() {
     const strip = $("photo-strip");
     strip.innerHTML = "";
-    existingPhotos.forEach((url, i) => strip.appendChild(photoChip(url, () => {
-      existingPhotos.splice(i, 1); renderPhotoStrip();
-    })));
-    newPhotoFiles.forEach((file, i) => photoChip(URL.createObjectURL(file), () => {
-      newPhotoFiles.splice(i, 1); renderPhotoStrip();
-    }, strip));
-    if (!existingPhotos.length && !newPhotoFiles.length) {
+    if (!existingPhotos.length) {
       strip.innerHTML = `<p class="small-hint">No photos added yet.</p>`;
+      return;
     }
-  }
-  function photoChip(src, onRemove, parent) {
-    const chip = document.createElement("div");
-    chip.className = "photo-chip";
-    chip.innerHTML = `<img src="${src}" alt="Highlight photo"><button type="button" aria-label="Remove">✕</button>`;
-    chip.querySelector("button").addEventListener("click", onRemove);
-    if (parent) parent.appendChild(chip);
-    return chip;
+    existingPhotos.forEach((url, i) => {
+      const chip = document.createElement("div");
+      chip.className = "photo-chip";
+      chip.innerHTML = `<img src="${url}" alt="Highlight photo"><button type="button" aria-label="Remove">✕</button>`;
+      chip.querySelector("button").addEventListener("click", async () => {
+        existingPhotos.splice(i, 1); await persistMedia(); renderPhotoStrip();
+      });
+      strip.appendChild(chip);
+    });
   }
 
   // ─── Save ───────────────────────────────────────────────────
@@ -489,41 +604,23 @@
       return;
     }
     btn.disabled = true;
-    fb.className = "feedback busy"; fb.classList.remove("hidden");
+    fb.className = "feedback busy"; fb.textContent = "Saving season…"; fb.classList.remove("hidden");
     try {
-      // Upload champion photo if a new one was chosen.
-      let championPhotoUrl = champExisting;
-      if (champFile) {
-        fb.textContent = "Uploading champion photo…";
-        const up = await uploadSeasonPhoto(year, "champion", champFile);
-        championPhotoUrl = up.url;
-      }
-      // Upload any new highlight photos, append to existing.
-      const photos = existingPhotos.slice();
-      for (let i = 0; i < newPhotoFiles.length; i++) {
-        fb.textContent = `Uploading photo ${i + 1} of ${newPhotoFiles.length}…`;
-        const up = await uploadSeasonPhoto(year, "highlight", newPhotoFiles[i]);
-        photos.push(up.url);
-      }
-
-      fb.textContent = "Saving season…";
+      // Photos already uploaded on selection; just save the rest of the season.
       await saveSeason(year, {
         host:      $("f-host").value.trim() || null,
         narrative: $("f-narrative").value.trim() || null,
-        championPhotoUrl: championPhotoUrl || null,
+        championPhotoUrl: champExisting || null,
+        championPhotoPos: champPos,
         standings: standings.map(r => ({
-          rank: r.rank, name: r.name, captain: r.captain, partner: r.partner,
+          rank: r.rank, rankLabel: r.rankLabel, name: r.name,
+          captain: r.captain, partner: r.partner,
           roster: r.roster, points: r.points, logoUrl: r.logoUrl
         })),
         superlatives: collectSuperlatives(),
-        photos,
+        photos: existingPhotos.slice(),
         driveUrl: $("f-drive").value.trim() || null
       });
-
-      // Reset pending uploads (now persisted) so re-saving doesn't duplicate.
-      champFile = null; champExisting = championPhotoUrl;
-      existingPhotos = photos.slice(); newPhotoFiles = [];
-      renderPhotoStrip(); renderChampPreview();
 
       fb.className = "feedback ok";
       fb.innerHTML = `Saved! The ${year} season is now on the <a href="history.html">History page</a>.`;
@@ -534,6 +631,7 @@
       btn.disabled = false;
     }
   });
+
 </script>
 
 <script>
