@@ -51,7 +51,7 @@
 <div class="year-edition"><span id="edition-banner">2026 Footgolf Edition</span></div>
 
 <!-- ===== DYNAMIC STATE: PRE-EVENT or HIDDEN or LIVE ===== -->
-<section class="content">
+<section class="content" id="state-cards">
   <div id="state-pre-event" class="status-card pre-event hidden-by-default">
     <span class="status-label">Pre-Event</span>
     <h2>The leaderboard goes live on event day</h2>
@@ -103,7 +103,6 @@
       <div class="title">Final Standings</div>
       <div class="badge">FINAL</div>
     </div>
-    <div class="master-board-note" id="master-note">Final results — Stableford hole points plus every bonus point awarded. Tap a team to see the full scorecard.</div>
     <div class="master-list" id="master-rows"></div>
   </div>
 
@@ -164,6 +163,10 @@
     font-weight: 700;
   }
   .live-dot.final::before { display: none; }
+
+  /* With the status-card section collapsed on event day, tuck the standings
+     up just below the "2026 Footgolf Edition" banner. */
+  #state-live { padding-top: 16px; }
 
   /* ===== Farthest Throw leaderboard (hole 5) ===== */
   .farthest-board { margin-top: 24px; }
@@ -604,6 +607,7 @@
 
   function render() {
     // Always start by hiding state cards; re-show the right one.
+    show("state-cards");
     hide("state-loading");
     hide("state-pre-event");
     hide("state-hidden");
@@ -655,6 +659,9 @@
     renderFarthestThrow();
     renderClosestToPin();
 
+    // Collapse the (now-empty) status-card section so the standings sit up
+    // close under the "2026 Footgolf Edition" banner instead of leaving a gap.
+    hide("state-cards");
     show("state-live");
   }
 
