@@ -391,12 +391,17 @@
     standings = currentTeams.map(t => {
       const totals = computeTeamTotals(t, par, currentTeams, currentConfig);
       const roster = [t.captain, t.partner].filter(Boolean);
+      // Raw gross strokes (the "Stroke To Par" column in the records file).
+      const strokes = Array.isArray(t.strokes) ? t.strokes : [];
+      let rawStrokes = 0, anyPlayed = false;
+      strokes.forEach(s => { if (s != null) { rawStrokes += s; anyPlayed = true; } });
       return {
         name: t.name || "(unnamed team)",
         captain: t.captain || "",
         partner: t.partner || "",
         roster,
         points: totals.totalPoints,
+        strokeToPar: anyPlayed ? rawStrokes : null,
         holesCompleted: totals.holesCompleted,
         logoUrl: teamLogo(t),
         draftPick: t.draftPick ?? 99
@@ -615,7 +620,7 @@
         standings: standings.map(r => ({
           rank: r.rank, rankLabel: r.rankLabel, name: r.name,
           captain: r.captain, partner: r.partner,
-          roster: r.roster, points: r.points, logoUrl: r.logoUrl
+          roster: r.roster, points: r.points, strokeToPar: (r.strokeToPar ?? null), logoUrl: r.logoUrl
         })),
         superlatives: collectSuperlatives(),
         photos: existingPhotos.slice(),

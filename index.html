@@ -66,10 +66,11 @@
 </section>
 
 <!-- ===== WHAT'S NOW (pre-event status — countdown) ===== -->
-<section class="content">
+<section class="content" id="status-section">
   <div id="status-card" class="status-card pre-event">
     <span class="status-label" id="status-label">Pre-Event</span>
-    <div id="countdown" class="countdown" data-target="2026-06-13T14:00:00-04:00">
+    <p class="live-message" id="live-message" style="display:none;">Let the games begin!</p>
+    <div id="countdown" class="countdown">
       <div class="countdown-label">Tee-Off In</div>
       <div class="countdown-grid">
         <div class="countdown-unit">
@@ -89,8 +90,17 @@
           <span class="countdown-unit-label">Seconds</span>
         </div>
       </div>
+      <div class="countdown-target" id="countdown-date"></div>
     </div>
   </div>
+
+  <!-- Shown only once the commissioner sets the event status to Final:
+       the countdown card above is hidden and this takes its place. -->
+  <a id="final-cta" class="final-cta" href="Pages/leaderboard.html" style="display:none;">
+    <span class="final-cta-label">Final Results</span>
+    <span class="final-cta-title">The 2026 Amateurs is in the books</span>
+    <span class="final-cta-arrow">View the final leaderboard &rarr;</span>
+  </a>
 </section>
 
 <!-- ===== PUSH NOTIFICATIONS OPT-IN ===== -->
@@ -139,40 +149,6 @@
   </a>
 </section>
 
-<!-- ===== NAVIGATION TILES ===== -->
-<section class="content">
-  <h2 class="section-title">Explore</h2>
-  <div class="section-rule"></div>
-
-  <div class="nav-tiles">
-    <a class="nav-tile" href="Pages/about.html">
-      <div class="nav-tile-icon">&#128214;</div>
-      <div class="nav-tile-name">About</div>
-    </a>
-    <a class="nav-tile" href="Pages/rules.html">
-      <div class="nav-tile-icon">&#128203;</div>
-      <div class="nav-tile-name">Rules &amp; Scoring</div>
-    </a>
-    <a class="nav-tile" href="Pages/leaderboard.html">
-      <div class="nav-tile-icon">&#128202;</div>
-      <div class="nav-tile-name">Leaderboard</div>
-    </a>
-    <a class="nav-tile" href="Pages/draft.html">
-      <div class="nav-tile-icon">&#127919;</div>
-      <div class="nav-tile-name">Draft</div>
-    </a>
-    <a class="nav-tile" href="Pages/history.html">
-      <div class="nav-tile-icon">&#127942;</div>
-      <div class="nav-tile-name">History</div>
-    </a>
-    <a class="nav-tile" href="Pages/captains.html">
-      <div class="nav-tile-icon">&#129506;</div>
-      <div class="nav-tile-name">Captains</div>
-    </a>
-  </div>
-</section>
-
-
 <!-- ===== FOOTER ===== -->
 <footer class="app-footer">
   <a href="index.html" class="brand-text">The Amateurs</a>
@@ -186,36 +162,6 @@
     document.querySelector('nav.drawer').classList.toggle('open');
     document.querySelector('.nav-overlay').classList.toggle('open');
   }
-
-  // ===== COUNTDOWN — ticks each second toward the data-target ISO timestamp =====
-  (function() {
-    const card = document.getElementById('countdown');
-    if (!card) return;
-    const target = new Date(card.dataset.target).getTime();
-    const dEl = document.getElementById('cd-days');
-    const hEl = document.getElementById('cd-hours');
-    const mEl = document.getElementById('cd-mins');
-    const sEl = document.getElementById('cd-secs');
-    const pad = n => String(n).padStart(2, '0');
-
-    function tick() {
-      const diff = target - Date.now();
-      if (diff <= 0) {
-        card.classList.add('live');
-        dEl.textContent = '0';
-        hEl.textContent = '00';
-        mEl.textContent = '00';
-        sEl.textContent = '00';
-        return false;
-      }
-      dEl.textContent = Math.floor(diff / 86400000);
-      hEl.textContent = pad(Math.floor((diff / 3600000) % 24));
-      mEl.textContent = pad(Math.floor((diff / 60000) % 60));
-      sEl.textContent = pad(Math.floor((diff / 1000) % 60));
-      return true;
-    }
-    if (tick()) setInterval(tick, 1000);
-  })();
 </script>
 
 <script>
@@ -269,6 +215,104 @@
       }
     });
   }
+</script>
+
+<script type="module">
+  // ----- Home status card — driven live by the event config in Firebase.
+  //   pre-event  → countdown ticking toward tournament day (3rd Saturday of
+  //                June for cfg.year), with the tee-off date shown below.
+  //   live       → "Live / Let the games begin!" banner (no countdown).
+  //   post-round → "Round complete" banner.
+  //   final      → countdown card hidden; the final-leaderboard link shows.
+  import { onEventConfig } from "./js/firebase-init.js";
+
+  const statusCard  = document.getElementById("status-card");
+  const statusLabel = document.getElementById("status-label");
+  const liveMsg     = document.getElementById("live-message");
+  const countdown   = document.getElementById("countdown");
+  const dateEl      = document.getElementById("countdown-date");
+  const finalCta    = document.getElementById("final-cta");
+  const dEl = document.getElementById("cd-days");
+  const hEl = document.getElementById("cd-hours");
+  const mEl = document.getElementById("cd-mins");
+  const sEl = document.getElementById("cd-secs");
+  const pad = n => String(n).padStart(2, "0");
+
+  let timer = null;
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+  // Tournament day = the third Saturday of June for the given year.
+  function tournamentDay(year) {
+    const first = new Date(year, 5, 1);             // June 1 (local)
+    const toFirstSat = (6 - first.getDay() + 7) % 7;
+    return new Date(year, 5, 1 + toFirstSat + 14);  // local midnight that Saturday
+  }
+
+  // Switch the card into a red "underway" banner (used for live & post-round).
+  function showBanner(label, message) {
+    stopTimer();
+    countdown.style.display = "none";
+    statusCard.style.display = "";
+    finalCta.style.display = "none";
+    statusCard.classList.remove("pre-event");
+    statusCard.classList.add("live");
+    statusLabel.textContent = label;
+    liveMsg.textContent = message;
+    liveMsg.style.display = "";
+  }
+
+  // Show the running countdown toward tournament day.
+  function showCountdown(target) {
+    statusCard.style.display = "";
+    finalCta.style.display = "none";
+    statusCard.classList.add("pre-event");
+    statusCard.classList.remove("live");
+    statusLabel.textContent = "Pre-Event";
+    liveMsg.style.display = "none";
+    countdown.style.display = "";
+    dateEl.textContent = "Tees off " + target.toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric", year: "numeric"
+    });
+
+    stopTimer();
+    function tick() {
+      const diff = target.getTime() - Date.now();
+      if (diff <= 0) {                       // tournament day arrived
+        showBanner("Live", "Let the games begin!");
+        return;
+      }
+      dEl.textContent = Math.floor(diff / 86400000);
+      hEl.textContent = pad(Math.floor((diff / 3600000) % 24));
+      mEl.textContent = pad(Math.floor((diff / 60000) % 60));
+      sEl.textContent = pad(Math.floor((diff / 1000) % 60));
+    }
+    tick();
+    timer = setInterval(tick, 1000);
+  }
+
+  onEventConfig((cfg) => {
+    const status = (cfg && cfg.status) || "pre-event";
+    const year   = (cfg && cfg.year)   || new Date().getFullYear();
+
+    if (status === "final") {
+      stopTimer();
+      statusCard.style.display = "none";
+      finalCta.style.display = "flex";
+      return;
+    }
+    if (status === "post-round") {
+      showBanner("Round Complete", "The round is in the books — final results coming soon.");
+      return;
+    }
+    if (status === "live") {
+      showBanner("Live", "Let the games begin!");
+      return;
+    }
+    // pre-event (default): count down to tournament day for the set year.
+    const target = tournamentDay(year);
+    if (target.getTime() - Date.now() <= 0) showBanner("Live", "Let the games begin!");
+    else showCountdown(target);
+  });
 </script>
 
 <script type="module">

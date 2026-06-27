@@ -796,8 +796,6 @@
         <h2>Event status</h2>
         <label for="evt-status">Current status</label>
         <select id="evt-status">
-          <option value="pre-draft">Pre-Draft</option>
-          <option value="draft">Draft in progress</option>
           <option value="pre-event">Pre-Event</option>
           <option value="live">Live</option>
           <option value="post-round">Post-Round</option>
@@ -1390,8 +1388,8 @@
   })();
 </script>
 
-<!-- SheetJS for the Post-Event results-spreadsheet export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- ExcelJS for the Post-Event results-spreadsheet export (styled, block layout) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
 <script type="module">
   import {
@@ -2867,34 +2865,40 @@
   // ─── Results spreadsheet export (Post-Event) ────────────────
   // Past years (2022–2025) baked in; new years come from Firebase. Rebuilds
   // the whole workbook each time so it's always complete and current.
+  //
+  // Each normal (stroke-play) year carries two score columns per team:
+  //   strokeToPar  → "Stroke To Par"     (raw strokes relative to par; lower = better)
+  //   score        → "Mod. Stableford"   (points; higher = better, used to rank/win)
+  // 2023 was a putting course scored on total putts only, so it uses one
+  // column (singleScore) with its own header label and lower-is-better.
   const PAST_SHEET = [
     { year: 2025, host: "The Little Myth Golf Course", teams: [
-      { team: "Fairway to Heaven", score: 28, captain: "Geoffrey McVey", players: ["Geoffrey McVey","Dillon McCallum","João Paulo Gurgel","Jack Omilian"] },
-      { team: "Live Laugh FORE!!!", score: 21, captain: "Brian McCallum", players: ["Brian McCallum","Karen McCallum","Cheri McCallum"] },
-      { team: "Diamonds in the Rough", score: 18, captain: "Andrew Carson", players: ["Andrew Carson","Erin McCallum","David McCallum","Alex McCallum"] },
-      { team: "Hall of Famers", score: 18, captain: "Suzanne Muneio", players: ["Suzanne Muneio","Annmarie Omilian","Diane McCallum"] },
-      { team: "Beyer's Boneheads", score: 17, captain: "Emily Beyer", players: ["Emily Beyer","Joseph McCallum","Drew McCallum","Louann Muneio"] },
-      { team: "Great Balls of Fire", score: 15, captain: "Karen Odelson", players: ["Karen Odelson","Abby Odelson","Brian Odelson"] },
-      { team: "Kiss My Putt", score: 9, captain: "Andrea McCallum", players: ["Andrea McCallum","Charlotte Fody","Reid Omilian","Mitch Fody"] } ],
+      { team: "Fairway to Heaven", score: 28, strokeToPar: 25, captain: "Geoffrey McVey", players: ["Geoffrey McVey","Dillon McCallum","João Paulo Gurgel","Jack Omilian"] },
+      { team: "Live Laugh FORE!!!", score: 21, strokeToPar: 29, captain: "Brian McCallum", players: ["Brian McCallum","Karen McCallum","Cheri McCallum"] },
+      { team: "Diamonds in the Rough", score: 18, strokeToPar: 30, captain: "Andrew Carson", players: ["Andrew Carson","Erin McCallum","David McCallum","Alex McCallum"] },
+      { team: "Hall of Famers", score: 18, strokeToPar: 31, captain: "Suzanne Muneio", players: ["Suzanne Muneio","Annmarie Omilian","Diane McCallum"] },
+      { team: "Beyer's Boneheads", score: 17, strokeToPar: 29, captain: "Emily Beyer", players: ["Emily Beyer","Joseph McCallum","Drew McCallum","Louann Muneio"] },
+      { team: "Great Balls of Fire", score: 15, strokeToPar: 34, captain: "Karen Odelson", players: ["Karen Odelson","Abby Odelson","Brian Odelson"] },
+      { team: "Kiss My Putt", score: 9, strokeToPar: 39, captain: "Andrea McCallum", players: ["Andrea McCallum","Charlotte Fody","Reid Omilian","Mitch Fody"] } ],
       superlatives: [{award:"Best Dressed/Team Merch",winner:"Brian McCallum"},{award:"Best Dressed/Team Merch",winner:"Karen McCallum"},{award:"Best Dressed/Team Merch",winner:"Cheri McCallum"},{award:"Best Stevie Wonder Impression",winner:"Jack Omilian"},{award:"Best Stevie Wonder Impression",winner:"Cheri McCallum"},{award:"Best Assassination Attempt",winner:"Andrew Carson"}] },
     { year: 2024, host: "Fox Hills (Strategic)", teams: [
-      { team: "Life of the Par-Tee", score: 26, captain: "Andrea McCallum", players: ["Geoffrey McVey","Andrea McCallum","Brian McCallum"] },
-      { team: "What Club Should I Use?", score: 25, captain: "Erin McCallum", players: ["Erin McCallum","Karen McCallum","Andrew Carson","Alex McCallum"] },
-      { team: "You Play Golf?", score: 20, captain: "David McCallum", players: ["David McCallum","Diane McCallum","Cheri McCallum","Joseph McCallum"] },
-      { team: "Significant Turf Dependence", score: 20, captain: "Dillon McCallum", players: ["Dillon McCallum","Louann Muneio","Emily Beyer","Drew McCallum"] } ],
+      { team: "Life of the Par-Tee", score: 26, strokeToPar: 26, captain: "Andrea McCallum", players: ["Geoffrey McVey","Andrea McCallum","Brian McCallum"] },
+      { team: "What Club Should I Use?", score: 25, strokeToPar: 27, captain: "Erin McCallum", players: ["Erin McCallum","Karen McCallum","Andrew Carson","Alex McCallum"] },
+      { team: "You Play Golf?", score: 20, strokeToPar: 29, captain: "David McCallum", players: ["David McCallum","Diane McCallum","Cheri McCallum","Joseph McCallum"] },
+      { team: "Significant Turf Dependence", score: 20, strokeToPar: 27, captain: "Dillon McCallum", players: ["Dillon McCallum","Louann Muneio","Emily Beyer","Drew McCallum"] } ],
       superlatives: [{award:"Best Right Handed Attempt",winner:"Andrew Carson"},{award:"Best Stevie Wonder Impression",winner:"Brian McCallum"},{award:"Best Ninja Moves",winner:"Drew McCallum"}] },
-    { year: 2023, host: "Himalayas Putting Course", teams: [
+    { year: 2023, host: "Himalayas Putting Course", singleScore: true, scoreLabel: "2 person best ball Mod. Stableford", teams: [
       { team: "Almost In", score: 85, captain: "Dillon McCallum", players: ["Dillon McCallum","Erin McCallum","Andrea McCallum"] },
       { team: "Hagus Horde", score: 82, captain: "Joseph McCallum", players: ["Alex McCallum","Joseph McCallum","Karen McCallum"] },
       { team: "Cold Wett in puttin", score: 78, captain: "Cheri McCallum", players: ["Brian McCallum","Cheri McCallum","David McCallum"] } ],
       superlatives: [{award:"Hardest Hit Putt",winner:"Andrea McCallum"}] },
     { year: 2022, host: "Fox Hills (Strategic)", teams: [
-      { team: "The Elders", score: 27, captain: "Joseph McCallum", players: ["Joseph McCallum","Brian Odelson","David McCallum","Karen McCallum"] },
-      { team: "Harry Putter", score: 22, captain: "Barrett Dunn", players: ["Hannah Fody","Barrett Dunn","Charlotte Fody","Reid Omilian"] },
-      { team: "Weapons of Grass Destruction", score: 20, captain: "Dillon McCallum", players: ["Dillon McCallum","Alex McCallum","Lucy Odelson","Abby Odelson"] },
-      { team: "The Fore Horseman", score: 16, captain: "Andrea McCallum", players: ["Andrea McCallum","Erin McCallum","John Brumback","Brian McCallum"] },
-      { team: "Cumulonimbus", score: 11, captain: "Jack Omilian", players: ["Jack Omilian","Anmmarie Muneio","Mitch Fody","Madison McGeddy"] },
-      { team: "No Balls", score: 11, captain: "Cheri McCallum", players: ["Cheri McCallum","Louann Muneio","Suzanne Fody","Karen Odelson"] } ],
+      { team: "The Elders", score: 27, strokeToPar: 25, captain: "Joseph McCallum", players: ["Joseph McCallum","Brian Odelson","David McCallum","Karen McCallum"] },
+      { team: "Harry Putter", score: 22, strokeToPar: 29, captain: "Barrett Dunn", players: ["Hannah Fody","Barrett Dunn","Charlotte Fody","Reid Omilian"] },
+      { team: "Weapons of Grass Destruction", score: 20, strokeToPar: 29, captain: "Dillon McCallum", players: ["Dillon McCallum","Alex McCallum","Lucy Odelson","Abby Odelson"] },
+      { team: "The Fore Horseman", score: 16, strokeToPar: 31, captain: "Andrea McCallum", players: ["Andrea McCallum","Erin McCallum","John Brumback","Brian McCallum"] },
+      { team: "Cumulonimbus", score: 11, strokeToPar: 35, captain: "Jack Omilian", players: ["Jack Omilian","Anmmarie Muneio","Mitch Fody","Madison McGeddy"] },
+      { team: "No Balls", score: 11, strokeToPar: 34, captain: "Cheri McCallum", players: ["Cheri McCallum","Louann Muneio","Suzanne Fody","Karen Odelson"] } ],
       superlatives: [{award:"Looks most like a golf ball",winner:"David McCallum"},{award:"Best Stevie Wonder Impression",winner:"Barrett Dunn"},{award:"Best Fall",winner:"Alex McCallum"},{award:"Closest to the pin",winner:"Dillon McCallum"}] }
   ];
 
@@ -2902,16 +2906,113 @@
     const teams = (s.standings || []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99)).map(r => ({
       team: r.name,
       score: r.points,
+      strokeToPar: (r.strokeToPar ?? null),
       captain: r.captain || (r.roster && r.roster[0]) || "",
       players: (r.roster && r.roster.length) ? r.roster : [r.captain, r.partner].filter(Boolean)
     }));
     return { year: s.year, host: s.host || "", teams, superlatives: s.superlatives || [] };
   }
 
+  // ─── Styled workbook builder (matches The_Amateurs_Results.xlsx layout) ──
+  // Block layout: a tall merged year/course banner down columns A–B, then
+  // Team Name / Players / Stroke To Par / Mod. Stableford as columns C–F,
+  // one player per row with the score cells merged & enlarged per team and
+  // the winner's Mod. Stableford shaded gold.
+  const RES_FONT = "Calibri";
+  const WINNER_GOLD = "FFF1C232";
+
+  function cell(ws, addr, value, { size = 11, h = null, v = null, wrap = false, fill = null } = {}) {
+    const c = ws.getCell(addr);
+    c.value = value;
+    c.font = { name: RES_FONT, size };
+    const vAlign = v === "center" ? "middle" : v;  // ExcelJS uses "middle" for vertical centering
+    if (h || vAlign || wrap) c.alignment = { horizontal: h || undefined, vertical: vAlign || undefined, wrapText: !!wrap };
+    if (fill) c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fill } };
+    return c;
+  }
+  function scoreCell(ws, col, r1, r2, value, isWinner) {
+    if (r2 > r1) ws.mergeCells(`${col}${r1}:${col}${r2}`);
+    cell(ws, `${col}${r1}`, value ?? "", { size: 28, h: "center", v: "center", fill: isWinner ? WINNER_GOLD : null });
+  }
+
+  function buildResultsWorkbook(years) {
+    const wb = new ExcelJS.Workbook();
+
+    // ----- Tournament Results -----
+    const ws = wb.addWorksheet("Tournament Results");
+    [10.6, 21.4, 30.3, 19.1, 23.1, 21.8].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+
+    let row = 3; // two blank rows at the top, exactly like the source file
+    years.forEach((y) => {
+      const single = !!y.singleScore;
+      const teams = (y.teams || []).slice().sort((a, b) =>
+        single ? ((a.score ?? 1e9) - (b.score ?? 1e9))   // putting: lower total wins
+               : ((b.score ?? -1e9) - (a.score ?? -1e9))); // stableford: higher wins
+      if (!teams.length) return;
+
+      const best = single
+        ? Math.min(...teams.map(t => (t.score ?? Infinity)))
+        : Math.max(...teams.map(t => (t.score ?? -Infinity)));
+
+      const blockStart = row;
+      cell(ws, `C${row}`, "Team Name", { size: 18 });
+      cell(ws, `D${row}`, "Players", { size: 18 });
+      if (single) {
+        cell(ws, `E${row}`, y.scoreLabel || "Score", { size: 18 });
+      } else {
+        cell(ws, `E${row}`, "Stroke To Par", { size: 18 });
+        cell(ws, `F${row}`, "Mod. Stableford", { size: 18 });
+      }
+      row++;
+
+      teams.forEach((t) => {
+        const players = (t.players && t.players.length) ? t.players : [t.captain].filter(Boolean);
+        const n = Math.max(players.length, 1);
+        const tStart = row;
+        const tEnd = tStart + n - 1;
+        cell(ws, `C${tStart}`, t.team || "", { size: 14 });
+        players.forEach((p, i) => {
+          const label = (t.captain && p === t.captain) ? `${p} (C)` : p;  // mark captain like the records file
+          cell(ws, `D${tStart + i}`, label, { size: 14 });
+        });
+        if (single) {
+          scoreCell(ws, "E", tStart, tEnd, t.score, (t.score ?? null) === best);
+        } else {
+          scoreCell(ws, "E", tStart, tEnd, t.strokeToPar, false);
+          scoreCell(ws, "F", tStart, tEnd, t.score, (t.score ?? null) === best);
+        }
+        row = tEnd + 1;
+      });
+
+      ws.mergeCells(`A${blockStart}:B${row - 1}`);
+      cell(ws, `A${blockStart}`, `${y.year} ${y.host || ""}`.trim(),
+        { size: 42, h: "center", v: "center", wrap: true });
+      row += 2; // two blank rows between year blocks
+    });
+
+    // ----- Superlatives -----
+    const ss = wb.addWorksheet("Superlatives");
+    [10.6, 34.4, 14.7].forEach((w, i) => { ss.getColumn(i + 1).width = w; });
+    ss.getCell("A1").value = "Year";
+    ss.getCell("B1").value = "Superlative Name";
+    ss.getCell("C1").value = "Winner";
+    let sr = 2;
+    years.forEach((y) => {
+      (y.superlatives || []).forEach((sp, i) => {
+        if (i === 0) ss.getCell(`A${sr}`).value = y.year;
+        ss.getCell(`B${sr}`).value = sp.award || "";
+        ss.getCell(`C${sr}`).value = sp.winner || "";
+        sr++;
+      });
+    });
+
+    return wb;
+  }
+
   const xlsxBtn = $("download-xlsx");
   if (xlsxBtn) xlsxBtn.addEventListener("click", async () => {
     const fbEl = $("xlsx-feedback");
-    if (!window.XLSX) { flash("xlsx-feedback", "Spreadsheet library still loading — try again in a moment.", "err"); return; }
+    if (!window.ExcelJS) { flash("xlsx-feedback", "Spreadsheet library still loading — try again in a moment.", "err"); return; }
     fbEl.textContent = "Building spreadsheet…"; fbEl.className = "feedback"; fbEl.classList.remove("hidden");
     try {
       let seasons = [];
@@ -2919,25 +3020,17 @@
       const byYear = new Map();
       PAST_SHEET.forEach(y => byYear.set(y.year, y));
       seasons.forEach(s => { if (s && s.year) byYear.set(s.year, seasonToSheet(s)); });
-      const years = Array.from(byYear.values()).sort((a, b) => b.year - a.year);
+      // Oldest year first (top of the sheet) to match the existing records file.
+      const years = Array.from(byYear.values()).sort((a, b) => a.year - b.year);
 
-      const resultRows = [["Year", "Host", "Team", "Score", "Captain", "Players"]];
-      const supRows = [["Year", "Superlative", "Winner"]];
-      years.forEach(y => {
-        (y.teams || []).slice().sort((a, b) => (b.score || 0) - (a.score || 0)).forEach(t => {
-          resultRows.push([y.year, y.host || "", t.team || "", t.score ?? "", t.captain || "", (t.players || []).join(", ")]);
-        });
-        (y.superlatives || []).forEach(sp => supRows.push([y.year, sp.award || "", sp.winner || ""]));
-      });
-
-      const wb = window.XLSX.utils.book_new();
-      const ws1 = window.XLSX.utils.aoa_to_sheet(resultRows);
-      ws1["!cols"] = [{ wch: 6 }, { wch: 24 }, { wch: 26 }, { wch: 7 }, { wch: 18 }, { wch: 48 }];
-      window.XLSX.utils.book_append_sheet(wb, ws1, "Tournament Results");
-      const ws2 = window.XLSX.utils.aoa_to_sheet(supRows);
-      ws2["!cols"] = [{ wch: 6 }, { wch: 32 }, { wch: 22 }];
-      window.XLSX.utils.book_append_sheet(wb, ws2, "Superlatives");
-      window.XLSX.writeFile(wb, "The_Amateurs_Results.xlsx");
+      const wb = buildResultsWorkbook(years);
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "The_Amateurs_Results.xlsx";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
 
       flash("xlsx-feedback", "Downloaded — save it over your old The_Amateurs_Results.xlsx.", "ok");
     } catch (err) {
