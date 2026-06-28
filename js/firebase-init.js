@@ -124,6 +124,128 @@ export async function updateEventConfig(patch) {
 }
 
 // -------------------------------------------------------------
+// 4b. HOLE GAMES — collection `holeGames`, one doc per game.
+//     A reusable library so the scorecard's "hole game" field can be
+//     a dropdown that auto-fills the description. Doc id is a slug of
+//     the name, so writes are idempotent (no duplicates by name).
+//     Doc shape: { name, description, category, updatedAt }
+// -------------------------------------------------------------
+
+/** Slugify a hole-game name into a stable doc id. */
+export function holeGameId(name) {
+  return String(name || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+/** Listen for live changes to the hole-game library (ordered by name). */
+export function onHoleGames(callback) {
+  const q = query(collection(db, "holeGames"), orderBy("name", "asc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+}
+
+/** One-shot read of the hole-game library. */
+export async function getHoleGames() {
+  const snap = await getDocs(query(collection(db, "holeGames"), orderBy("name", "asc")));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** Admin: add or update a hole game. Returns the doc id (slug). */
+export async function addHoleGame({ name, description, category }) {
+  const id = holeGameId(name);
+  if (!id) throw new Error("A hole game needs a name.");
+  await setDoc(
+    doc(db, "holeGames", id),
+    {
+      name: String(name).trim(),
+      description: String(description || "").trim(),
+      category: category || "",
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+  return id;
+}
+
+/** Admin: delete a hole game from the library. */
+export async function deleteHoleGame(id) {
+  await deleteDoc(doc(db, "holeGames", id));
+}
+
+/** Admin: bulk add/update many hole games (idempotent via slug ids). */
+export async function seedHoleGames(games) {
+  await Promise.all((games || []).map((g) => addHoleGame(g)));
+}
+
+// -------------------------------------------------------------
+// 4c. COURSES — collection `courses`, one doc per location+type.
+//     Lets the scorecard auto-fill yardage + par when a new event
+//     picks a location and type. Doc id is a slug of "location__type"
+//     so writes are idempotent. Doc shape:
+//     { location, type, holes: [{yardage, par}, ...up to 9], updatedAt }
+// -------------------------------------------------------------
+
+/** Stable doc id for a course = slug(location)__slug(type). */
+export function courseId(location, type) {
+  const slug = s => String(s || "")
+    .toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const l = slug(location), t = slug(type);
+  if (!l || !t) return "";
+  return (l + "__" + t).slice(0, 120);
+}
+
+/** Listen for live changes to the saved courses. */
+export function onCourses(callback) {
+  return onSnapshot(collection(db, "courses"), (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+}
+
+/** One-shot read of all saved courses. */
+export async function getCourses() {
+  const snap = await getDocs(collection(db, "courses"));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/** One-shot read of a single course by location + type. */
+export async function getCourse(location, type) {
+  const id = courseId(location, type);
+  if (!id) return null;
+  const snap = await getDoc(doc(db, "courses", id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+/** Admin: save (or update) a course's per-hole yardage + par. */
+export async function saveCourse({ location, type, holes }) {
+  const id = courseId(location, type);
+  if (!id) throw new Error("A course needs both a location and a type.");
+  await setDoc(
+    doc(db, "courses", id),
+    {
+      location: String(location).trim(),
+      type: String(type).trim(),
+      holes: Array.isArray(holes) ? holes : [],
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+  return id;
+}
+
+/** Admin: delete a saved course. */
+export async function deleteCourse(location, type) {
+  const id = courseId(location, type);
+  if (id) await deleteDoc(doc(db, "courses", id));
+}
+
+// -------------------------------------------------------------
 // 5. TEAMS — collection `teams`, one doc per team.
 //    Doc shape:
 //    {

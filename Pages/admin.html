@@ -263,6 +263,23 @@
   }
   .sc-hole textarea { resize: vertical; }
 
+  /* Hole-game dropdown: auto-filled description + add-new form */
+  .sc-game-desc-view {
+    margin-top: 8px; padding: 10px 12px;
+    background: rgba(15,89,40,0.05); border-radius: 8px;
+    font-size: 14px; color: var(--ink-soft); line-height: 1.4;
+  }
+  .sc-game-new {
+    margin-top: 10px; padding: 12px;
+    background: var(--white); border: 1px dashed rgba(15,89,40,0.25);
+    border-radius: 8px;
+  }
+  .sc-game-new input, .sc-game-new textarea { margin-bottom: 8px; }
+  .sc-new-game-row { display: flex; align-items: center; gap: 10px; }
+  .sc-new-game-row .btn { padding: 9px 16px; font-size: 15px; }
+  .sc-new-game-fb { font-size: 14px; font-weight: 600; color: var(--green); }
+  .sc-new-game-fb.err { color: var(--red); }
+
   /* Bonus points inside a hole */
   .sc-bonus { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(15,89,40,0.18); }
   .sc-bonus-label {
@@ -297,6 +314,11 @@
     margin-top: 18px; flex-wrap: wrap;
   }
   .sc-dirty { font-size: 14px; font-weight: 600; color: var(--red); }
+  .sc-course-default {
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(15,89,40,0.12);
+  }
+  #save-course-default:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* ---- Enter scores: status panel + scorecard editor ---- */
   #score-status-card {
@@ -766,6 +788,11 @@
     margin-top: 12px; font-size: 15px; font-weight: 600; color: var(--green);
   }
   .ne-date-auto:empty { display: none; }
+  .ne-course-note {
+    margin-top: 8px; font-size: 13px; color: var(--ink-soft); line-height: 1.4;
+  }
+  .ne-course-note:empty { display: none; }
+  .ne-course-note.ok { color: var(--green); font-weight: 600; }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -936,6 +963,13 @@
         <label for="evt-year">Year</label>
         <select id="evt-year"></select>
 
+        <label for="evt-type">Type</label>
+        <select id="evt-type">
+          <option value="Golf">Golf</option>
+          <option value="FootGolf">FootGolf</option>
+          <option value="Disc Golf">Disc Golf</option>
+        </select>
+
         <label for="evt-format">Format</label>
         <select id="evt-format">
           <option value="4-person-scramble">4-person scramble</option>
@@ -952,6 +986,8 @@
           <option value="__other__">Other…</option>
         </select>
         <input id="evt-location-other" type="text" placeholder="Enter location" class="hidden" style="margin-top:8px;">
+
+        <div id="evt-course-note" class="ne-course-note"></div>
 
         <div class="toggle-row" style="margin-top:18px;">
           <div>
@@ -1073,6 +1109,12 @@
         <button id="save-scorecard" class="btn btn-primary">Save scorecard</button>
       </div>
       <div id="scorecard-feedback" class="feedback hidden"></div>
+
+      <div class="sc-course-default">
+        <button id="save-course-default" class="btn btn-secondary">Save as course default</button>
+        <p id="course-default-hint" class="small-hint" style="margin-top:6px;"></p>
+        <span id="course-default-fb" class="sc-new-game-fb"></span>
+      </div>
     </div>
 
     <!-- ============================================================
@@ -1404,6 +1446,8 @@
     onTeams, saveTeam, deleteTeam, setTeamStrokes,
     setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
     pointsForHole, computeTeamTotals,
+    onHoleGames, getHoleGames, addHoleGame, seedHoleGames, holeGameId,
+    onCourses, getCourses, saveCourse, courseId,
     db
   } from "../js/firebase-init.js";
   // Extra Firestore pieces used by the Push Notifications card.
@@ -1438,6 +1482,57 @@
   let currentConfig = null;
   let currentTeams  = [];
   let selectedTeamId = "";
+  let holeGameCatalog = [];   // live library of {id, name, description, category}
+  let courseCatalog = [];     // live library of {id, location, type, holes:[{yardage,par}]}
+
+  // Default hole-game library, sourced from Documents/Hole_Game_List.docx.
+  // Auto-seeded into Firestore the first time an admin opens the page with
+  // an empty `holeGames` collection. After that, the library is editable
+  // live (the "+ Add new hole game" option writes new ones).
+  const DEFAULT_HOLE_GAMES = [
+    { category: "Golf", name: "A Shot in the Dark", description: "Once on the green, each player will putt blindfolded for only the FIRST putt. The subsequent putts will not require a blindfold. This means you need to rely on your team to orient you properly." },
+    { category: "Golf", name: "Got Milk!", description: "Each member of the group will tee off while standing on two milk crates. Please be careful and if you are not comfortable with this game feel free to skip it." },
+    { category: "Golf", name: "Golf Course Tilt-a-whirl", description: "Before hitting your tee shot each member must spin around their club 5 times. Again, if you are not comfortable with doing this game feel free to skip it." },
+    { category: "Golf", name: "Who Needs Clubs", description: "Without using your clubs you must hole the ball from the forward tee. You can throw, roll, or kick the ball into the hole. Please refrain from kicking the ball on the green though — our first priority is what's best for the turf." },
+    { category: "Golf", name: "Back to the (Future) Past", description: "Tee off from the forward tee (red tee marker) using a hickory shafted golf club. If you need to chip, there will be a wedge down by the green that you can use. On the green there will be a special custom putter crafted in St. Andrews to putt with." },
+    { category: "Golf", name: "Mini-Gilmore", description: "Once on the green, all members of the group must putt out using a mini stick." },
+    { category: "Golf", name: "Stop Pooling Around!", description: "Putt out with a pool cue. Please be careful not to mark the green up when getting up." },
+    { category: "Golf", name: "Reverse Now Y'all", description: "Tee off with your putter from the forward tee (red tee markers) and putt with your driver. Chipping is normal (can use any club)." },
+    { category: "Golf", name: "Hot Potatoe errrr I mean Golf Ball", description: "Once on the green, each group member will putt out using two oven mitts on their hands." },
+    { category: "Golf", name: "Pla-sticks", description: "Once on the green, the ball must be holed using a plastic putter." },
+    { category: "Golf", name: "Egg roll", description: "Once on the green, there will be an egg-shaped golf ball that each member on your team will putt with until the ball is holed." },
+    { category: "Golf", name: "Kick Balls", description: "Inspired by FIFA, bringing top-level soccer to the US. This hole will be played from the yellow tees to the footgolf hole." },
+    { category: "Golf", name: "Pick a Card/Club", description: "Pick from a deck for each shot to determine what club you'll use." },
+    { category: "Golf", name: "Tennis Time", description: "This entire hole will be played using a tennis ball. Tee off with a golf club or a tennis racquet, chip and putt with your golf club." },
+    { category: "Golf", name: "Wheel of (Un)Fortune", description: "Each player will spin the wheel to determine what club they will hit from this tee box. If you do not have the club in your bag, spin again." },
+    { category: "Golf", name: "Farthest from the Pin", description: "Must hit the green to be eligible. There will be a stake on the green to keep track of who is furthest. Record your name and the distance on the sheet and the app." },
+    { category: "Golf", name: "Happy is on the Tee", description: "Each player will tee off using a Happy Gilmore swing. Don't overthink, just grip it and rip it." },
+    { category: "Golf", name: "Who's Ambidextrous", description: "Each player will tee off from the opposite side of the ball." },
+    { category: "Foot Golf", name: "Spin-O-Kickem", description: "Before hitting your tee shot players must spin around a baseball bat 5 times. If you are not comfortable with this game feel free to skip it." },
+    { category: "Foot Golf", name: "Fútbol de Americano", description: "Tee off by either punting or kicking an American football. After your tee shot, use a regular football to finish out the hole." },
+    { category: "Foot Golf", name: "Throwing In", description: "On this hole, the player teeing off will throw the ball towards the target. In football style, the throw must be done using both hands and released over your head." },
+    { category: "Foot Golf", name: "The aGitATING Hole", description: "Players will have to kick the ball through a football-sized croquet wicket before attacking the flag." },
+    { category: "Foot Golf", name: "Teamwork Makes Dreamwork", description: "Both players must strike the ball on each shot. Strategize accordingly." },
+    { category: "Foot Golf", name: "Opposite Leg Day", description: "Both players will tee off using their non-dominant foot (extra footballs will be on the tee box). You will then choose the one farthest away for your next shot." }
+  ];
+
+  // Default course presets (yardage + par per hole), keyed by the exact
+  // location strings used in the New Event dropdown. Auto-seeded into
+  // Firestore the first time the `courses` collection is empty.
+  const DEFAULT_COURSES = [
+    {
+      // Fox Hills — 2024 Red tees, par 3 throughout.
+      location: "Fox Hills Golf & Banquet Center · Plymouth, MI",
+      type: "Golf",
+      holes: [71, 102, 78, 112, 100, 80, 70, 50, 105].map(y => ({ yardage: y, par: 3 }))
+    },
+    {
+      // The Myth — 2025 Yellow tees, par 3 throughout.
+      location: "The Myth Golf & Banquets · Oakland Township, MI",
+      type: "Golf",
+      holes: [74, 130, 60, 151, 138, 101, 108, 126, 124].map(y => ({ yardage: y, par: 3 }))
+    }
+  ];
 
   // ----- Auth state
   onAuth(async (user) => {
@@ -1477,6 +1572,23 @@
     listenersStarted = true;
 
     startPushListeners();
+
+    // Hole-game library: auto-seed once if empty, then stay subscribed so
+    // the scorecard dropdowns reflect additions live.
+    seedHoleGamesIfEmpty();
+    onHoleGames((games) => {
+      holeGameCatalog = games;
+      refreshHoleGameSelects();
+    });
+
+    // Saved courses: power the New Event auto-fill + the "Save as course
+    // default" button.
+    seedCoursesIfEmpty();
+    onCourses((courses) => {
+      courseCatalog = courses;
+      updateCourseNote();
+      updateCourseDefaultHint();
+    });
 
     onEventConfig((cfg) => {
       currentConfig = cfg || defaultConfig();
@@ -1529,6 +1641,7 @@
   function defaultConfig() {
     return {
       year: 2026,
+      type: "FootGolf",
       format: "2-person-alternate-kick",
       status: "pre-event",
       location: "",
@@ -1580,6 +1693,7 @@
     // Section 1 — Event settings
     populateYearOptions();
     $("evt-year").value   = String(cfg.year ?? 2026);
+    $("evt-type").value   = cfg.type ?? "FootGolf";
     $("evt-format").value = cfg.format ?? "2-person-alternate-kick";
     $("evt-status").value = cfg.status ?? "pre-event";
     fillEventLocation(cfg.location || "");
@@ -1599,6 +1713,10 @@
     // Section 3 — Scorecard course builder (skips re-render while the user
     // has unsaved edits so a live snapshot can't wipe in-progress work).
     renderScorecardBuilder(cfg);
+    // Re-filter the hole-game dropdowns to the current Type without wiping
+    // any in-progress edits (safe even when the full re-render is skipped).
+    refreshHoleGameSelects();
+    updateCourseDefaultHint();
 
     // Par row + OUT total + Points row in the Score Entry scorecard are
     // derived from the inputs + holes config. Recompute whenever the
@@ -1717,6 +1835,7 @@
     el.innerHTML =
       '<dl class="ne-summary-grid">' +
       "<dt>Year</dt><dd>" + esc(cfg.year || "—") + "</dd>" +
+      "<dt>Type</dt><dd>" + esc(cfg.type || "—") + "</dd>" +
       "<dt>Format</dt><dd>" + esc(fmt) + "</dd>" +
       "<dt>Location</dt><dd>" + esc(cfg.location || "—") + "</dd>" +
       "<dt>Date</dt><dd>" + esc(cfg.date ? formatNiceDate(cfg.date) : "—") + "</dd>" +
@@ -1726,6 +1845,7 @@
   function openNewEvent() {
     populateYearOptions();
     refreshDateUI();
+    updateCourseNote();
     $("new-event-modal").classList.remove("hidden");
     document.body.style.overflow = "hidden";
   }
@@ -1740,6 +1860,7 @@
   $("cancel-new-event").addEventListener("click", closeNewEvent);
   $("evt-third-saturday").addEventListener("change", refreshDateUI);
   $("evt-year").addEventListener("change", refreshDateUI);
+  $("evt-type").addEventListener("change", updateCourseNote);
   $("evt-location").addEventListener("change", () => {
     const other = $("evt-location-other");
     if ($("evt-location").value === "__other__") {
@@ -1748,7 +1869,33 @@
       other.classList.add("hidden");
       other.value = "";
     }
+    updateCourseNote();
   });
+  $("evt-location-other").addEventListener("input", updateCourseNote);
+
+  // Resolve the location currently chosen in the overlay (handles "Other…").
+  function selectedOverlayLocation() {
+    const v = $("evt-location").value;
+    return v === "__other__" ? $("evt-location-other").value.trim() : v;
+  }
+
+  // Show whether a saved course exists for the chosen location + type, so
+  // the commissioner knows yardages + par will auto-fill on save.
+  function updateCourseNote() {
+    const note = $("evt-course-note");
+    if (!note) return;
+    const location = selectedOverlayLocation();
+    const type = $("evt-type").value;
+    if (!location || !type) { note.textContent = ""; note.className = "ne-course-note"; return; }
+    const found = courseCatalog.find(c => c.id === courseId(location, type));
+    if (found) {
+      note.textContent = "✓ Saved course found — yardages & par will auto-fill on save.";
+      note.className = "ne-course-note ok";
+    } else {
+      note.textContent = "No saved course yet for this location + type. Enter yardages on the scorecard, then use “Save as course default.”";
+      note.className = "ne-course-note";
+    }
+  }
   // Click on the dimmed backdrop (outside the card) closes the overlay.
   $("new-event-modal").addEventListener("click", (e) => {
     if (e.target === $("new-event-modal")) closeNewEvent();
@@ -1762,9 +1909,11 @@
     const date = third ? isoThirdSaturdayOfJune(year) : ($("evt-date").value || "");
     let location = $("evt-location").value;
     if (location === "__other__") location = $("evt-location-other").value.trim();
+    const type = $("evt-type").value;
     try {
       await updateEventConfig({
         year,
+        type,
         format:   $("evt-format").value,
         location,
         date,
@@ -1772,7 +1921,12 @@
         // NOTE: status (home screen) and leaderboardVisible (During Event)
         // each auto-save on change, so they're intentionally not in this form.
       });
-      fb.textContent = "Saved.";
+      // Auto-fill the scorecard's yardage + par from a saved course preset
+      // for this location + type, if one exists.
+      const course = courseCatalog.find(c => c.id === courseId(location, type));
+      let filled = false;
+      if (course) { await applyCourseToScorecard(course); filled = true; }
+      fb.textContent = filled ? "Saved — course yardages applied." : "Saved.";
       fb.className = "feedback ok";
       closeNewEvent();
     } catch (err) {
@@ -1780,6 +1934,23 @@
       fb.className = "feedback err";
     }
   });
+
+  // Write a course preset's yardage + par onto the event's holes (leaving
+  // hole games + bonuses untouched), keeping coursePar in sync.
+  async function applyCourseToScorecard(course) {
+    const holes = normalizeHoles(currentConfig && currentConfig.holes);
+    const src = Array.isArray(course.holes) ? course.holes : [];
+    for (let i = 0; i < 9; i++) {
+      const c = src[i] || {};
+      holes[i] = {
+        ...holes[i],
+        yardage: Number.isFinite(c.yardage) ? c.yardage : holes[i].yardage,
+        par:     Number.isFinite(c.par)     ? c.par     : holes[i].par
+      };
+    }
+    const coursePar = holes.map(h => (h.par == null ? 3 : h.par));
+    await updateEventConfig({ holes, coursePar });
+  }
 
   // ----- Event status: auto-saves instantly on change (home screen) --------
   $("evt-status").addEventListener("change", async () => {
@@ -1965,6 +2136,7 @@
     for (let i = 0; i < 9; i++) {
       const n = i + 1;
       const h = holes[i];
+      const gsel = holeGameSelectionForHole(h);
       const card = document.createElement("div");
       card.className = "sc-hole";
       card.dataset.hole = String(n);
@@ -1989,9 +2161,16 @@
           </div>
         </div>
         <label>Hole game (optional)</label>
-        <input class="sc-game-name" type="text" placeholder="e.g. Spin-o-kickem" value="${escapeAttr(h.gameName || "")}">
-        <label>Game description (optional)</label>
-        <textarea class="sc-game-desc" rows="2" placeholder="e.g. Spin around a club 5 times before kicking.">${escapeHtml(h.gameDescription || "")}</textarea>
+        <select class="sc-game-select">${holeGameSelectOptionsHtml(gsel.id, gsel.legacy)}</select>
+        <div class="sc-game-desc-view${h.gameDescription ? "" : " hidden"}" data-descview>${escapeHtml(h.gameDescription || "")}</div>
+        <div class="sc-game-new hidden">
+          <input class="sc-new-game-name" type="text" placeholder="New hole game name">
+          <textarea class="sc-new-game-desc" rows="2" placeholder="Description — captains see this on the hole."></textarea>
+          <div class="sc-new-game-row">
+            <button type="button" class="btn btn-secondary sc-new-game-save">Save to library</button>
+            <span class="sc-new-game-fb"></span>
+          </div>
+        </div>
 
         <div class="sc-bonus">
           <div class="sc-bonus-label">Bonus points</div>
@@ -2020,8 +2199,19 @@
         markScorecardDirty();
       });
     });
-    wrap.querySelectorAll(".sc-yardage, .sc-game-name, .sc-game-desc").forEach(el => {
+    wrap.querySelectorAll(".sc-yardage").forEach(el => {
       el.addEventListener("input", markScorecardDirty);
+    });
+
+    // Hole-game dropdown: auto-fill description, reveal the add-new form,
+    // and wire "Save to library".
+    wrap.querySelectorAll(".sc-hole").forEach(card => {
+      const select = card.querySelector(".sc-game-select");
+      select.addEventListener("change", () => {
+        applyHoleGameSelection(card);
+        markScorecardDirty();
+      });
+      card.querySelector(".sc-new-game-save").addEventListener("click", () => saveNewHoleGame(card));
     });
 
     // Add-bonus buttons (Enter in the name field also adds).
@@ -2046,6 +2236,137 @@
     clearScorecardDirty();
   }
 
+  // ---- Hole-game library: dropdown helpers ----------------------------
+
+  // Which option a hole maps to: a catalog id, "" for none, or "legacy"
+  // for a saved name that isn't (yet) in the library.
+  function holeGameSelectionForHole(h) {
+    const name = (h.gameName || "").trim();
+    if (!name) return { id: "", legacy: null };
+    const want = holeGameId(name);
+    const match = holeGameCatalog.find(g => g.id === want || (g.name || "").toLowerCase() === name.toLowerCase());
+    if (match) return { id: match.id, legacy: null };
+    return { id: "legacy", legacy: { name, desc: h.gameDescription || "" } };
+  }
+
+  // Does a library game's category match the event type? Compared loosely
+  // so "FootGolf" (event type) matches "Foot Golf" (stored category).
+  function typeMatchesCategory(category, type) {
+    const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    return norm(category) === norm(type);
+  }
+
+  // Build the <option> list for a game dropdown. Only games whose category
+  // matches the current event Type are shown (or all, if no type is set).
+  // The currently-selected game is always included, even if it's a
+  // different type, so an existing pick is never silently dropped.
+  function holeGameSelectOptionsHtml(selectedId, legacyData) {
+    const type = (currentConfig && currentConfig.type) || "";
+    let html = `<option value=""${!selectedId ? " selected" : ""}>— No game —</option>`;
+    if (selectedId === "legacy" && legacyData) {
+      html += `<option value="legacy" data-name="${escapeAttr(legacyData.name || "")}" data-desc="${escapeAttr(legacyData.desc || "")}" selected>${escapeHtml(legacyData.name || "")} (custom)</option>`;
+    }
+    let games = holeGameCatalog.filter(g => !type || typeMatchesCategory(g.category, type));
+    // Keep the selected game visible even if it's outside the current type.
+    if (selectedId && selectedId !== "legacy" && !games.some(g => g.id === selectedId)) {
+      const sg = holeGameCatalog.find(g => g.id === selectedId);
+      if (sg) games = [sg, ...games];
+    }
+    games.forEach(g => {
+      const sel = g.id === selectedId ? " selected" : "";
+      html += `<option value="${escapeAttr(g.id)}" data-name="${escapeAttr(g.name)}" data-desc="${escapeAttr(g.description || "")}"${sel}>${escapeHtml(g.name)}</option>`;
+    });
+    html += `<option value="__new__">+ Add new hole game…</option>`;
+    return html;
+  }
+
+  // Reflect the current dropdown value into the description view + new-game form.
+  function applyHoleGameSelection(card) {
+    const select  = card.querySelector(".sc-game-select");
+    const view    = card.querySelector("[data-descview]");
+    const newForm = card.querySelector(".sc-game-new");
+    if (select.value === "__new__") {
+      view.textContent = "";
+      view.classList.add("hidden");
+      newForm.classList.remove("hidden");
+      card.querySelector(".sc-new-game-name").focus();
+      return;
+    }
+    newForm.classList.add("hidden");
+    const opt = select.selectedOptions[0];
+    const desc = opt ? (opt.dataset.desc || "") : "";
+    view.textContent = desc;
+    view.classList.toggle("hidden", !desc);
+  }
+
+  // Rebuild every dropdown's options when the library changes, preserving
+  // each hole's current selection (and honoring a pending new-game pick).
+  function refreshHoleGameSelects() {
+    document.querySelectorAll("#scorecard-builder .sc-hole").forEach(card => {
+      const select = card.querySelector(".sc-game-select");
+      if (!select) return;
+      const legacyOpt = select.querySelector('option[value="legacy"]');
+      const legacyData = legacyOpt ? { name: legacyOpt.dataset.name, desc: legacyOpt.dataset.desc } : null;
+      const desired = card.dataset.pendingGame || select.value;
+      select.innerHTML = holeGameSelectOptionsHtml(desired, legacyData);
+      if ([...select.options].some(o => o.value === desired)) select.value = desired;
+      applyHoleGameSelection(card);
+      if (card.dataset.pendingGame) { delete card.dataset.pendingGame; markScorecardDirty(); }
+    });
+  }
+
+  // Upload a typed new game to the library, then select it on this hole.
+  async function saveNewHoleGame(card) {
+    const nameEl = card.querySelector(".sc-new-game-name");
+    const descEl = card.querySelector(".sc-new-game-desc");
+    const fb     = card.querySelector(".sc-new-game-fb");
+    const name = nameEl.value.trim();
+    const desc = descEl.value.trim();
+    if (!name) { fb.textContent = "Name required."; fb.className = "sc-new-game-fb err"; nameEl.focus(); return; }
+    fb.textContent = "Saving…"; fb.className = "sc-new-game-fb";
+    // Tag the new game with the current event type so it shows up under the
+    // right format's filter.
+    const category = (currentConfig && currentConfig.type) || "";
+    try {
+      const id = await addHoleGame({ name, description: desc, category });
+      // Make sure the catalog has it locally so the refresh can select it
+      // even before the live snapshot lands.
+      if (!holeGameCatalog.some(g => g.id === id)) {
+        holeGameCatalog = [...holeGameCatalog, { id, name, description: desc, category }];
+      }
+      card.dataset.pendingGame = id;
+      nameEl.value = ""; descEl.value = "";
+      refreshHoleGameSelects();
+      fb.textContent = "";
+    } catch (err) {
+      fb.textContent = err.message || "Save failed.";
+      fb.className = "sc-new-game-fb err";
+    }
+  }
+
+  // Auto-seed the default course presets the first time the collection is
+  // empty (Fox Hills · Golf and The Myth · Golf).
+  async function seedCoursesIfEmpty() {
+    try {
+      const existing = await getCourses();
+      if (existing && existing.length) return;
+      await Promise.all(DEFAULT_COURSES.map(c => saveCourse(c)));
+    } catch (err) {
+      console.warn("Course presets seed skipped:", err && err.message);
+    }
+  }
+
+  // Auto-seed the library from the default list the first time it's empty.
+  async function seedHoleGamesIfEmpty() {
+    try {
+      const existing = await getHoleGames();
+      if (existing && existing.length) return;
+      await seedHoleGames(DEFAULT_HOLE_GAMES);
+    } catch (err) {
+      console.warn("Hole-game library seed skipped:", err && err.message);
+    }
+  }
+
   // Read the entire builder back into the saved config shapes.
   function readScorecardBuilder() {
     const holes = emptyHoles();
@@ -2054,11 +2375,24 @@
       const n = Number(card.dataset.hole);
       const parRaw  = card.querySelector(".sc-par").value;
       const yardRaw = card.querySelector(".sc-yardage").value;
+      // Hole game comes from the dropdown's selected option. If "+ Add new"
+      // is still showing (not yet saved to library), fall back to the typed
+      // values so nothing is lost.
+      const gselect = card.querySelector(".sc-game-select");
+      let gameName = "", gameDescription = "";
+      if (gselect.value === "__new__") {
+        gameName        = card.querySelector(".sc-new-game-name").value.trim();
+        gameDescription = card.querySelector(".sc-new-game-desc").value.trim();
+      } else {
+        const opt = gselect.selectedOptions[0];
+        gameName        = opt ? (opt.dataset.name || "") : "";
+        gameDescription = opt ? (opt.dataset.desc || "") : "";
+      }
       holes[n - 1] = {
         yardage: yardRaw === "" ? null : Number(yardRaw),
         par:     parRaw  === "" ? null : Number(parRaw),
-        gameName: card.querySelector(".sc-game-name").value.trim(),
-        gameDescription: card.querySelector(".sc-game-desc").value.trim()
+        gameName,
+        gameDescription
       };
       card.querySelectorAll(".sc-bonus-chip").forEach(chip => {
         bonusOpportunities.push({
@@ -2094,6 +2428,44 @@
     } catch (err) {
       fb.textContent = err.message;
       fb.className = "feedback err";
+    }
+  });
+
+  // ---- Save current scorecard as the course default for this event's
+  //      location + type, so future events auto-fill from it. ----
+  function updateCourseDefaultHint() {
+    const hint = $("course-default-hint");
+    const btn  = $("save-course-default");
+    if (!hint || !btn) return;
+    const location = (currentConfig && currentConfig.location) || "";
+    const type     = (currentConfig && currentConfig.type) || "";
+    if (location && type) {
+      const exists = courseCatalog.some(c => c.id === courseId(location, type));
+      hint.textContent = (exists ? "Updates" : "Creates") + " the saved yardages & par for " + location + " · " + type + ".";
+      btn.disabled = false;
+    } else {
+      hint.textContent = "Set the event location and type (New Event) to save a course default.";
+      btn.disabled = true;
+    }
+  }
+
+  $("save-course-default").addEventListener("click", async () => {
+    const fb = $("course-default-fb");
+    const location = (currentConfig && currentConfig.location) || "";
+    const type     = (currentConfig && currentConfig.type) || "";
+    if (!location || !type) {
+      fb.textContent = "Set location + type first."; fb.className = "sc-new-game-fb err"; return;
+    }
+    const { holes } = readScorecardBuilder();
+    const courseHoles = holes.map(h => ({ yardage: h.yardage, par: h.par }));
+    fb.textContent = "Saving…"; fb.className = "sc-new-game-fb";
+    try {
+      await saveCourse({ location, type, holes: courseHoles });
+      fb.textContent = "Saved as default for " + location + " · " + type + ".";
+      fb.className = "sc-new-game-fb";
+    } catch (err) {
+      fb.textContent = err.message || "Save failed.";
+      fb.className = "sc-new-game-fb err";
     }
   });
 
