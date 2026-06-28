@@ -227,61 +227,76 @@
   }
   .draft-total-value.warn { color: var(--red); }
 
-  /* ---- Scorecard preview table (Scoring, Subsection A) ---- */
-  .scorecard-preview { margin-top: 8px; overflow-x: auto; }
-  .scorecard-preview table {
-    width: 100%; border-collapse: collapse;
-    font-family: var(--font-sans); font-size: 15px;
+  /* ---- Scorecard course builder (one card per hole) ---- */
+  .sc-builder { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; }
+  .sc-hole {
+    background: var(--cream); border: 1px solid rgba(15,89,40,0.12);
+    border-radius: 10px; padding: 14px 14px 16px;
   }
-  .scorecard-preview th, .scorecard-preview td {
-    padding: 9px 10px; text-align: left;
-    border-bottom: 1px solid rgba(15,89,40,0.10);
+  .sc-hole-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
   }
-  .scorecard-preview th {
-    background: var(--cream-dark); color: var(--ink-soft);
-    font-size: 12px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.05em;
+  .sc-hole-num {
+    font-family: var(--font-serif); font-size: 20px; font-weight: 700;
+    color: var(--green-dark);
   }
-  .scorecard-preview td.hole-cell {
-    font-weight: 700; color: var(--green-dark);
-    width: 60px;
+  .sc-par-badge {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 999px;
+    background: var(--green-dark); color: var(--yellow);
   }
-  .scorecard-preview td.muted { color: var(--ink-soft); font-style: italic; }
-  .scorecard-preview tr.unset td { background: rgba(15,89,40,0.02); }
-  .scorecard-preview td.action-cell { text-align: right; width: 56px; }
-  .scorecard-preview .row-clear {
-    background: transparent; border: none; cursor: pointer;
+  .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sc-field label, .sc-hole > label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--ink-soft); margin: 12px 0 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .sc-field label { margin-top: 0; }
+  .sc-hole input, .sc-hole select, .sc-hole textarea {
+    width: 100%; padding: 11px 12px; font-size: 16px;
+    border: 1px solid rgba(15,89,40,0.18); border-radius: 8px;
+    background: var(--white); color: var(--ink); font-family: var(--font-sans);
+  }
+  .sc-hole input:focus, .sc-hole select:focus, .sc-hole textarea:focus {
+    outline: 2px solid var(--green); outline-offset: 1px;
+  }
+  .sc-hole textarea { resize: vertical; }
+
+  /* Bonus points inside a hole */
+  .sc-bonus { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(15,89,40,0.18); }
+  .sc-bonus-label {
+    font-size: 12px; font-weight: 700; color: var(--ink-soft);
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+  }
+  .sc-bonus-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .sc-bonus-list:empty { display: none; }
+  .sc-bonus-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; background: var(--white);
+    border: 1px solid rgba(15,89,40,0.12); border-radius: 8px;
+  }
+  .sc-bonus-pts-pill {
+    flex: 0 0 auto; padding: 3px 9px; border-radius: 999px;
+    background: var(--green-dark); color: var(--yellow);
+    font-weight: 700; font-size: 13px;
+  }
+  .sc-bonus-chip-label { flex: 1 1 auto; font-size: 15px; color: var(--ink); word-break: break-word; }
+  .sc-bonus-remove {
+    flex: 0 0 auto; background: transparent; border: none; cursor: pointer;
     color: var(--ink-soft); font-size: 18px; line-height: 1;
     padding: 2px 8px; border-radius: 4px;
   }
-  .scorecard-preview .row-clear:hover { color: var(--red); background: rgba(232,67,36,0.08); }
-  .scorecard-preview .hole-row-editable:hover td { background: rgba(15,89,40,0.05); }
+  .sc-bonus-remove:hover { color: var(--red); background: rgba(232,67,36,0.08); }
+  .sc-bonus-add { display: grid; grid-template-columns: 1fr 76px auto; gap: 8px; align-items: stretch; }
+  .sc-bonus-add .btn { padding: 10px 16px; font-size: 15px; }
 
-  /* ---- Bonus opportunities list (Scoring, Subsection B) ---- */
-  .bonus-opp-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-  .bonus-opp-item {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; padding: 12px 14px;
-    background: var(--cream); border: 1px solid rgba(15,89,40,0.10);
-    border-radius: 8px;
+  /* Sticky-ish save bar for the whole scorecard */
+  .sc-save-bar {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 18px; flex-wrap: wrap;
   }
-  .bonus-opp-item .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .bonus-opp-item .hole-tag {
-    font-size: 12px; font-weight: 700; color: var(--green-dark);
-    text-transform: uppercase; letter-spacing: 0.05em;
-  }
-  .bonus-opp-item .label {
-    font-size: 15px; color: var(--ink); font-weight: 500;
-    word-break: break-word;
-  }
-  .bonus-opp-item .points-pill {
-    flex: 0 0 auto; padding: 6px 12px; border-radius: 999px;
-    background: var(--green-dark); color: var(--yellow);
-    font-family: var(--font-sans); font-weight: 700;
-    font-size: 14px; letter-spacing: 0.02em;
-    margin-left: auto;
-  }
-  .bonus-opp-item .points-pill + button { margin-left: 4px; }
+  .sc-dirty { font-size: 14px; font-weight: 600; color: var(--red); }
 
   /* ---- Enter scores: status panel + scorecard editor ---- */
   #score-status-card {
@@ -1046,91 +1061,18 @@
          can read it from the captains page.
          ============================================================ -->
     <div class="admin-card" id="card-scorecard" data-cat="pre-event">
-      <h2>Scorecard Settings</h2>
+      <h2>Scorecard</h2>
+      <p class="small-hint">Build the whole course here. Each hole holds its par, yardage, hole game, and any bonus points together. Captains see this scorecard after they sign in. Hit <strong>Save scorecard</strong> when you're done.</p>
 
-      <!-- ----- Subsection A: Scorecard holes ----- -->
-      <h3>Scorecard holes</h3>
-      <p class="small-hint">Define yardage, par, and the hole game for each hole. This populates the scorecard captains will see after signing in. The game name + description are shown to captains at the top of each hole when they enter scores.</p>
-
-      <label for="hole-num">Hole number</label>
-      <select id="hole-num">
-        <option value="">— Select hole —</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-      </select>
-
-      <label for="hole-yardage">Yardage</label>
-      <input id="hole-yardage" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 110">
-
-      <label for="hole-par">Par</label>
-      <select id="hole-par">
-        <option value="">— Select par —</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
-
-      <label for="hole-game-name">Game name (optional)</label>
-      <input id="hole-game-name" type="text" placeholder="e.g. Spin-o-kickem">
-
-      <label for="hole-game-description">Game description (optional)</label>
-      <textarea id="hole-game-description" rows="3" placeholder="e.g. Before kicking, each player teeing off spins around a club 5 times."></textarea>
-
-      <div class="btn-row">
-        <button id="save-hole" class="btn btn-primary">Save hole</button>
-      </div>
-      <div id="hole-feedback" class="feedback hidden"></div>
-
-      <h3 style="margin-top: 26px;">Current scorecard</h3>
-      <div id="scorecard-preview" class="scorecard-preview">
-        <p class="small-hint">No holes set yet.</p>
+      <div id="scorecard-builder" class="sc-builder">
+        <p class="small-hint">Loading holes…</p>
       </div>
 
-      <!-- ----- Subsection B: Bonus point opportunities ----- -->
-      <h3 style="margin-top: 30px;">Bonus point opportunities</h3>
-      <p class="small-hint">Add a named bonus tied to a hole. Captains will see these on their scorecard.</p>
-
-      <label for="bonus-hole">Hole number</label>
-      <select id="bonus-hole">
-        <option value="">— Select hole —</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-      </select>
-
-      <label for="bonus-label">Description / name</label>
-      <input id="bonus-label" type="text" placeholder="e.g. Closest to the Pin">
-
-      <label for="bonus-points">Points</label>
-      <select id="bonus-points">
-        <option value="">— Select points —</option>
-        <option value="1">+1</option>
-        <option value="2">+2</option>
-        <option value="3">+3</option>
-      </select>
-
-      <div class="btn-row">
-        <button id="save-bonus-opp" class="btn btn-primary">Save bonus</button>
+      <div class="sc-save-bar">
+        <span id="sc-dirty" class="sc-dirty hidden">● Unsaved changes</span>
+        <button id="save-scorecard" class="btn btn-primary">Save scorecard</button>
       </div>
-      <div id="bonus-opp-feedback" class="feedback hidden"></div>
-
-      <h3 style="margin-top: 26px;">Current bonus opportunities</h3>
-      <div id="bonus-opp-list" class="bonus-opp-list">
-        <p class="small-hint">No bonus opportunities yet.</p>
-      </div>
+      <div id="scorecard-feedback" class="feedback hidden"></div>
     </div>
 
     <!-- ============================================================
@@ -1654,12 +1596,9 @@
     // in the form right now, so its selection survives a config refresh.
     populateDraftPickDropdown($("team-draft").value, $("team-id").value.trim());
 
-    // Section 3 — Scoring previews
-    renderScorecardPreview(normalizeHoles(cfg.holes));
-    renderBonusOppList(Array.isArray(cfg.bonusOpportunities) ? cfg.bonusOpportunities : []);
-    // If a hole is currently selected in the form, refresh its inputs from
-    // the latest saved values (in case another commissioner edited it).
-    refreshHoleFormFromConfig();
+    // Section 3 — Scorecard course builder (skips re-render while the user
+    // has unsaved edits so a live snapshot can't wipe in-progress work).
+    renderScorecardBuilder(cfg);
 
     // Par row + OUT total + Points row in the Score Entry scorecard are
     // derived from the inputs + holes config. Recompute whenever the
@@ -1972,247 +1911,191 @@
     if (selectedValue !== "" && selectedValue != null) sel.value = String(selectedValue);
   }
 
-  // ----- Scoring (Section 3) --------------------------------------
-  // Two flows in this section:
-  //   A) Per-hole yardage + par. Selecting a hole loads its saved
-  //      values into the form. Save writes that index back and keeps
-  //      `coursePar` in sync for the existing scoring math.
-  //   B) Bonus opportunities. Save appends to the array; rows have
-  //      a delete (×) button.
+  // ----- Scorecard (Section 3) — unified course builder ----------------
+  // All 9 holes are edited inline at once: par, yardage, hole game, and any
+  // bonus points live together on each hole card. A single "Save scorecard"
+  // button writes holes + coursePar + bonusOpportunities in one update, so
+  // captains.html / leaderboard.html keep reading the exact same shapes.
 
-  // ---- Subsection A: holes ----
+  let scorecardDirty = false;
 
-  // When the user picks a hole from the dropdown, load whatever is
-  // saved for that hole into the yardage / par inputs.
-  $("hole-num").addEventListener("change", () => {
-    refreshHoleFormFromConfig();
-  });
-
-  function refreshHoleFormFromConfig() {
-    const idx = Number($("hole-num").value) - 1;
-    if (!Number.isInteger(idx) || idx < 0 || idx > 8) {
-      // No hole selected — leave inputs alone so an in-progress entry isn't wiped.
-      return;
-    }
-    const holes = normalizeHoles(currentConfig?.holes);
-    const h = holes[idx];
-    $("hole-yardage").value         = h.yardage == null ? "" : h.yardage;
-    $("hole-par").value             = h.par     == null ? "" : String(h.par);
-    $("hole-game-name").value        = h.gameName        || "";
-    $("hole-game-description").value = h.gameDescription || "";
+  function markScorecardDirty() {
+    if (scorecardDirty) return;
+    scorecardDirty = true;
+    $("sc-dirty").classList.remove("hidden");
+  }
+  function clearScorecardDirty() {
+    scorecardDirty = false;
+    $("sc-dirty").classList.add("hidden");
   }
 
-  $("save-hole").addEventListener("click", async () => {
-    const fb = $("hole-feedback");
-    hide(fb);
-    const holeNum         = Number($("hole-num").value);
-    const yardage         = $("hole-yardage").value === "" ? null : Number($("hole-yardage").value);
-    const par             = $("hole-par").value     === "" ? null : Number($("hole-par").value);
-    const gameName        = $("hole-game-name").value.trim();
-    const gameDescription = $("hole-game-description").value.trim();
+  // Build a removable bonus chip that carries its own label + points.
+  function makeBonusChip(label, points) {
+    const chip = document.createElement("div");
+    chip.className = "sc-bonus-chip";
+    chip.dataset.label = label;
+    chip.dataset.points = String(points);
+    chip.innerHTML =
+      `<span class="sc-bonus-pts-pill">+${escapeHtml(String(points))}</span>` +
+      `<span class="sc-bonus-chip-label">${escapeHtml(label)}</span>` +
+      `<button type="button" class="sc-bonus-remove" aria-label="Remove bonus">&times;</button>`;
+    chip.querySelector(".sc-bonus-remove").addEventListener("click", () => {
+      chip.remove();
+      markScorecardDirty();
+    });
+    return chip;
+  }
 
-    if (!Number.isInteger(holeNum) || holeNum < 1 || holeNum > 9) {
-      fb.textContent = "Pick a hole (1–9) first.";
-      fb.className = "feedback err";
-      return;
-    }
-    if (yardage != null && (!Number.isFinite(yardage) || yardage < 0)) {
-      fb.textContent = "Yardage must be a positive number.";
-      fb.className = "feedback err";
-      return;
-    }
-    if (par != null && ![3,4,5].includes(par)) {
-      fb.textContent = "Par must be 3, 4, or 5.";
-      fb.className = "feedback err";
-      return;
+  // Render the builder from saved config. Skips re-render while the user has
+  // unsaved edits so a live config snapshot (e.g. another admin flips status)
+  // can't wipe in-progress work.
+  function renderScorecardBuilder(cfg) {
+    if (scorecardDirty) return;
+    const wrap = $("scorecard-builder");
+    if (!wrap) return;
+    const holes = normalizeHoles(cfg && cfg.holes);
+    const bonuses = Array.isArray(cfg && cfg.bonusOpportunities) ? cfg.bonusOpportunities : [];
+    const bonusesByHole = {};
+    bonuses.forEach(b => {
+      const h = Number(b.hole);
+      if (h >= 1 && h <= 9) (bonusesByHole[h] = bonusesByHole[h] || []).push(b);
+    });
+
+    wrap.innerHTML = "";
+    for (let i = 0; i < 9; i++) {
+      const n = i + 1;
+      const h = holes[i];
+      const card = document.createElement("div");
+      card.className = "sc-hole";
+      card.dataset.hole = String(n);
+      card.innerHTML = `
+        <div class="sc-hole-head">
+          <span class="sc-hole-num">Hole ${n}</span>
+          <span class="sc-par-badge" data-parbadge>Par ${h.par == null ? "&mdash;" : h.par}</span>
+        </div>
+        <div class="sc-grid">
+          <div class="sc-field">
+            <label>Par</label>
+            <select class="sc-par">
+              <option value="">&mdash;</option>
+              <option value="3"${h.par === 3 ? " selected" : ""}>3</option>
+              <option value="4"${h.par === 4 ? " selected" : ""}>4</option>
+              <option value="5"${h.par === 5 ? " selected" : ""}>5</option>
+            </select>
+          </div>
+          <div class="sc-field">
+            <label>Yardage</label>
+            <input class="sc-yardage" type="number" min="0" step="1" inputmode="numeric" placeholder="yds" value="${h.yardage == null ? "" : h.yardage}">
+          </div>
+        </div>
+        <label>Hole game (optional)</label>
+        <input class="sc-game-name" type="text" placeholder="e.g. Spin-o-kickem" value="${escapeAttr(h.gameName || "")}">
+        <label>Game description (optional)</label>
+        <textarea class="sc-game-desc" rows="2" placeholder="e.g. Spin around a club 5 times before kicking.">${escapeHtml(h.gameDescription || "")}</textarea>
+
+        <div class="sc-bonus">
+          <div class="sc-bonus-label">Bonus points</div>
+          <div class="sc-bonus-list"></div>
+          <div class="sc-bonus-add">
+            <input class="sc-bonus-name" type="text" placeholder="Bonus name e.g. Closest to the Pin">
+            <select class="sc-bonus-pts">
+              <option value="1">+1</option>
+              <option value="2">+2</option>
+              <option value="3">+3</option>
+            </select>
+            <button type="button" class="btn btn-secondary sc-bonus-add-btn">Add</button>
+          </div>
+        </div>
+      `;
+      const list = card.querySelector(".sc-bonus-list");
+      (bonusesByHole[n] || []).forEach(b => list.appendChild(makeBonusChip(b.label || "", Number(b.points) || 0)));
+      wrap.appendChild(card);
     }
 
-    const holes = normalizeHoles(currentConfig?.holes);
-    holes[holeNum - 1] = { yardage, par, gameName, gameDescription };
+    // Keep the par badge in sync + flag dirty on any edit.
+    wrap.querySelectorAll(".sc-par").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const card = e.target.closest(".sc-hole");
+        card.querySelector("[data-parbadge]").textContent = "Par " + (sel.value || "—");
+        markScorecardDirty();
+      });
+    });
+    wrap.querySelectorAll(".sc-yardage, .sc-game-name, .sc-game-desc").forEach(el => {
+      el.addEventListener("input", markScorecardDirty);
+    });
 
+    // Add-bonus buttons (Enter in the name field also adds).
+    wrap.querySelectorAll(".sc-hole").forEach(card => {
+      const nameEl = card.querySelector(".sc-bonus-name");
+      const ptsEl  = card.querySelector(".sc-bonus-pts");
+      const addBonus = () => {
+        const name = nameEl.value.trim();
+        if (!name) { nameEl.focus(); return; }
+        card.querySelector(".sc-bonus-list").appendChild(makeBonusChip(name, Number(ptsEl.value)));
+        nameEl.value = "";
+        ptsEl.value = "1";
+        markScorecardDirty();
+        nameEl.focus();
+      };
+      card.querySelector(".sc-bonus-add-btn").addEventListener("click", addBonus);
+      nameEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); addBonus(); }
+      });
+    });
+
+    clearScorecardDirty();
+  }
+
+  // Read the entire builder back into the saved config shapes.
+  function readScorecardBuilder() {
+    const holes = emptyHoles();
+    const bonusOpportunities = [];
+    $("scorecard-builder").querySelectorAll(".sc-hole").forEach(card => {
+      const n = Number(card.dataset.hole);
+      const parRaw  = card.querySelector(".sc-par").value;
+      const yardRaw = card.querySelector(".sc-yardage").value;
+      holes[n - 1] = {
+        yardage: yardRaw === "" ? null : Number(yardRaw),
+        par:     parRaw  === "" ? null : Number(parRaw),
+        gameName: card.querySelector(".sc-game-name").value.trim(),
+        gameDescription: card.querySelector(".sc-game-desc").value.trim()
+      };
+      card.querySelectorAll(".sc-bonus-chip").forEach(chip => {
+        bonusOpportunities.push({
+          hole: n,
+          label: chip.dataset.label,
+          points: Number(chip.dataset.points)
+        });
+      });
+    });
     // Keep coursePar in sync so the existing Stableford math still works.
     // A null par falls back to 3 (the historic default).
     const coursePar = holes.map(h => (h.par == null ? 3 : h.par));
-
-    try {
-      await updateEventConfig({ holes, coursePar });
-      // Clear the form so the next hole is easy to enter.
-      $("hole-num").value              = "";
-      $("hole-yardage").value          = "";
-      $("hole-par").value              = "";
-      $("hole-game-name").value        = "";
-      $("hole-game-description").value = "";
-      fb.textContent = `Saved hole ${holeNum}.`;
-      fb.className = "feedback ok";
-    } catch (err) {
-      fb.textContent = err.message;
-      fb.className = "feedback err";
-    }
-  });
-
-  function renderScorecardPreview(holes) {
-    const wrap = $("scorecard-preview");
-    const anySet = holes.some(h =>
-      h.yardage != null || h.par != null || h.gameName || h.gameDescription
-    );
-    if (!anySet) {
-      wrap.innerHTML = '<p class="small-hint">No holes set yet.</p>';
-      return;
-    }
-    let html = `
-      <table>
-        <thead>
-          <tr><th>Hole</th><th>Yardage</th><th>Par</th><th>Game</th><th></th></tr>
-        </thead>
-        <tbody>
-    `;
-    for (let i = 0; i < 9; i++) {
-      const h = holes[i];
-      const yard = h.yardage == null
-        ? '<span class="muted">—</span>'
-        : `${h.yardage} yds`;
-      const par = h.par == null
-        ? '<span class="muted">—</span>'
-        : h.par;
-      const gameCell = (h.gameName || h.gameDescription)
-        ? `<div style="font-weight:600;color:var(--green-dark);">${escapeHtml(h.gameName || "")}</div>` +
-          (h.gameDescription
-            ? `<div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">${escapeHtml(h.gameDescription)}</div>`
-            : "")
-        : '<span class="muted">—</span>';
-      const unset = (h.yardage == null && h.par == null && !h.gameName && !h.gameDescription)
-        ? " unset" : "";
-      html += `
-        <tr class="hole-row hole-row-editable${unset}" data-hole="${i + 1}" title="Click to edit hole ${i + 1}" style="cursor:pointer;">
-          <td class="hole-cell">#${i + 1}</td>
-          <td>${yard}</td>
-          <td>${par}</td>
-          <td>${gameCell}</td>
-          <td class="action-cell">
-            <button type="button" class="row-clear" data-hole="${i + 1}" aria-label="Clear hole ${i + 1}">×</button>
-          </td>
-        </tr>
-      `;
-    }
-    html += `</tbody></table>`;
-    wrap.innerHTML = html;
-
-    // Clicking a row loads that hole into the edit form above.
-    wrap.querySelectorAll(".hole-row-editable").forEach(row => {
-      row.addEventListener("click", (e) => {
-        if (e.target.closest(".row-clear")) return; // let clear button handle itself
-        const holeNum = Number(row.dataset.hole);
-        loadHoleIntoForm(holeNum);
-      });
-    });
-
-    // Wire the per-row clear buttons.
-    wrap.querySelectorAll(".row-clear").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const holeNum = Number(btn.dataset.hole);
-        if (!confirm(`Clear yardage, par, and game info for hole ${holeNum}?`)) return;
-        const next = normalizeHoles(currentConfig?.holes);
-        next[holeNum - 1] = { yardage: null, par: null, gameName: "", gameDescription: "" };
-        const coursePar = next.map(h => (h.par == null ? 3 : h.par));
-        try {
-          await updateEventConfig({ holes: next, coursePar });
-          flash("hole-feedback", `Cleared hole ${holeNum}.`, "ok");
-        } catch (err) {
-          flash("hole-feedback", err.message, "err");
-        }
-      });
-    });
+    return { holes, coursePar, bonusOpportunities };
   }
 
-  function loadHoleIntoForm(holeNum) {
-    const h = (normalizeHoles(currentConfig?.holes))[holeNum - 1];
-    $("hole-num").value             = String(holeNum);
-    $("hole-yardage").value         = h.yardage != null ? h.yardage : "";
-    $("hole-par").value             = h.par != null ? String(h.par) : "";
-    $("hole-game-name").value       = h.gameName || "";
-    $("hole-game-description").value = h.gameDescription || "";
-    // Scroll the form into view and briefly highlight the hole selector.
-    $("hole-num").scrollIntoView({ behavior: "smooth", block: "center" });
-    $("hole-num").focus();
-  }
-
-  // ---- Subsection B: bonus opportunities ----
-
-  $("save-bonus-opp").addEventListener("click", async () => {
-    const fb = $("bonus-opp-feedback");
+  $("save-scorecard").addEventListener("click", async () => {
+    const fb = $("scorecard-feedback");
     hide(fb);
-    const hole   = Number($("bonus-hole").value);
-    const label  = $("bonus-label").value.trim();
-    const points = Number($("bonus-points").value);
-
-    if (!Number.isInteger(hole) || hole < 1 || hole > 9) {
-      fb.textContent = "Pick a hole (1–9) first.";
-      fb.className = "feedback err";
-      return;
+    const { holes, coursePar, bonusOpportunities } = readScorecardBuilder();
+    for (let i = 0; i < 9; i++) {
+      const y = holes[i].yardage;
+      if (y != null && (!Number.isFinite(y) || y < 0)) {
+        fb.textContent = `Hole ${i + 1}: yardage must be a positive number.`;
+        fb.className = "feedback err";
+        return;
+      }
     }
-    if (!label) {
-      fb.textContent = "Description is required.";
-      fb.className = "feedback err";
-      return;
-    }
-    if (![1, 2, 3].includes(points)) {
-      fb.textContent = "Pick a point value (1, 2, or 3).";
-      fb.className = "feedback err";
-      return;
-    }
-
-    const existing = Array.isArray(currentConfig?.bonusOpportunities)
-      ? [...currentConfig.bonusOpportunities]
-      : [];
-    existing.push({ hole, label, points });
-
     try {
-      await updateEventConfig({ bonusOpportunities: existing });
-      $("bonus-hole").value   = "";
-      $("bonus-label").value  = "";
-      $("bonus-points").value = "";
-      fb.textContent = `Added +${points} bonus for hole ${hole}.`;
+      await updateEventConfig({ holes, coursePar, bonusOpportunities });
+      clearScorecardDirty();
+      fb.textContent = "Scorecard saved.";
       fb.className = "feedback ok";
     } catch (err) {
       fb.textContent = err.message;
       fb.className = "feedback err";
     }
   });
-
-  function renderBonusOppList(items) {
-    const wrap = $("bonus-opp-list");
-    if (!items.length) {
-      wrap.innerHTML = '<p class="small-hint">No bonus opportunities yet.</p>';
-      return;
-    }
-    wrap.innerHTML = "";
-    items.forEach((b, idx) => {
-      const row = document.createElement("div");
-      row.className = "bonus-opp-item";
-      const ptsLabel = Number.isFinite(b.points) ? `+${b.points}` : "—";
-      row.innerHTML = `
-        <div class="meta">
-          <span class="hole-tag">Hole ${escapeHtml(String(b.hole ?? "?"))}</span>
-          <span class="label">${escapeHtml(b.label || "")}</span>
-        </div>
-        <span class="points-pill" aria-label="Points">${escapeHtml(ptsLabel)}</span>
-        <button type="button" class="btn btn-danger" data-idx="${idx}" style="padding: 6px 12px; font-size: 14px;" aria-label="Delete bonus">×</button>
-      `;
-      row.querySelector("button").addEventListener("click", async () => {
-        const label = b.label || `hole ${b.hole}`;
-        if (!confirm(`Delete bonus "${label}"?`)) return;
-        const next = (currentConfig?.bonusOpportunities || []).filter((_, i) => i !== idx);
-        try {
-          await updateEventConfig({ bonusOpportunities: next });
-          flash("bonus-opp-feedback", `Deleted "${label}".`, "ok");
-        } catch (err) {
-          flash("bonus-opp-feedback", err.message, "err");
-        }
-      });
-      wrap.appendChild(row);
-    });
-  }
 
   // ----- Team list
   function renderTeamList(teams) {
