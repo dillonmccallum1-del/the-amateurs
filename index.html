@@ -54,14 +54,14 @@
     <div class="hero-meta-item"><div class="label">Course</div><div class="value" id="hero-course">Strategic Fox at Fox Hills</div></div>
   </div>
   <div class="hero-meta">
-    <div class="host-course-actions">
-      <a class="map-btn map-btn-apple" href="https://maps.apple.com/?address=8600%E2%80%938798%20N%20Territorial%20Rd,%20Plymouth,%20MI%20%2048170,%20United%20States&ll=42.368749,-83.594320&q=Dropped%20Pin" target="_blank" rel="noopener">
+    <div class="host-course-actions" id="hero-maps">
+      <a class="map-btn map-btn-apple" id="hero-map-apple" href="https://maps.apple.com/?address=8600%E2%80%938798%20N%20Territorial%20Rd,%20Plymouth,%20MI%20%2048170,%20United%20States&ll=42.368749,-83.594320&q=Dropped%20Pin" target="_blank" rel="noopener">
         <span>Apple Maps</span>
       </a>
-      <a class="map-btn map-btn-google" href="https://www.google.com/maps/place/Fox+Hills+Golf+Performance+Center/@42.3687803,-83.5937679,18.79z/data=!4m6!3m5!1s0x883cab3dbc5d7be7:0xe053db7836c9df48!8m2!3d42.3687809!4d-83.5943031!16s%2Fg%2F11yrx3r1p3?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">
+      <a class="map-btn map-btn-google" id="hero-map-google" href="https://www.google.com/maps/place/Fox+Hills+Golf+Performance+Center/@42.3687803,-83.5937679,18.79z/data=!4m6!3m5!1s0x883cab3dbc5d7be7:0xe053db7836c9df48!8m2!3d42.3687809!4d-83.5943031!16s%2Fg%2F11yrx3r1p3?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">
         <span>Google Maps</span>
       </a>
-    </div>    
+    </div>
   </div>
 </section>
 
@@ -308,6 +308,20 @@
     if (fmt && cfg.format)   fmt.textContent = FORMAT_LABELS[cfg.format] || cfg.format;
     // Show the course name (the part before the city), e.g. "Fox Hills…".
     if (course && cfg.location) course.textContent = String(cfg.location).split("·")[0].trim();
+
+    // Map buttons follow the event's saved course links; hide any that are unset.
+    const maps   = document.getElementById("hero-maps");
+    const apple  = document.getElementById("hero-map-apple");
+    const google = document.getElementById("hero-map-google");
+    if (apple) {
+      if (cfg.appleMapUrl) { apple.href = cfg.appleMapUrl; apple.style.display = ""; }
+      else apple.style.display = "none";
+    }
+    if (google) {
+      if (cfg.googleMapUrl) { google.href = cfg.googleMapUrl; google.style.display = ""; }
+      else google.style.display = "none";
+    }
+    if (maps) maps.style.display = (cfg.appleMapUrl || cfg.googleMapUrl) ? "" : "none";
   }
 
   // Countdown target = the saved date (or 3rd Saturday of June for the year),
