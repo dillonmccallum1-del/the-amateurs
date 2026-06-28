@@ -222,8 +222,8 @@ export async function getCourse(location, type) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-/** Admin: save (or update) a course's per-hole yardage + par. */
-export async function saveCourse({ location, type, holes }) {
+/** Admin: save (or update) a course's per-hole yardage + par and map links. */
+export async function saveCourse({ location, type, holes, appleMapUrl, googleMapUrl }) {
   const id = courseId(location, type);
   if (!id) throw new Error("A course needs both a location and a type.");
   await setDoc(
@@ -232,6 +232,8 @@ export async function saveCourse({ location, type, holes }) {
       location: String(location).trim(),
       type: String(type).trim(),
       holes: Array.isArray(holes) ? holes : [],
+      appleMapUrl: String(appleMapUrl || "").trim(),
+      googleMapUrl: String(googleMapUrl || "").trim(),
       updatedAt: serverTimestamp()
     },
     { merge: true }

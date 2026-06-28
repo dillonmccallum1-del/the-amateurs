@@ -1134,7 +1134,14 @@
       <div id="scorecard-feedback" class="feedback hidden"></div>
 
       <div class="sc-course-default">
-        <button id="save-course-default" class="btn btn-secondary">Save as course default</button>
+        <label for="course-apple-url">Apple Maps URL (optional)</label>
+        <input id="course-apple-url" type="url" placeholder="https://maps.apple.com/…">
+        <label for="course-google-url">Google Maps URL (optional)</label>
+        <input id="course-google-url" type="url" placeholder="https://www.google.com/maps/…">
+        <p class="small-hint" style="margin-top:6px;">Map links show on the home page banner for this location + type.</p>
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="save-course-default" class="btn btn-secondary">Save as course default</button>
+        </div>
         <p id="course-default-hint" class="small-hint" style="margin-top:6px;"></p>
         <span id="course-default-fb" class="sc-new-game-fb"></span>
       </div>
@@ -1547,13 +1554,17 @@
       // Fox Hills — 2024 Red tees, par 3 throughout.
       location: "Fox Hills Golf & Banquet Center · Plymouth, MI",
       type: "Golf",
-      holes: [71, 102, 78, 112, 100, 80, 70, 50, 105].map(y => ({ yardage: y, par: 3 }))
+      holes: [71, 102, 78, 112, 100, 80, 70, 50, 105].map(y => ({ yardage: y, par: 3 })),
+      appleMapUrl: "https://maps.apple.com/?address=8600%E2%80%938798%20N%20Territorial%20Rd,%20Plymouth,%20MI%20%2048170,%20United%20States&ll=42.368749,-83.594320&q=Dropped%20Pin",
+      googleMapUrl: "https://www.google.com/maps/place/Fox+Hills+Golf+Performance+Center/@42.3687803,-83.5937679,18.79z/data=!4m6!3m5!1s0x883cab3dbc5d7be7:0xe053db7836c9df48!8m2!3d42.3687809!4d-83.5943031!16s%2Fg%2F11yrx3r1p3?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D"
     },
     {
       // The Myth — 2025 Yellow tees, par 3 throughout.
       location: "The Myth Golf & Banquets · Oakland Township, MI",
       type: "Golf",
-      holes: [74, 130, 60, 151, 138, 101, 108, 126, 124].map(y => ({ yardage: y, par: 3 }))
+      holes: [74, 130, 60, 151, 138, 101, 108, 126, 124].map(y => ({ yardage: y, par: 3 })),
+      appleMapUrl: "",
+      googleMapUrl: ""
     }
   ];
 
@@ -1670,6 +1681,8 @@
       location: "",
       date: "",
       time: "",
+      appleMapUrl: "",
+      googleMapUrl: "",
       thirdSaturdayOfJune: true,
       // Master switch for the public Leaderboard page. Default ON so
       // a brand-new event isn't accidentally dark; the commissioner can
@@ -1742,6 +1755,9 @@
     // any in-progress edits (safe even when the full re-render is skipped).
     refreshHoleGameSelects();
     updateCourseDefaultHint();
+    // Pre-fill the course map URL inputs from the active event config.
+    if ($("course-apple-url"))  $("course-apple-url").value  = cfg.appleMapUrl  || "";
+    if ($("course-google-url")) $("course-google-url").value = cfg.googleMapUrl || "";
 
     // Par row + OUT total + Points row in the Score Entry scorecard are
     // derived from the inputs + holes config. Recompute whenever the
@@ -2041,7 +2057,12 @@
     }
     const coursePar = holes.map(h => (h.par == null ? 3 : h.par));
     clearScorecardDirty();
-    await updateEventConfig({ holes, coursePar, bonusOpportunities: [] });
+    await updateEventConfig({
+      holes, coursePar, bonusOpportunities: [],
+      // Carry the course's map links onto the event (or clear them if none).
+      appleMapUrl:  (course && course.appleMapUrl)  || "",
+      googleMapUrl: (course && course.googleMapUrl) || ""
+    });
   }
 
   // ----- Event status: auto-saves instantly on change (home screen) --------
@@ -2550,9 +2571,14 @@
     }
     const { holes } = readScorecardBuilder();
     const courseHoles = holes.map(h => ({ yardage: h.yardage, par: h.par }));
+    const appleMapUrl  = $("course-apple-url").value.trim();
+    const googleMapUrl = $("course-google-url").value.trim();
     fb.textContent = "Saving…"; fb.className = "sc-new-game-fb";
     try {
-      await saveCourse({ location, type, holes: courseHoles });
+      await saveCourse({ location, type, holes: courseHoles, appleMapUrl, googleMapUrl });
+      // Reflect the map links on the current event right away (the home page
+      // banner reads these from the event config).
+      await updateEventConfig({ appleMapUrl, googleMapUrl });
       fb.textContent = "Saved as default for " + location + " · " + type + ".";
       fb.className = "sc-new-game-fb";
     } catch (err) {
