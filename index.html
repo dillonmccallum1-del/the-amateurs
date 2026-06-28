@@ -48,10 +48,10 @@
   <h1>The Amateurs</h1>
   <div class="tagline">An important family tradition &mdash; in pursuit of the MacCallum Cup</div>
   <div class="hero-divider"></div>
-  <div class="edition-badge">2026 &middot; Footgolf Edition</div>
+  <div class="edition-badge" id="hero-edition">2026 &middot; Footgolf Edition</div>
   <div class="hero-meta">
-    <div class="hero-meta-item"><div class="label">Format</div><div class="value">2-Person Alt. Kick</div></div>
-    <div class="hero-meta-item"><div class="label">Course</div><div class="value">Strategic Fox at Fox Hills</div></div>
+    <div class="hero-meta-item"><div class="label">Format</div><div class="value" id="hero-format">2-Person Alt. Kick</div></div>
+    <div class="hero-meta-item"><div class="label">Course</div><div class="value" id="hero-course">Strategic Fox at Fox Hills</div></div>
   </div>
   <div class="hero-meta">
     <div class="host-course-actions">
@@ -270,9 +270,12 @@
     statusLabel.textContent = "Pre-Event";
     liveMsg.style.display = "none";
     countdown.style.display = "";
+    const hasTime = target.getHours() !== 0 || target.getMinutes() !== 0;
     dateEl.textContent = "Tees off " + target.toLocaleDateString(undefined, {
       weekday: "long", month: "long", day: "numeric", year: "numeric"
-    });
+    }) + (hasTime
+      ? " at " + target.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+      : "");
 
     stopTimer();
     function tick() {
@@ -290,9 +293,44 @@
     timer = setInterval(tick, 1000);
   }
 
+  // ----- Hero banner reflects the event config (year, type, format, course)
+  const FORMAT_LABELS = {
+    "4-person-scramble": "4-Person Scramble",
+    "2-person-scramble": "2-Person Scramble",
+    "2-person-alternate-kick": "2-Person Alt. Kick"
+  };
+  function updateHeroBanner(cfg) {
+    if (!cfg) return;
+    const badge  = document.getElementById("hero-edition");
+    const fmt    = document.getElementById("hero-format");
+    const course = document.getElementById("hero-course");
+    if (badge && cfg.year && cfg.type) badge.textContent = cfg.year + " · " + cfg.type + " Edition";
+    if (fmt && cfg.format)   fmt.textContent = FORMAT_LABELS[cfg.format] || cfg.format;
+    // Show the course name (the part before the city), e.g. "Fox Hills…".
+    if (course && cfg.location) course.textContent = String(cfg.location).split("·")[0].trim();
+  }
+
+  // Countdown target = the saved date (or 3rd Saturday of June for the year),
+  // at the saved start time if one is set.
+  function eventTarget(cfg, year) {
+    let d;
+    if (cfg && cfg.date) {
+      const [y, m, dd] = cfg.date.split("-").map(Number);
+      d = new Date(y, (m || 1) - 1, dd || 1);
+    } else {
+      d = tournamentDay(year);
+    }
+    if (cfg && cfg.time) {
+      const [hh, mm] = cfg.time.split(":").map(Number);
+      d.setHours(hh || 0, mm || 0, 0, 0);
+    }
+    return d;
+  }
+
   onEventConfig((cfg) => {
     const status = (cfg && cfg.status) || "pre-event";
     const year   = (cfg && cfg.year)   || new Date().getFullYear();
+    updateHeroBanner(cfg);
 
     if (status === "final") {
       stopTimer();
@@ -310,8 +348,9 @@
       showBanner("Live", "Let the games begin!");
       return;
     }
-    // pre-event (default): count down to tournament day for the set year.
-    const target = tournamentDay(year);
+    // pre-event (default): count down to tournament day (saved date + time,
+    // or the third Saturday of June for the set year).
+    const target = eventTarget(cfg, year);
     if (target.getTime() - Date.now() <= 0) showBanner("Live", "Let the games begin!");
     else showCountdown(target);
   });

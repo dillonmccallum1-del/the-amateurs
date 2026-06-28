@@ -1007,6 +1007,9 @@
           <input id="evt-date" type="date">
         </div>
 
+        <label for="evt-time">Start time</label>
+        <input id="evt-time" type="time">
+
         <p class="small-hint" style="margin-top:14px;">Event <strong>status</strong> lives on the admin home screen so you can change it fast on event day.</p>
 
         <div class="btn-row">
@@ -1014,6 +1017,26 @@
           <button type="button" id="cancel-new-event" class="btn btn-secondary">Cancel</button>
         </div>
         <div id="config-feedback" class="feedback hidden"></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         WIPE CONFIRM overlay — archive reminder before a new event
+         clears the leaderboard, draft, and captain data.
+         ============================================================ -->
+    <div id="wipe-confirm-modal" class="ne-modal hidden" role="dialog" aria-modal="true" aria-labelledby="wipe-title" style="z-index:1100;">
+      <div class="ne-modal-card admin-card">
+        <div class="ne-modal-head">
+          <h2 id="wipe-title">Start a new event?</h2>
+        </div>
+        <p class="small-hint" style="margin-top:0;">Saving will <strong>permanently wipe</strong> the leaderboard, the draft, and every team &amp; captain entry, and reset the scorecard — so you can start fresh.</p>
+        <p style="font-weight:600;color:var(--red);margin-top:12px;">Have you archived the current season to History yet? This can't be undone.</p>
+        <div class="btn-row">
+          <button type="button" id="wipe-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="button" id="wipe-goto-archive" class="btn btn-secondary">Go to archive</button>
+          <button type="button" id="wipe-confirm" class="btn btn-danger">Yes, wipe &amp; save</button>
+        </div>
+        <div id="wipe-feedback" class="feedback hidden"></div>
       </div>
     </div>
 
@@ -1443,7 +1466,7 @@
   import {
     onAuth, signIn, signOutNow, isAdmin,
     onEventConfig, updateEventConfig, getSeasons,
-    onTeams, saveTeam, deleteTeam, setTeamStrokes,
+    onTeams, saveTeam, deleteTeam, deleteAllTeams, setTeamStrokes,
     setTeamFarthestThrow, setTeamClosestToPin, setTeamGrassGuess,
     pointsForHole, computeTeamTotals,
     onHoleGames, getHoleGames, addHoleGame, seedHoleGames, holeGameId,
@@ -1646,6 +1669,7 @@
       status: "pre-event",
       location: "",
       date: "",
+      time: "",
       thirdSaturdayOfJune: true,
       // Master switch for the public Leaderboard page. Default ON so
       // a brand-new event isn't accidentally dark; the commissioner can
@@ -1698,6 +1722,7 @@
     $("evt-status").value = cfg.status ?? "pre-event";
     fillEventLocation(cfg.location || "");
     $("evt-third-saturday").checked = cfg.thirdSaturdayOfJune !== false; // default ON
+    $("evt-time").value = cfg.time || "";
     fillEventDate(cfg);
     renderEventSummary(cfg);
     $("evt-leaderboard-visible").checked = cfg.leaderboardVisible !== false; // default ON
@@ -1839,7 +1864,18 @@
       "<dt>Format</dt><dd>" + esc(fmt) + "</dd>" +
       "<dt>Location</dt><dd>" + esc(cfg.location || "—") + "</dd>" +
       "<dt>Date</dt><dd>" + esc(cfg.date ? formatNiceDate(cfg.date) : "—") + "</dd>" +
+      "<dt>Time</dt><dd>" + esc(cfg.time ? formatTime12(cfg.time) : "—") + "</dd>" +
       "</dl>";
+  }
+
+  // "14:30" → "2:30 PM"
+  function formatTime12(t) {
+    const [hRaw, mRaw] = String(t).split(":");
+    let h = Number(hRaw); const m = mRaw == null ? "00" : mRaw;
+    if (!Number.isFinite(h)) return t;
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12; if (h === 0) h = 12;
+    return h + ":" + m + " " + ampm;
   }
 
   function openNewEvent() {
@@ -1889,10 +1925,10 @@
     if (!location || !type) { note.textContent = ""; note.className = "ne-course-note"; return; }
     const found = courseCatalog.find(c => c.id === courseId(location, type));
     if (found) {
-      note.textContent = "✓ Saved course found — yardages & par will auto-fill on save.";
+      note.textContent = "✓ Saved course found — saving will clear the scorecard and load these yardages & par.";
       note.className = "ne-course-note ok";
     } else {
-      note.textContent = "No saved course yet for this location + type. Enter yardages on the scorecard, then use “Save as course default.”";
+      note.textContent = "No saved course for this location + type — saving will clear the scorecard. Enter yardages, then use “Save as course default.”";
       note.className = "ne-course-note";
     }
   }
@@ -1901,55 +1937,111 @@
     if (e.target === $("new-event-modal")) closeNewEvent();
   });
 
-  $("save-config").addEventListener("click", async () => {
-    const fb = $("config-feedback");
-    hide(fb);
+  // Gather the event-setup form into a plain object.
+  function gatherEventSetup() {
     const third = $("evt-third-saturday").checked;
     const year = Number($("evt-year").value);
     const date = third ? isoThirdSaturdayOfJune(year) : ($("evt-date").value || "");
     let location = $("evt-location").value;
     if (location === "__other__") location = $("evt-location-other").value.trim();
     const type = $("evt-type").value;
+    return {
+      year, type, format: $("evt-format").value, location, date,
+      time: $("evt-time").value || "", third,
+      course: courseCatalog.find(c => c.id === courseId(location, type)) || null
+    };
+  }
+
+  let pendingEventSave = null;
+
+  $("save-config").addEventListener("click", () => {
+    const p = gatherEventSetup();
+    // If there's existing event data (teams or a built scorecard), this save
+    // wipes it — so prompt with the archive reminder first.
+    if (teamsExist() || scorecardHasData()) {
+      pendingEventSave = p;
+      $("wipe-confirm-modal").classList.remove("hidden");
+    } else {
+      commitEventSave(p, false); // nothing to wipe — save quietly
+    }
+  });
+
+  // Write the event setup. When `wipe` is true, also clear teams + draft
+  // setup so the leaderboard, draft, and captain pages start fresh.
+  async function commitEventSave(p, wipe) {
+    const fb = $("config-feedback");
+    hide(fb);
     try {
-      await updateEventConfig({
-        year,
-        type,
-        format:   $("evt-format").value,
-        location,
-        date,
-        thirdSaturdayOfJune: third
-        // NOTE: status (home screen) and leaderboardVisible (During Event)
-        // each auto-save on change, so they're intentionally not in this form.
-      });
-      // Auto-fill the scorecard's yardage + par from a saved course preset
-      // for this location + type, if one exists.
-      const course = courseCatalog.find(c => c.id === courseId(location, type));
-      let filled = false;
-      if (course) { await applyCourseToScorecard(course); filled = true; }
-      fb.textContent = filled ? "Saved — course yardages applied." : "Saved.";
+      const patch = {
+        year: p.year, type: p.type, format: p.format,
+        location: p.location, date: p.date, time: p.time,
+        thirdSaturdayOfJune: p.third
+        // NOTE: status + leaderboardVisible auto-save elsewhere.
+      };
+      if (wipe) { patch.numTeams = 0; patch.numParticipants = 0; }
+      await updateEventConfig(patch);
+      // Reset the scorecard, loading a saved course default if one exists.
+      await resetScorecardForCourse(p.course);
+      // Wipe all team data (draft board, leaderboard, captain scorecards).
+      if (wipe) await deleteAllTeams();
+      fb.textContent = wipe
+        ? "New event saved — previous teams, draft & scores wiped."
+        : (p.course ? "Saved — course default loaded." : "Saved — scorecard cleared.");
       fb.className = "feedback ok";
       closeNewEvent();
     } catch (err) {
       fb.textContent = err.message;
       fb.className = "feedback err";
     }
+  }
+
+  // ----- Wipe-confirm modal (archive reminder) -----
+  function closeWipeConfirm() {
+    $("wipe-confirm-modal").classList.add("hidden");
+    pendingEventSave = null;
+  }
+  $("wipe-cancel").addEventListener("click", closeWipeConfirm);
+  $("wipe-goto-archive").addEventListener("click", () => {
+    $("wipe-confirm-modal").classList.add("hidden");
+    pendingEventSave = null;
+    closeNewEvent();
+    location.hash = "post"; // jump to the Post-Event panel (archive lives there)
+  });
+  $("wipe-confirm").addEventListener("click", async () => {
+    const p = pendingEventSave;
+    $("wipe-confirm-modal").classList.add("hidden");
+    pendingEventSave = null;
+    if (p) await commitEventSave(p, true);
   });
 
-  // Write a course preset's yardage + par onto the event's holes (leaving
-  // hole games + bonuses untouched), keeping coursePar in sync.
-  async function applyCourseToScorecard(course) {
+  function teamsExist() {
+    return Array.isArray(currentTeams) && currentTeams.length > 0;
+  }
+
+  // Does the current event have any scorecard settings worth warning about?
+  function scorecardHasData() {
     const holes = normalizeHoles(currentConfig && currentConfig.holes);
-    const src = Array.isArray(course.holes) ? course.holes : [];
-    for (let i = 0; i < 9; i++) {
-      const c = src[i] || {};
-      holes[i] = {
-        ...holes[i],
-        yardage: Number.isFinite(c.yardage) ? c.yardage : holes[i].yardage,
-        par:     Number.isFinite(c.par)     ? c.par     : holes[i].par
-      };
+    const hasHole = holes.some(h => h.yardage != null || h.par != null || h.gameName || h.gameDescription);
+    const bonuses = currentConfig && currentConfig.bonusOpportunities;
+    const hasBonus = Array.isArray(bonuses) && bonuses.length > 0;
+    return hasHole || hasBonus;
+  }
+
+  // Clear the whole scorecard (yardage, par, hole games, bonuses), then load
+  // a saved course's yardage + par if one is provided. coursePar stays in
+  // sync. Clears the dirty flag so the incoming config snapshot re-renders.
+  async function resetScorecardForCourse(course) {
+    const holes = emptyHoles();
+    if (course && Array.isArray(course.holes)) {
+      for (let i = 0; i < 9; i++) {
+        const c = course.holes[i] || {};
+        holes[i].yardage = Number.isFinite(c.yardage) ? c.yardage : null;
+        holes[i].par     = Number.isFinite(c.par)     ? c.par     : null;
+      }
     }
     const coursePar = holes.map(h => (h.par == null ? 3 : h.par));
-    await updateEventConfig({ holes, coursePar });
+    clearScorecardDirty();
+    await updateEventConfig({ holes, coursePar, bonusOpportunities: [] });
   }
 
   // ----- Event status: auto-saves instantly on change (home screen) --------

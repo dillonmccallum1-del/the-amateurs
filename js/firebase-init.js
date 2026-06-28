@@ -283,6 +283,13 @@ export async function deleteTeam(id) {
   await deleteDoc(doc(db, "teams", id));
 }
 
+/** Admin: delete EVERY team doc. Wipes the draft board, the leaderboard,
+ *  and all captain scorecards in one shot (used when starting a new event). */
+export async function deleteAllTeams() {
+  const snap = await getDocs(collection(db, "teams"));
+  await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, "teams", d.id))));
+}
+
 /** Admin: upload a team logo image. `file` is a File from an <input type=file>.
  *  Stored at  team-logos/<teamId>.<ext>  and the resulting download URL is
  *  written back onto the team doc as `logoUrl`. Returns the URL. */

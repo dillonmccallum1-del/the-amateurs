@@ -970,6 +970,11 @@
     }
     el.innerHTML = `<div class="cup-lb-header">Win Percentage <span class="cup-lb-subnote">(min. 2 cups)</span></div>${body}`;
   }
+
+  // Paint the computed tables immediately from the baked-in past results, so the
+  // page never flashes the static placeholder first. When Firebase data arrives,
+  // onSeasons() re-renders — but only changes anything if a NEW season exists.
+  renderStatsTables([]);
 </script>
 
 <script>
