@@ -452,41 +452,69 @@ a.inline-link:hover { color: var(--green); }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
+  gap: 12px;
   background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
   color: var(--cream);
   border: 1px solid rgba(244, 216, 56, 0.45);
   border-left: 4px solid var(--yellow);
   border-radius: 14px;
-  padding: 32px 28px;
+  padding: 30px 28px;
   box-shadow: var(--shadow-md);
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 .final-cta:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg, 0 10px 28px rgba(0,0,0,0.18));
 }
+.final-cta:active { transform: translateY(0); }
+/* Faint trophy watermark, echoing the Defending Champions card. */
+.final-cta::before {
+  content: '\1F3C6';
+  position: absolute;
+  right: 4px;
+  bottom: -24px;
+  font-size: 150px;
+  opacity: 0.08;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
 .final-cta-label {
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--yellow);
   background: rgba(244, 216, 56, 0.18);
   padding: 6px 16px;
   border-radius: 999px;
+  position: relative;
 }
 .final-cta-title {
   font-family: var(--font-serif);
   font-size: clamp(22px, 4.5vw, 28px);
   font-weight: 700;
   line-height: 1.25;
+  position: relative;
 }
+/* Button-style chip so it clearly reads as tappable. */
 .final-cta-arrow {
-  font-weight: 600;
-  color: var(--yellow);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 11px 22px;
+  background: var(--yellow);
+  color: var(--green-dark);
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 999px;
+  position: relative;
+  transition: gap 0.15s;
 }
+.final-cta:hover .final-cta-arrow { gap: 12px; }
 .status-card h2 {
   font-size: clamp(24px, 4.5vw, 30px);
   color: var(--green-dark);

@@ -98,8 +98,8 @@
        the countdown card above is hidden and this takes its place. -->
   <a id="final-cta" class="final-cta" href="Pages/leaderboard.html" style="display:none;">
     <span class="final-cta-label">Final Results</span>
-    <span class="final-cta-title">The 2026 Amateurs is in the books</span>
-    <span class="final-cta-arrow">View the final leaderboard &rarr;</span>
+    <span class="final-cta-title" id="final-cta-title">The Amateurs is in the books</span>
+    <span class="final-cta-arrow">View the final leaderboard <span aria-hidden="true">&rarr;</span></span>
   </a>
 </section>
 
@@ -297,6 +297,8 @@
     if (status === "final") {
       stopTimer();
       statusCard.style.display = "none";
+      document.getElementById("final-cta-title").textContent =
+        "The " + year + " Amateurs is in the books";
       finalCta.style.display = "flex";
       return;
     }

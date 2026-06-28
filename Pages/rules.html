@@ -62,93 +62,12 @@
       <li>Everyone plays from the <strong>forward footgolf tee box</strong>.</li>
       <li>Avoid the water on holes <strong>#2 and #9</strong> &mdash; there's no way to retrieve a ball once it goes in.</li>
       <li>Each group's bag holds a <strong>"Guess the Grass"</strong> sheet asking which species of turfgrass is in the cup. <strong>No phones.</strong> Submit it to the Commissioner before the awards ceremony.</li>
-      <li>Many holes feature <strong>special games</strong> &mdash; see the Hole Games section below.</li>
+      <li>Many holes feature <strong>special games</strong> &mdash; each hole's game and any bonus points are shown on your scorecard when you sign in.</li>
       <li>Have fun.</li>
     </ul>
   </div>
 
   <div class="note water-note"><strong>Heads up:</strong> Holes #2 and #9 carry water hazards with no recovery. Lay up if you must.</div>
-</section>
-
-<!-- ===== HOLE GAMES ===== -->
-<section id="hole-games-section" class="content">
-  <h2 class="section-title">Hole Games</h2>
-  <div class="section-rule"></div>
-  <p>Each hole has its own twist this year. Read up before you tee it up &mdash; some holes carry bonus points.</p>
-
-  <div class="holes-grid">
-    <div class="hole-card">
-      <div class="hole-num">1</div>
-      <div class="hole-game">
-        <div class="game-name">Normal Alternate Kick</div>
-        <div class="game-detail">Standard play to warm the feet up. Partners alternate shots.</div>
-      </div>
-    </div>
-
-    <div class="hole-card water">
-      <div class="hole-num">2</div>
-      <div class="hole-game">
-        <div class="game-name">Normal Alternate Kick</div>
-        <div class="game-detail"><strong>Water hazard.</strong> Standard play, but beware balls in the water might be gone for good.</div>
-      </div>
-    </div>
-
-    <div class="hole-card special">
-      <div class="hole-num">3</div>
-      <div class="hole-game">
-        <div class="game-name">Spin-o-kickem</div>
-        <div class="game-detail">Before kicking, each player teeing off spins around a club <strong>5 times</strong>.</div>
-      </div>
-    </div>
-
-    <div class="hole-card special">
-      <div class="hole-num">4</div>
-      <div class="hole-game">
-        <div class="game-name">Fútbol de Americano</div>
-        <div class="game-detail">Tee off with an <strong>American football</strong>. Subsequent shots return to using a regular football.</div>
-      </div>
-    </div>
-
-    <div class="hole-card special">
-      <div class="hole-num">5</div>
-      <div class="hole-game">
-        <div class="game-name">Throwing In</div>
-        <div class="game-detail">Football-style <strong>overhead two-handed throw-in</strong> off the tee. Longest throw wins a prize. Feet only after that.</div>
-      </div>
-    </div>
-
-    <div class="hole-card special">
-      <div class="hole-num">6</div>
-      <div class="hole-game">
-        <div class="game-name">The aGitATING Hole</div>
-        <div class="game-detail">Work your ball <strong>through the football-sized croquet wicket</strong> on your way to the cup.</div>
-      </div>
-    </div>
-
-    <div class="hole-card special">
-      <div class="hole-num">7</div>
-      <div class="hole-game">
-        <div class="game-name">Teamwork Makes Dreamwork</div>
-        <div class="game-detail">For every shot each player must strike the ball. Strategize accordingly.</div>
-      </div>
-    </div>
-
-    <div class="hole-card special">
-      <div class="hole-num">8</div>
-      <div class="hole-game">
-        <div class="game-name">Opposite Leg Day (Closest to the Pin)</div>
-        <div class="game-detail">Both players will tee off using their <strong>non-dominant foot</strong>. Play alternate kick from the ball farther away. Kick your ball closest to the pin and win a prize</div>
-      </div>
-    </div>
-
-    <div class="hole-card water">
-      <div class="hole-num">9</div>
-      <div class="hole-game">
-        <div class="game-name">Normal Alternate Kick</div>
-        <div class="game-detail"><strong>Water hazard.</strong> Player who's tee shot was closer on the last hole will tee off</div>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- ===== SCORING ===== -->
@@ -195,36 +114,6 @@
   </div>
 </section>
 
-<!-- ===== BONUS POINTS ===== -->
-<section id="bonus-points-section" class="content">
-  <h2 class="section-title">Bonus Points</h2>
-  <div class="section-rule"></div>
-  <p>Five ways to pad your score outside the standard Stableford count.</p>
-
-  <div class="bonus-grid">
-    <div class="bonus-row">
-      <div class="pts">+1</div>
-      <div class="what"><strong>Closest to the Pin</strong> on the Opposite Leg Day Hole (#8)</div>
-    </div>
-    <div class="bonus-row">
-      <div class="pts">+1</div>
-      <div class="what"><strong>Longest Throw-In</strong> on the Throwing In Hole (#5)</div>
-    </div>
-    <div class="bonus-row">
-      <div class="pts">+2</div>
-      <div class="what"><strong>Birdie</strong> on the Opposite Leg Day Hole (#8).</div>
-    </div>
-    <div class="bonus-row">
-      <div class="pts">+3</div>
-      <div class="what"><strong>Birdie</strong> on The aGitATING Hole (#6) &mdash; <em>Eagle counts double.</em></div>
-    </div>
-    <div class="bonus-row">
-      <div class="pts">+3</div>
-      <div class="what"><strong>Guess the Grass</strong> &mdash; correctly identify the turfgrass species in the cup. No phones! Submit your answer to the Commissioner before the awards ceremony.</div>
-    </div>
-  </div>
-</section>
-
 <!-- ===== FOOTER ===== -->
 <footer class="app-footer">
   <a href="../index.html" class="brand-text">The Amateurs</a>
@@ -238,23 +127,6 @@
     document.querySelector('nav.drawer').classList.toggle('open');
     document.querySelector('.nav-overlay').classList.toggle('open');
   }
-</script>
-
-<script type="module">
-  // Live-toggle the Hole Games and Bonus Points sections based on the
-  // event config the Commissioner controls in admin.html. Sections stay
-  // visible by default (only hidden when the flag is explicitly false).
-  import { onEventConfig } from "../js/firebase-init.js";
-
-  const holeGames = document.getElementById("hole-games-section");
-  const bonus     = document.getElementById("bonus-points-section");
-
-  onEventConfig((cfg) => {
-    const showHoleGames = !(cfg && cfg.holeGamesVisible === false);
-    const showBonus     = !(cfg && cfg.bonusVisible      === false);
-    if (holeGames) holeGames.style.display = showHoleGames ? "" : "none";
-    if (bonus)     bonus.style.display     = showBonus     ? "" : "none";
-  });
 </script>
 
 <script>

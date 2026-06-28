@@ -712,6 +712,45 @@
   .master-grass-block.correct   .gg-pill { background: rgba(42,156,79,0.18); color: var(--green); }
   .master-grass-block.incorrect .gg-pill { background: rgba(232,67,36,0.15); color: var(--red); }
   .master-grass-block.empty     .gg-pill { background: rgba(15,89,40,0.10); color: var(--ink-soft); }
+
+  /* ---- New Event launcher + full-screen overlay ---- */
+  .ne-launcher-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .ne-summary { margin-top: 14px; }
+  .ne-summary-grid {
+    display: grid; grid-template-columns: auto 1fr; gap: 8px 16px;
+    margin: 0; font-size: 15px;
+  }
+  .ne-summary-grid dt {
+    font-weight: 600; color: var(--ink-soft); text-transform: uppercase;
+    font-size: 12px; letter-spacing: 0.04em; align-self: center;
+  }
+  .ne-summary-grid dd { margin: 0; color: var(--ink); font-weight: 600; }
+  .ne-modal {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(15,89,40,0.45);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 16px; overflow-y: auto;
+  }
+  .ne-modal-card {
+    width: 100%; max-width: 520px; margin: 24px auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .ne-modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ne-modal-head h2 { margin-bottom: 0; }
+  .ne-close {
+    background: none; border: none; font-size: 30px; line-height: 1;
+    color: var(--ink-soft); cursor: pointer; padding: 0 6px;
+  }
+  .ne-close:hover { color: var(--red); }
+  .ne-date-auto {
+    margin-top: 12px; font-size: 15px; font-weight: 600; color: var(--green);
+  }
+  .ne-date-auto:empty { display: none; }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -833,6 +872,21 @@
     <div id="cat-pre-event" class="admin-view hidden">
       <button type="button" class="btn btn-secondary cat-back" data-back>&larr; All sections</button>
       <h1 class="cat-title">Pre-Event</h1>
+
+      <!-- New Event launcher: opens the full-screen event setup overlay. -->
+      <div class="admin-card ne-launcher">
+        <div class="ne-launcher-row">
+          <div>
+            <h2 style="margin-bottom:4px;">Event setup</h2>
+            <p class="small-hint" style="margin-top:0;">Year, format, location &amp; date for this year's invitational.</p>
+          </div>
+          <button type="button" id="open-new-event" class="btn btn-primary">+ New Event</button>
+        </div>
+        <div id="ne-summary" class="ne-summary">
+          <p class="small-hint">No event configured yet.</p>
+        </div>
+      </div>
+
       <div class="cat-slot"></div>
     </div>
     <div id="cat-draft" class="admin-view hidden">
@@ -852,54 +906,64 @@
     </div>
 
     <!-- ============================================================
-         SECTION 1 — Event settings
-         Controls the year, tournament format, current status, and
-         whether the Hole Games / Bonus Points sections appear on
-         the Rules page.
+         NEW EVENT overlay — full-screen event setup (year, format,
+         location, date). Sits outside the .cat-slot so relocate()
+         leaves it in place; shown/hidden by the #open-new-event button.
          ============================================================ -->
-    <div class="admin-card" id="card-event-settings" data-cat="pre-event">
-      <h2>Event settings</h2>
-
-      <label for="evt-year">Year</label>
-      <input id="evt-year" type="number" min="2021" max="2099">
-
-      <label for="evt-format">Format</label>
-      <select id="evt-format">
-        <option value="4-person-scramble">4-person scramble</option>
-        <option value="2-person-scramble">2-person scramble</option>
-        <option value="2-person-alternate-kick">2-person alternate kick</option>
-      </select>
-
-      <p class="small-hint" style="margin-top:4px;">Event <strong>status</strong> now lives on the admin home screen so you can change it fast on event day.</p>
-
-      <label style="margin-top: 18px;">Rules page sections</label>
-
-      <div class="toggle-row">
-        <div>
-          <span class="toggle-label">Show Hole Games section</span>
-          <span class="toggle-hint">Toggles the Hole Games block on the Rules page.</span>
+    <div id="new-event-modal" class="ne-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ne-title">
+      <div class="ne-modal-card admin-card">
+        <div class="ne-modal-head">
+          <h2 id="ne-title">New Event</h2>
+          <button type="button" id="close-new-event" class="ne-close" aria-label="Close">&times;</button>
         </div>
-        <label class="toggle-switch" for="evt-hole-games-visible">
-          <input id="evt-hole-games-visible" type="checkbox">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
+        <p class="small-hint" style="margin-top:0;">Set the core details for this year's invitational.</p>
 
-      <div class="toggle-row">
-        <div>
-          <span class="toggle-label">Show Bonus Points section</span>
-          <span class="toggle-hint">Toggles the Bonus Points block on the Rules page.</span>
+        <label for="evt-year">Year</label>
+        <select id="evt-year"></select>
+
+        <label for="evt-format">Format</label>
+        <select id="evt-format">
+          <option value="4-person-scramble">4-person scramble</option>
+          <option value="2-person-scramble">2-person scramble</option>
+          <option value="2-person-alternate-kick">2-person alternate kick</option>
+        </select>
+
+        <label for="evt-location">Location</label>
+        <select id="evt-location">
+          <option value="">— Select location —</option>
+          <option value="Fox Hills Golf &amp; Banquet Center · Plymouth, MI">Fox Hills · Plymouth, MI</option>
+          <option value="The Myth Golf &amp; Banquets · Oakland Township, MI">The Myth · Oakland Township, MI</option>
+          <option value="Himalayas Putting Course · St. Andrews, Scotland">Himalayas · St. Andrews, Scotland</option>
+          <option value="__other__">Other…</option>
+        </select>
+        <input id="evt-location-other" type="text" placeholder="Enter location" class="hidden" style="margin-top:8px;">
+
+        <div class="toggle-row" style="margin-top:18px;">
+          <div>
+            <span class="toggle-label">Third Saturday of June</span>
+            <span class="toggle-hint">The Amateurs' traditional date — sets the event date automatically.</span>
+          </div>
+          <label class="toggle-switch" for="evt-third-saturday">
+            <input id="evt-third-saturday" type="checkbox" checked>
+            <span class="toggle-track"></span>
+          </label>
         </div>
-        <label class="toggle-switch" for="evt-bonus-visible">
-          <input id="evt-bonus-visible" type="checkbox">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
 
-      <div class="btn-row">
-        <button id="save-config" class="btn btn-primary">Save event settings</button>
+        <div id="evt-date-auto" class="ne-date-auto"></div>
+
+        <div id="evt-date-row" class="hidden">
+          <label for="evt-date">Event date</label>
+          <input id="evt-date" type="date">
+        </div>
+
+        <p class="small-hint" style="margin-top:14px;">Event <strong>status</strong> lives on the admin home screen so you can change it fast on event day.</p>
+
+        <div class="btn-row">
+          <button id="save-config" class="btn btn-primary">Save event</button>
+          <button type="button" id="cancel-new-event" class="btn btn-secondary">Cancel</button>
+        </div>
+        <div id="config-feedback" class="feedback hidden"></div>
       </div>
-      <div id="config-feedback" class="feedback hidden"></div>
     </div>
 
     <!-- ============================================================
@@ -1525,8 +1589,9 @@
       year: 2026,
       format: "2-person-alternate-kick",
       status: "pre-event",
-      holeGamesVisible: true,
-      bonusVisible: true,
+      location: "",
+      date: "",
+      thirdSaturdayOfJune: true,
       // Master switch for the public Leaderboard page. Default ON so
       // a brand-new event isn't accidentally dark; the commissioner can
       // flip it off in the admin Event Settings card whenever they want
@@ -1571,11 +1636,14 @@
 
   function fillConfigForm(cfg) {
     // Section 1 — Event settings
-    $("evt-year").value   = cfg.year ?? 2026;
+    populateYearOptions();
+    $("evt-year").value   = String(cfg.year ?? 2026);
     $("evt-format").value = cfg.format ?? "2-person-alternate-kick";
     $("evt-status").value = cfg.status ?? "pre-event";
-    $("evt-hole-games-visible").checked = cfg.holeGamesVisible !== false; // default ON
-    $("evt-bonus-visible").checked      = cfg.bonusVisible      !== false; // default ON
+    fillEventLocation(cfg.location || "");
+    $("evt-third-saturday").checked = cfg.thirdSaturdayOfJune !== false; // default ON
+    fillEventDate(cfg);
+    renderEventSummary(cfg);
     $("evt-leaderboard-visible").checked = cfg.leaderboardVisible !== false; // default ON
 
     // Section 2 — Draft setup
@@ -1606,20 +1674,168 @@
     }
   }
 
+  // ===== NEW EVENT overlay: helpers + wiring =============================
+  const NE_LOCATIONS = [
+    "Fox Hills Golf & Banquet Center · Plymouth, MI",
+    "The Myth Golf & Banquets · Oakland Township, MI",
+    "Himalayas Putting Course · St. Andrews, Scotland"
+  ];
+  const FORMAT_LABELS = {
+    "4-person-scramble": "4-person scramble",
+    "2-person-scramble": "2-person scramble",
+    "2-person-alternate-kick": "2-person alternate kick"
+  };
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+
+  // Fill the Year dropdown once (2021 → next year, min 2026).
+  function populateYearOptions() {
+    const sel = $("evt-year");
+    if (!sel || sel.options.length) return;
+    const end = Math.max(new Date().getFullYear() + 1, 2026);
+    for (let y = 2021; y <= end; y++) {
+      const o = document.createElement("option");
+      o.value = String(y);
+      o.textContent = String(y);
+      sel.appendChild(o);
+    }
+  }
+
+  // Third Saturday of June for a year → ISO string (YYYY-06-DD).
+  function isoThirdSaturdayOfJune(year) {
+    const june1 = new Date(year, 5, 1);
+    const firstSat = 1 + ((6 - june1.getDay() + 7) % 7);
+    const day = firstSat + 14;
+    return year + "-06-" + String(day).padStart(2, "0");
+  }
+
+  function formatNiceDate(iso) {
+    if (!iso) return "—";
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return iso;
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric", year: "numeric"
+    });
+  }
+
+  function fillEventLocation(loc) {
+    const sel = $("evt-location");
+    const other = $("evt-location-other");
+    if (!sel) return;
+    if (loc && NE_LOCATIONS.includes(loc)) {
+      sel.value = loc; other.value = ""; other.classList.add("hidden");
+    } else if (loc) {
+      sel.value = "__other__"; other.value = loc; other.classList.remove("hidden");
+    } else {
+      sel.value = ""; other.value = ""; other.classList.add("hidden");
+    }
+  }
+
+  // Sync the date UI from the checkbox + year. When "third Saturday" is on,
+  // the date is auto-computed and shown read-only; otherwise a manual date
+  // input appears.
+  function refreshDateUI() {
+    const third = $("evt-third-saturday").checked;
+    const year = Number($("evt-year").value) || new Date().getFullYear();
+    if (third) {
+      const iso = isoThirdSaturdayOfJune(year);
+      $("evt-date").value = iso;
+      $("evt-date-auto").textContent = "Event date: " + formatNiceDate(iso);
+      $("evt-date-row").classList.add("hidden");
+    } else {
+      $("evt-date-auto").textContent = "";
+      $("evt-date-row").classList.remove("hidden");
+    }
+  }
+
+  // Like refreshDateUI but seeds the manual input from saved config.
+  function fillEventDate(cfg) {
+    const third = cfg.thirdSaturdayOfJune !== false;
+    const year = Number(cfg.year) || new Date().getFullYear();
+    if (third) {
+      const iso = cfg.date || isoThirdSaturdayOfJune(year);
+      $("evt-date").value = iso;
+      $("evt-date-auto").textContent = "Event date: " + formatNiceDate(isoThirdSaturdayOfJune(year));
+      $("evt-date-row").classList.add("hidden");
+    } else {
+      $("evt-date").value = cfg.date || "";
+      $("evt-date-auto").textContent = "";
+      $("evt-date-row").classList.remove("hidden");
+    }
+  }
+
+  function renderEventSummary(cfg) {
+    const el = $("ne-summary");
+    if (!el) return;
+    if (!cfg || !cfg.year) {
+      el.innerHTML = '<p class="small-hint">No event configured yet.</p>';
+      return;
+    }
+    const fmt = FORMAT_LABELS[cfg.format] || cfg.format || "—";
+    el.innerHTML =
+      '<dl class="ne-summary-grid">' +
+      "<dt>Year</dt><dd>" + esc(cfg.year || "—") + "</dd>" +
+      "<dt>Format</dt><dd>" + esc(fmt) + "</dd>" +
+      "<dt>Location</dt><dd>" + esc(cfg.location || "—") + "</dd>" +
+      "<dt>Date</dt><dd>" + esc(cfg.date ? formatNiceDate(cfg.date) : "—") + "</dd>" +
+      "</dl>";
+  }
+
+  function openNewEvent() {
+    populateYearOptions();
+    refreshDateUI();
+    $("new-event-modal").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+  function closeNewEvent() {
+    $("new-event-modal").classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  populateYearOptions();
+  $("open-new-event").addEventListener("click", openNewEvent);
+  $("close-new-event").addEventListener("click", closeNewEvent);
+  $("cancel-new-event").addEventListener("click", closeNewEvent);
+  $("evt-third-saturday").addEventListener("change", refreshDateUI);
+  $("evt-year").addEventListener("change", refreshDateUI);
+  $("evt-location").addEventListener("change", () => {
+    const other = $("evt-location-other");
+    if ($("evt-location").value === "__other__") {
+      other.classList.remove("hidden");
+    } else {
+      other.classList.add("hidden");
+      other.value = "";
+    }
+  });
+  // Click on the dimmed backdrop (outside the card) closes the overlay.
+  $("new-event-modal").addEventListener("click", (e) => {
+    if (e.target === $("new-event-modal")) closeNewEvent();
+  });
+
   $("save-config").addEventListener("click", async () => {
     const fb = $("config-feedback");
     hide(fb);
+    const third = $("evt-third-saturday").checked;
+    const year = Number($("evt-year").value);
+    const date = third ? isoThirdSaturdayOfJune(year) : ($("evt-date").value || "");
+    let location = $("evt-location").value;
+    if (location === "__other__") location = $("evt-location-other").value.trim();
     try {
       await updateEventConfig({
-        year:               Number($("evt-year").value),
-        format:             $("evt-format").value,
-        holeGamesVisible:   $("evt-hole-games-visible").checked,
-        bonusVisible:       $("evt-bonus-visible").checked
+        year,
+        format:   $("evt-format").value,
+        location,
+        date,
+        thirdSaturdayOfJune: third
         // NOTE: status (home screen) and leaderboardVisible (During Event)
         // each auto-save on change, so they're intentionally not in this form.
       });
       fb.textContent = "Saved.";
       fb.className = "feedback ok";
+      closeNewEvent();
     } catch (err) {
       fb.textContent = err.message;
       fb.className = "feedback err";
@@ -2944,15 +3160,12 @@
 
     let row = 3; // two blank rows at the top, exactly like the source file
     years.forEach((y) => {
-      const single = !!y.singleScore;
-      const teams = (y.teams || []).slice().sort((a, b) =>
-        single ? ((a.score ?? 1e9) - (b.score ?? 1e9))   // putting: lower total wins
-               : ((b.score ?? -1e9) - (a.score ?? -1e9))); // stableford: higher wins
+      const single = !!y.singleScore;  // single = one score column (e.g. 2023 best-ball)
+      // Every year is Mod. Stableford — higher score wins, winner first.
+      const teams = (y.teams || []).slice().sort((a, b) => (b.score ?? -1e9) - (a.score ?? -1e9));
       if (!teams.length) return;
 
-      const best = single
-        ? Math.min(...teams.map(t => (t.score ?? Infinity)))
-        : Math.max(...teams.map(t => (t.score ?? -Infinity)));
+      const best = Math.max(...teams.map(t => (t.score ?? -Infinity)));
 
       const blockStart = row;
       cell(ws, `C${row}`, "Team Name", { size: 18 });
@@ -3022,6 +3235,26 @@
       seasons.forEach(s => { if (s && s.year) byYear.set(s.year, seasonToSheet(s)); });
       // Oldest year first (top of the sheet) to match the existing records file.
       const years = Array.from(byYear.values()).sort((a, b) => a.year - b.year);
+
+      // Live fallback for Stroke To Par: a season archived before stroke totals
+      // were captured (e.g. the current year) has no strokeToPar in its standings,
+      // so recompute the raw stroke total straight from the live team docs.
+      const liveYear = currentConfig && currentConfig.year;
+      if (liveYear) {
+        const liveStrokesByName = new Map();
+        (Array.isArray(currentTeams) ? currentTeams : []).forEach(t => {
+          const arr = Array.isArray(t.strokes) ? t.strokes : [];
+          let raw = 0, played = false;
+          arr.forEach(s => { if (s != null) { raw += s; played = true; } });
+          if (t.name) liveStrokesByName.set(t.name, played ? raw : null);
+        });
+        const ly = byYear.get(liveYear);
+        if (ly) (ly.teams || []).forEach(t => {
+          if ((t.strokeToPar == null) && liveStrokesByName.has(t.team)) {
+            t.strokeToPar = liveStrokesByName.get(t.team);
+          }
+        });
+      }
 
       const wb = buildResultsWorkbook(years);
       const buf = await wb.xlsx.writeBuffer();
