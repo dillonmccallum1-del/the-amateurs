@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    // Admins are users whose UID has a doc in the `admins` collection.
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // True when an update touches ONLY the fields the captain page owns.
+    // Anything else in the diff fails the rule.
+    function isCaptainFieldUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly([
+          'strokes',
+          'farthestThrow',
+          'closestToPin',
+          'scoresLocked',
+          'grassGuess',
+          'updatedAt'
+        ]);
+    }
+
+    // ---------- Teams ----------
+    // Public read (draft board / leaderboard). Admins do anything.
+    // Captains (unauthenticated) may update only their own fields, and
+    // cannot create or delete team docs.
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isCaptainFieldUpdate();
+    }
+
+    // ---------- Event config ----------
+    // Single doc at event/current. Public read (rules / leaderboard /
+    // captains all read it); admin-only writes.
+    match /event/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- Admin list ----------
+    // Public read so a signed-in user can check their own admin status.
+    match /admins/{uid} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- Hole-game library ----------
+    // Reusable hole games that power the scorecard dropdown.
+    match /holeGames/{gameId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- Courses ----------
+    // Per location+type yardage + par presets that auto-fill the scorecard.
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- Seasons (History archive) ----------
+    match /seasons/{year} {
+      allow read: if true;          // anyone can see History
+      allow write: if isAdmin();    // only commissioners can archive
+    }
+
+    // ---------- Push tokens ----------
+    // Phones may register their own token; only admins may list/remove.
+    match /pushTokens/{token} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // ---------- Notification queue (admin only) ----------
+    match /notifications/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- Saved GitHub token (admin only) ----------
+    match /config/github {
+      allow read, write: if isAdmin();
+    }
+  }
+}
